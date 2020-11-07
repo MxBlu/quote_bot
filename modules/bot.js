@@ -23,12 +23,12 @@ module.exports = (discord, db, imm, logger) => {
     logger.info("Discord connected", 1);
     
     // Cache guilds
-    let guilds = discord.guilds.map(g => g.id);
+    let guilds = discord.guilds.cache.map(g => g.id);
     db.addGuilds(...guilds);
 
     // Cache channels
-    discord.guilds.every(g => 
-      g.channels.filter(c => c.type === 'text').every(c => 
+    discord.guilds.cache.map(g => 
+      g.channels.cache.filter(c => c.type === 'text').map(c => 
         db.addChannel(g.id, c.id, c.name)
       )
     );
@@ -39,8 +39,8 @@ module.exports = (discord, db, imm, logger) => {
     db.addGuilds(guild.id);
 
     // Cache channels
-    discord.guilds.every(g => 
-      g.channels.filter(c => c.type === 'text').every(c => 
+    discord.guilds.cache.map(g => 
+      g.channels.cache.filter(c => c.type === 'text').map(c => 
         db.addChannel(g.id, c.id, c.name)
       )
     );
@@ -58,7 +58,7 @@ module.exports = (discord, db, imm, logger) => {
   }
 
   function channelUpdateHandler(oldChannel, newChannel) {
-    if (channel.type === 'text') {
+    if (newChannel.type === 'text') {
       db.addChannel(newChannel.guild.id, newChannel.id, newChannel.name);
     }
   }
@@ -86,10 +86,11 @@ module.exports = (discord, db, imm, logger) => {
 
   // Error handler
 
-  function errorLogHandler(topic, log) {
+  async function errorLogHandler(topic, log) {
     if (!errLogDisabled) {
       try {
-        var targetChannel = discord.guilds.get(errGuild).channels.get(errStream);
+        // Should ensure that it works for DM channels too
+        var targetChannel = await discord.channels.fetch(errStream);
         sendMessage(targetChannel, log);
       } catch (e) {
         console.error('Discord error log exception, disabling error log');
@@ -101,24 +102,48 @@ module.exports = (discord, db, imm, logger) => {
 
   // Utility functions
 
-  function chunkString(str, len) {
-    const size = Math.ceil(str.length/len);
-    const r = Array(size);
-    let offset = 0;
-    
-    for (let i = 0; i < size; i++) {
-      r[i] = str.substr(offset, len);
-      offset += len;
+  function chunkString(str) {
+    let chunks = [];
+    let strBuffer = '';
+
+    // Split by newline and concat strings until ideal length
+    // Then add so chunks list
+    str.split("\n").forEach(s => {
+      // A single oversized string, chunk by length
+      if (s.length > DISCORD_MAX_LEN) {
+        // Flush buffer as a chunk if there's any
+        if (strBuffer.length > 0) {
+          chunks.push(strBuffer);
+          strBuffer = '';
+        }
+        for (let i = 0; i < s.length; i += DISCORD_MAX_LEN) {
+          chunks.push(s.substr(i, DISCORD_MAX_LEN));
+        }
+      // Adding the current string would cause it to go oversized
+      // Add the current buffer as a chunk, then set the buffer 
+      //   to the current str
+      } else if (strBuffer.length + s.length + 1 > DISCORD_MAX_LEN) {
+        chunks.push(strBuffer);
+        strBuffer = s + "\n";
+      // Otherwise, add the string the the buffer
+      } else {
+        strBuffer += s + "\n";
+      }
+    });
+
+    // Flush the buffer again
+    if (strBuffer.length > 0) {
+      chunks.push(strBuffer);
+      strBuffer = '';
     }
-    
-    return r;
+
+    return chunks;
   }
 
   function sendMessage(targetChannel, msg) {
     var msgChunks = chunkString(msg, DISCORD_MAX_LEN);
-    for (var i = 0; i < msgChunks.length; i++){
-      targetChannel.send(msgChunks[i]);
-    }
+    msgChunks.forEach(
+      (chunk) => targetChannel.send(chunk));
   }
 
   function parseCommand(cmdMessage) {
@@ -144,7 +169,7 @@ module.exports = (discord, db, imm, logger) => {
   discord.on('channelCreate', channelCreateHandler);
   discord.on('channelDelete', channelDeleteHandler);
   discord.on('channelUpdate', channelUpdateHandler);
-  discord.on('messageReactionAdd', quoteEventHandler.quoteEventHandler);
+  discord.on('messageReactionAdd', quoteEventHandler.messageReactionHandler);
 
   imm.subscribe('newErrorLog', errorLogHandler);
 }
