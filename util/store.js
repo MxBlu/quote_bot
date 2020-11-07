@@ -81,13 +81,14 @@ module.exports = (logger) => {
 
     // Add a quote to the db
     addQuote: async (guildId, channelId, authorId, quoterId,
-          message, link, timestamp) => {
+          message, img, link, timestamp) => {
       let quote = new Quote({
         channel: channelId,
         guild: guildId,
         message,
         author: authorId,
         quoter: quoterId,
+        img,
         link,
         timestamp,
       })

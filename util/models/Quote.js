@@ -2,27 +2,29 @@ const mongoose = require('mongoose');
 const AutoIncrement = require('mongoose-sequence')(mongoose);
 
 const QuoteSchema = new mongoose.Schema({
-    seq: {
+    seq: { // Sequencing value, unique to the guild. For referencing quotes in a list
         type: Number,
         index: true
     },
-    channel: {
+    channel: { // Channel ID of quoted message
         type: String,
         index: true
     },
-    guild:  {
+    guild:  { // Guild ID of quoted message
         type: String,
         index: true
     },
-    message: String,
-    author: {
+    message: String, // Message contents, in form of embed description
+    author: { // User ID of quoted message author
         type: String,
         index: true,
     },
-    quoter: String,
-    link: String,
-    timestamp: Date
+    quoter: String, // User ID of quote saver
+    img: String, // Image link if present in message
+    link: String, // URL of quoted message
+    timestamp: Date // Date of quoted message
 });
+// AutoIncrement handles maintaining the sequencing value 
 QuoteSchema.plugin(AutoIncrement, {id: 'guild_seq', inc_field: 'seq', reference_fields: ['guild']});
 QuoteSchema.statics.getBySeq = function (guild, seq) { 
     return this.findOne({ guild, seq });
