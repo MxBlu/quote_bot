@@ -8,13 +8,13 @@
     "fstart": "pm2 start --name quotebot main.js"
   },
   "dependencies": {
-    "@discordjs/uws": "^11.149.1",
-    "bufferutil": "^4.0.1",
-    "discord.js": "^11.5.0",
-    "dotenv": "^8.0.0",
+    "@discordjs/uws": "11.149.1",
+    "bufferutil": "4.0.1",
+    "discord.js": "11.5.0",
+    "dotenv": "8.0.0",
     "erlpack": "hammerandchisel/erlpack",
-    "mongoose": "^5.10.13",
-    "mongoose-sequence": "^5.3.0"
+    "mongoose": "5.10.13",
+    "mongoose-sequence": "5.3.0"
   },
   "devDependencies": {
     "nodemon": "^1.19.0"
