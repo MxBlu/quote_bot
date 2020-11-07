@@ -1,5 +1,3 @@
-const mangadex = require('../util/mangadex');
-
 const errGuild = process.env.DISCORD_ERRGUILD;
 const errStream = process.env.DISCORD_ERRSTREAM;
 const adminUser = process.env.DISCORD_ADMINUSER;
@@ -12,13 +10,11 @@ module.exports = (discord, db, imm, logger) => {
 
   var errLogDisabled = false;
 
+  const quoteEventHandler       = require('./command_handlers/quote_event')(discord, db, imm, logger);
+  const quoteManagementHandler  = require('./command_handlers/quote_management')(discord, db, imm, logger);
+
   const commandHandlers = {
-    'notifchannel': notifchannelHandler,
-    'unnotif': unnotifHandler,
-    'sub': subscribeHandler,
-    'unsub': unsubscribeHandler,
-    'listsubs': listsubsHandler,
-    'test': testHandler
+
   };
 
   // Discord event handlers
@@ -26,18 +22,51 @@ module.exports = (discord, db, imm, logger) => {
   function readyHandler() {
     logger.info("Discord connected", 1);
     
+    // Cache guilds
     let guilds = discord.guilds.map(g => g.id);
     db.addGuilds(...guilds);
+
+    // Cache channels
+    discord.guilds.every(g => 
+      g.channels.filter(c => c.type === 'text').every(c => 
+        db.addChannel(g.id, c.id, c.name)
+      )
+    );
   }
 
   function joinServerHandler(guild) {
     logger.info(`Joined guild: ${guild.name}`, 2);
     db.addGuilds(guild.id);
+
+    // Cache channels
+    discord.guilds.every(g => 
+      g.channels.filter(c => c.type === 'text').every(c => 
+        db.addChannel(g.id, c.id, c.name)
+      )
+    );
   }
 
   function leaveServerHandler(guild) {
     logger.info(`Left guild: ${guild.name}`, 2);
     db.removeGuild(guild.id);
+  }
+
+  function channelCreateHandler(channel) {
+    if (channel.type === 'text') {
+      db.addChannel(channel.guild.id, channel.id, channel.name);
+    }
+  }
+
+  function channelUpdateHandler(oldChannel, newChannel) {
+    if (channel.type === 'text') {
+      db.addChannel(newChannel.guild.id, newChannel.id, newChannel.name);
+    }
+  }
+
+  function channelDeleteHandler(channel) {
+    if (channel.type === 'text') {
+      db.delChannel(channel.guild.id, channel.id);
+    }
   }
 
   async function messageHandler(message) {
@@ -55,208 +84,7 @@ module.exports = (discord, db, imm, logger) => {
     return;
   }
 
-  // Command handlers
-
-  async function testHandler(command) {
-    if (command.message.author.id != adminUser) {
-      logger.info(`Non-admin user ${command.message.author.username} attempted to use !test`);
-      return;
-    }
-
-    imm.notify('newFeedItem', {
-      title: 'The 100 Girlfriends Who Really, Really, Really, Really, Really Love You - Volume 3, Chapter 23.5',
-      link: 'https://mangadex.org/chapter/1044641',
-      mangaLink: 'https://mangadex.org/title/44394'
-    });
-  }
-
-  async function notifchannelHandler(command) {
-    if (command.arguments.length == 0) {
-      sendCmdMessage(command.message, 'Error: missing arugment, provide role to register', 3);
-      return;
-    }
-    const roleName = command.arguments[0];
-
-    let guild = command.message.guild;
-    let channel = command.message.channel;
-    let role = guild.roles.find(r => r.name == roleName);
-    
-    if (role == null) {
-      sendCmdMessage(command.message, 'Error: role does not exist', 3);
-      return;
-    }
-
-    await db.addRole(guild.id, role.id);
-    await db.setNotifChannel(guild.id, role.id, channel.id);
-    sendCmdMessage(command.message, `Notif channel set to #${channel.name} for role @${role.name}`, 2);
-  }
-
-  async function unnotifHandler(command) {
-    if (! await checkIfSubscribed(command.message)) {
-      // Only handle if listening to this channel already
-      logger.info(`Not listening to channel #${command.message.channel.name}`);
-      return;
-    }
-    if (command.arguments.length == 0) {
-      sendCmdMessage(command.message, 'Error: missing arugment, provide role to unregister', 3);
-      return;
-    }
-    const roleName = command.arguments[0];
-
-    let guild = command.message.guild;
-    let role = guild.roles.find(r => r.name == roleName);
-
-    if (role == null) {
-      sendCmdMessage(command.message, 'Error: role does not exist', 3);
-      return;
-    }
-
-    await db.delRole(guild.id, role.id);
-    await db.delNotifChannel(guild.id, role.id);
-    sendCmdMessage(command.message, `No longer notifying for role @${role.name}`, 2);
-  }
-
-  async function subscribeHandler(command) {
-    if (! await checkIfSubscribed(command.message)) {
-      // Only handle if listening to this channel already
-      logger.info(`Not listening to channel #${command.message.channel.name}`);
-      return;
-    }
-    if (command.arguments.length < 2) {
-      sendCmdMessage(command.message, 'Error: missing an arugment, provide role and title URL', 3);
-      return;
-    }
-    const roleName = command.arguments[0];
-    const titleId = mangadex.parseTitleUrl(command.arguments[1]);
-
-    if (titleId == null) {
-      sendCmdMessage(command.message, 'Error: bad title URL', 3);
-      return;
-    }
-    
-    let guild = command.message.guild;
-    let role = guild.roles.find(r => r.name == roleName);
-
-    if (role == null) {
-      sendCmdMessage(command.message, 'Error: role does not exist', 3);
-      return;
-    }
-
-    let titleName = "";
-    try {
-      titleName = await mangadex.getMangaTitle(titleId);
-    } catch (e) {
-      sendCmdMessage(command.message, 'Error: Invalid url or Mangadex connection issues, try again', 2);
-      return;
-    }
-    await db.setTitleName(titleId, titleName);
-    await db.addTitle(guild.id, role.id, titleId);
-    sendCmdMessage(command.message, `Added title '${titleName}' to role @${role.name}`, 2);
-  }
-
-  async function unsubscribeHandler(command) {
-    if (! await checkIfSubscribed(command.message)) {
-      // Only handle if listening to this channel already
-      logger.info(`Not listening to channel #${command.message.channel.name}`);
-      return;
-    }
-    if (command.arguments.length == 0) {
-      sendCmdMessage(command.message, 'Error: missing an arugment, provide role and title URL', 3);
-      return;
-    }
-    const roleName = command.arguments[0];
-    const titleId = mangadex.parseTitleUrl(command.arguments[1]);
-
-    if (titleId == null) {
-      sendCmdMessage(command.message, 'Error: bad title URL', 3);
-      return;
-    }
-
-    let guild = command.message.guild;
-    let role = guild.roles.find(r => r.name == roleName);
-
-    if (role == null) {
-      sendCmdMessage(command.message, 'Error: role does not exist', 3);
-      return;
-    }
-
-    let titleName = await db.getTitleName(titleId);
-    await db.delTitle(guild.id, role.id, titleId);
-    // TODO: Use Mangadex api to display title from db
-    sendCmdMessage(command.message, `Removed title '${titleName}' from role @${role.name}`, 2);
-  }
-
-  async function listsubsHandler(command) {
-    if (! await checkIfSubscribed(command.message)) {
-      // Only handle if listening to this channel already
-      logger.info(`Not listening to channel #${command.message.channel.name}`);
-      return;
-    }
-    if (command.arguments.length == 0) {
-      sendCmdMessage(command.message, 'Error: missing an arugment, provide role', 3);
-      return;
-    }
-    const roleName = command.arguments[0];
-
-    let guild = command.message.guild;
-    let role = guild.roles.find(r => r.name == roleName);
-
-    if (role == null) {
-      sendCmdMessage(command.message, 'Error: role does not exist', 3);
-      return;
-    }
-
-    const titles = await db.getTitles(guild.id, role.id);
-    if (titles == null || titles.size == 0) {
-      sendCmdMessage(command.message, 'No subscriptions', 3);
-    }
-    
-    let titleNames = {};
-    for (let title of titles) {
-      titleNames[title] = await db.getTitleName(title);
-    }
-
-    let str = Array.from(titles.values()).map(t => `${titleNames[t]} - <${mangadex.toTitleUrl(t)}>`).join('\n');
-    sendCmdMessage(command.message, str, 3);
-  }
-
-  // Message bus event handlers
-
-  async function newChapterHandler(topic, chapter) {
-    const guild = discord.guilds.get(chapter.guild);
-    if (guild == null) {
-      logger.error(`Error: notifying for a guild no longer available: ${chapter.guild}`);
-      return;
-    }
-
-    let channels = {};
-    for (let roleId of chapter.roles) {
-      let nc = await db.getNotifChannel(guild.id, roleId);
-      if (nc == null) {
-        continue;
-      }
-      if (nc in channels) {
-        channels[nc].push(roleId);
-      } else {
-        channels[nc] = [ roleId ];
-      }
-    }
-
-    for (let [channelId, roles] of Object.entries(channels)) {
-      let channel = guild.channels.get(channelId);
-      let pingStr = roles.map(tr => `<@&${tr}>`).join(' ');
-
-      var msg = 
-        `${chapter.title} - ${chapter.pageCount} pages ${pingStr}\n` +
-        `${chapter.link}`
-      
-      try {
-        sendMessage(channel, msg); 
-      } catch (e) {
-        logger.error(`Failed to send notification to ${guild.id}@${channelId}: ${e}`);
-      }
-    }
-  }
+  // Error handler
 
   function errorLogHandler(topic, log) {
     if (!errLogDisabled) {
@@ -286,11 +114,6 @@ module.exports = (discord, db, imm, logger) => {
     return r;
   }
 
-  function sendCmdMessage(message, msg, level) {
-    logger.info(`${message.author.username} - ${message.guild.name} - ${msg}`, level);
-    sendMessage(message.channel, msg);
-  }
-
   function sendMessage(targetChannel, msg) {
     var msgChunks = chunkString(msg, DISCORD_MAX_LEN);
     for (var i = 0; i < msgChunks.length; i++){
@@ -314,26 +137,14 @@ module.exports = (discord, db, imm, logger) => {
     };
   }
 
-  async function checkIfSubscribed(message) {
-    const guild = message.guild;
-    const channel = message.channel;
-    const roles = await db.getRoles(guild.id);
-
-    for (let r of roles) {
-      let nc = await db.getNotifChannel(guild.id, r);
-      if (nc == channel.id) {
-        return true;
-      }
-    }
-    
-    return false;
-  }
-
   discord.once('ready', readyHandler);
   discord.on('message', messageHandler);
   discord.on('guildCreate', joinServerHandler);
   discord.on('guildDelete', leaveServerHandler);
+  discord.on('channelCreate', channelCreateHandler);
+  discord.on('channelDelete', channelDeleteHandler);
+  discord.on('channelUpdate', channelUpdateHandler);
+  discord.on('messageReactionAdd', quoteEventHandler.quoteEventHandler);
 
-  imm.subscribe('newChapter', newChapterHandler);
   imm.subscribe('newErrorLog', errorLogHandler);
 }
