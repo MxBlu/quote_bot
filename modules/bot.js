@@ -14,7 +14,9 @@ module.exports = (discord, db, imm, logger) => {
   const quoteManagementHandler  = require('./command_handlers/quote_management')(discord, db, imm, logger);
 
   const commandHandlers = {
-
+    "listquotes": quoteManagementHandler.listquotesHandler,
+    "getquote": quoteManagementHandler.getquoteHandler,
+    "delquote": quoteManagementHandler.delquoteHandler
   };
 
   // Discord event handlers

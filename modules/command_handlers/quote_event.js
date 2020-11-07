@@ -75,6 +75,7 @@ module.exports = (discord, db, imm, logger) => {
       const messagePreamble = `**${quoter_name}** saved quote a by **${author_name}**:`;
       const embed = generateEmbed(message, author);
 
+      // Store quoted message to db
       await db.addQuote(message.guild.id, message.channel.id, author.id, quoter.id,
         embed.description, embed.image?.url, message.url, message.createdAt);
 
