@@ -6,6 +6,7 @@ const IMG_RX = /https?:\/\/[^\s]+\.(?:jpg|png)/i;
 module.exports = (discord, db, imm, logger) => {
 
   async function quoteHandler(reaction, quoter) {
+    // TODO: Add logging
     const message = reaction.message;
     const author = await message.guild.members.fetch(message.author.id);
     const quoterResolved = await message.guild.members.fetch(quoter.id);
