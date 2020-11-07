@@ -3,17 +3,16 @@ const mongoose  = require('mongoose');
 const Quote = require('./models/Quote');
 
 module.exports = (mongoUrl, logger) => {
-  mongoose.connect(mongoUrl, { autoCreate: true, autoIndex: true });
   
   // Guilds and channels can be ephemeral
   var guilds = new Set();
   var channels = {};
 
-  rclient.on('error', (err) => {
+  mongoose.connection.on('error', (err) => {
     logger.error(`MongoDB error: ${err}`);
   });
 
-  rclient.once('open', () => {
+  mongoose.connection.once('open', () => {
     logger.info('MongoDB connected', 1);
   });
 
@@ -94,21 +93,6 @@ module.exports = (mongoUrl, logger) => {
     // Delete a quote from the db
     delQuote: async (guildId, seq) => {
       return Quote.deleteBySeq(guildId, seq);
-    },
-
-    // Fetch roles from db for a given guild, returns set
-    getRoles: async (guildId) => {
-      return new Set(await rclient.smembers(`${guildId}_roles`));
-    },
-
-    // Add role to db for a given guild
-    addRole: async (guildId, roleId) => {
-      return rclient.sadd(`${guildId}_roles`, roleId);
-    },
-
-    // Delete role from db for a given guild
-    delRole: async (guildId, roleId) => {
-      return rclient.srem(`${guildId}_roles`, roleId);
     },
 
   }
