@@ -41,10 +41,10 @@ module.exports = (v) => {
 			}
 		},
 
-    // Register messenger for Discord logging
+	  // Register messenger for Discord logging
 		registerMessenger: (messenger) => {
 			imm = messenger;
 		}
 	
-  	}
+  }
 }
