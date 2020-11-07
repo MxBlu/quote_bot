@@ -43,26 +43,45 @@ module.exports = (discord, db, imm, logger) => {
     return embed;
   }
 
-  async function quoteHandler(reaction, quoter) {
-    // Properly resolve guild members from message author
-    // I think it's a discord.js issue
-    const message = reaction.message;
-    const author = await message.guild.members.fetch(message.author.id);
-    const quoterResolved = await message.guild.members.fetch(quoter.id);
+  async function quoteHandler(message, quoter) {
+      // Properly resolve guild members from message author
+      // I think it's a discord.js issue
+      const author = await message.guild.members.fetch(message.author.id);
 
-    // Get nickname or username if not available
-    const author_name = author.nickname || author.user.username;
-    const quoter_name = quoterResolved.nickname || quoterResolved.user.username;
+      // Get nickname or username if not available
+      const author_name = author.nickname || author.user.username;
+      const quoter_name = quoter.nickname || quoter.user.username;
 
-    // Create message to send
-    const messagePreamble = `**${quoter_name}** quoted **${author_name}**:`;
-    const embed = generateEmbed(message, author);
+      // Create message to send
+      const messagePreamble = `**${quoter_name}** quoted **${author_name}**:`;
+      const embed = generateEmbed(message, author);
 
-    logger.info(`${quoter_name} quoted ${message.url}`, 2);
-    
-    // Send message with embed and remove reaction
-    message.channel.send(messagePreamble, embed);
-    reaction.remove();
+      logger.info(`${quoter_name} quoted ${message.url}`, 2);
+      
+      // Send message with embed
+      message.channel.send(messagePreamble, embed);
+  }
+
+  async function quoteSaveHandler(message, quoter) {
+      // Properly resolve guild members from message author
+      // I think it's a discord.js issue
+      const author = await message.guild.members.fetch(message.author.id);
+
+      // Get nickname or username if not available
+      const author_name = author.nickname || author.user.username;
+      const quoter_name = quoter.nickname || quoter.user.username;
+
+      // Create message to send
+      const messagePreamble = `**${quoter_name}** saved quote a by **${author_name}**:`;
+      const embed = generateEmbed(message, author);
+
+      await db.addQuote(message.guild.id, message.channel.id, author.id, quoter.id,
+        embed.description, embed.image?.url, message.url, message.createdAt);
+
+      logger.info(`${quoter_name} saved quote ${message.url}`, 2);
+      
+      // Send message with embed
+      message.channel.send(messagePreamble, embed);
   }
 
 	return {
@@ -70,15 +89,22 @@ module.exports = (discord, db, imm, logger) => {
     messageReactionHandler: async (reaction, user) => {
       // Dumb ass shit cause Discord.js doesn't resolve them
       reaction = await reaction.fetch();
-      user = await user.fetch();
+      user = await reaction.message.guild.members.fetch(user.id);
 
       logger.info(`Reaction with emoji ${reaction.emoji.name} detected`, 4);
+      // Handle emojis we care about
+      // Remove reaction if we're handling em
       switch (reaction.emoji.name) {
       case "#️⃣":
         // Quote on hash react
-        quoteHandler(reaction, user);
+        quoteHandler(reaction.message, user);
+        reaction.remove();
         break;
+      case "omegachair":
       case "♿":
+        // Save on wheelchair react
+        quoteSaveHandler(reaction.message, user);
+        reaction.remove();
         break;
       }
     }
