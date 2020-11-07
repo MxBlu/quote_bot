@@ -27,6 +27,7 @@ module.exports = (logger) => {
     // Also create channel maps
     addGuilds: (...guildIds) => {
       guildIds.forEach((g) => {
+        logger.info(`Adding guild: ${g}`, 4);
         guilds.add(g);
         channels[g] = {};
       });
@@ -36,6 +37,7 @@ module.exports = (logger) => {
     // Remove guild from guild set
     // Also remove channel set
     removeGuild: (guildId) => {
+      logger.info(`Removing guild: ${guildId}`, 4);
       guilds.delete(guildId);
       delete channels[guildId];
     },
@@ -47,11 +49,13 @@ module.exports = (logger) => {
 
     // Add channel to channel map
     addChannel: (guildId, channelId, channelName) => {
+      logger.info(`Adding guild: ${guildId} => {${channelId}, ${channelName}}`, 4);
       channels[guildId][channelId] = channelName;
     },
 
     // Remove channel from channel map
     delChannel: (guildId, channelId) => {
+      logger.info(`Deleting channel: ${guildId} => ${channelId}`, 4);
       delete channels[guildId][channelId];
     },
 
