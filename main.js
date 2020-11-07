@@ -20,7 +20,7 @@ var db = require('./util/store')(logger);
 
 // Discord Client
 const discordToken = process.env.DISCORD_TOKEN;
-var discord = new Discord.Client();
+var discord = new Discord.Client({ partials: [ 'GUILD_MEMBER', 'MESSAGE', 'REACTION' ] });
 
 // Setup Discord services
 require('./modules/bot')(discord, db, messenger, logger);
