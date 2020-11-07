@@ -2,7 +2,7 @@ const mongoose  = require('mongoose');
 
 const Quote = require('./models/Quote');
 
-module.exports = (mongoUrl, logger) => {
+module.exports = (logger) => {
   
   // Guilds and channels can be ephemeral
   var guilds = new Set();

@@ -40,4 +40,4 @@ QuoteSchema.statics.findByAuthor = function (author, guild) {
     return this.find({ author, guild });
 }
 
-module.exports = mongoose.Model('Quote', QuoteSchema);
+module.exports = mongoose.model('Quote', QuoteSchema);
