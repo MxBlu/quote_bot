@@ -1,5 +1,4 @@
-
-const MessageEmbed = require('discord.js').MessageEmbed;
+const { MessageEmbed } = require("discord.js");
 
 const IMG_RX = /https?:\/\/[^\s]+\.(?:jpg|png)/i;
 
