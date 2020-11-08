@@ -22,52 +22,6 @@ module.exports = (discord, db, imm, logger) => {
 
   function readyHandler() {
     logger.info("Discord connected", 1);
-    
-    // Cache guilds
-    let guilds = discord.guilds.cache.map(g => g.id);
-    db.addGuilds(...guilds);
-
-    // Cache channels
-    discord.guilds.cache.map(g => 
-      g.channels.cache.filter(c => c.type === 'text').map(c => 
-        db.addChannel(g.id, c.id, c.name)
-      )
-    );
-  }
-
-  function joinServerHandler(guild) {
-    logger.info(`Joined guild: ${guild.name}`, 2);
-    db.addGuilds(guild.id);
-
-    // Cache channels
-    discord.guilds.cache.map(g => 
-      g.channels.cache.filter(c => c.type === 'text').map(c => 
-        db.addChannel(g.id, c.id, c.name)
-      )
-    );
-  }
-
-  function leaveServerHandler(guild) {
-    logger.info(`Left guild: ${guild.name}`, 2);
-    db.removeGuild(guild.id);
-  }
-
-  function channelCreateHandler(channel) {
-    if (channel.type === 'text') {
-      db.addChannel(channel.guild.id, channel.id, channel.name);
-    }
-  }
-
-  function channelUpdateHandler(oldChannel, newChannel) {
-    if (newChannel.type === 'text') {
-      db.addChannel(newChannel.guild.id, newChannel.id, newChannel.name);
-    }
-  }
-
-  function channelDeleteHandler(channel) {
-    if (channel.type === 'text') {
-      db.delChannel(channel.guild.id, channel.id);
-    }
   }
 
   async function messageHandler(message) {
@@ -121,11 +75,6 @@ module.exports = (discord, db, imm, logger) => {
 
   discord.once('ready', readyHandler);
   discord.on('message', messageHandler);
-  discord.on('guildCreate', joinServerHandler);
-  discord.on('guildDelete', leaveServerHandler);
-  discord.on('channelCreate', channelCreateHandler);
-  discord.on('channelDelete', channelDeleteHandler);
-  discord.on('channelUpdate', channelUpdateHandler);
   discord.on('messageReactionAdd', quoteEventHandler.messageReactionHandler);
 
   imm.subscribe('newErrorLog', errorLogHandler);
