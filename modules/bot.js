@@ -9,6 +9,7 @@ module.exports = (discord, db, imm, logger) => {
 
   var errLogDisabled = false;
 
+  // Command handlers
   const quoteEventHandler       = require('./command_handlers/quote_event')(discord, db, imm, logger);
   const quoteManagementHandler  = require('./command_handlers/quote_management')(discord, db, imm, logger);
 

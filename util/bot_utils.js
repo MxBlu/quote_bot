@@ -1,5 +1,7 @@
 const DISCORD_MAX_LEN = 1900;
 
+// Split up a string into ideally endline terminated strings
+// at most length DISCORD_MAX_LEN
 function chunkString(str) {
   let chunks = [];
   let strBuffer = '';
@@ -38,11 +40,13 @@ function chunkString(str) {
   return chunks;
 }
 
+// Send reply to a user command, logging if appropriate
 function sendCmdMessage(message, msg, level, logger) {
   logger.info(`${message.author.username} - ${message.guild.name} - ${msg}`, level);
   sendMessage(message.channel, msg);
 }
 
+// Send message to a given channel, chunking if necessary
 function sendMessage(targetChannel, msg) {
   var msgChunks = chunkString(msg);
   msgChunks.forEach(

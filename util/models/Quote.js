@@ -24,8 +24,11 @@ const QuoteSchema = new mongoose.Schema({
   link: String, // URL of quoted message
   timestamp: Date // Date of quoted message
 });
+
 // AutoIncrement handles maintaining the sequencing value 
 QuoteSchema.plugin(AutoIncrement, {id: 'guild_seq', inc_field: 'seq', reference_fields: ['guild']});
+
+// Various helper functions, function as named
 QuoteSchema.statics.getBySeq = function (guild, seq) { 
   return this.findOne({ guild, seq });
 }
