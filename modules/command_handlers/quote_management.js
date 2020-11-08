@@ -79,6 +79,7 @@ module.exports = (discord, db, imm, logger) => {
         return;
       }
 
+      // Generate array of quote display lines
       let quoteStrings = [];
       for (let quote of quotes) {
         let author = await command.message.guild.members.fetch(quote.author);
@@ -89,6 +90,7 @@ module.exports = (discord, db, imm, logger) => {
         quoteStrings.push(`${quote.seq}: [**${quoter_name}** quoted **${author_name}** (${quote.timestamp.toLocaleString()})](${quote.link})`);
       }
 
+      // Create embed to display quotes
       let embed = new MessageEmbed()
           .setTitle(`Quotes - ${scope}`)
           .setDescription(quoteStrings.join("\n"))
