@@ -14,6 +14,7 @@ module.exports = (discord, db, imm, logger) => {
   const quoteManagementHandler  = require('./command_handlers/quote_management')(discord, db, imm, logger);
 
   const commandHandlers = {
+    "help": helpHandler,
     "listquotes": quoteManagementHandler.listquotesHandler,
     "getquote": quoteManagementHandler.getquoteHandler,
     "delquote": quoteManagementHandler.delquoteHandler
@@ -43,6 +44,28 @@ module.exports = (discord, db, imm, logger) => {
       commandHandlers[command.command](command);
     }
     return;
+  }
+
+  function helpHandler(command) {
+    if (command.arguments == null ||
+          command.arguments[0] !== "quotebot") {
+      // Only send help for !help quotebot
+      return;
+    }
+
+    let msg = 
+      "Quote Bot v2 - Quote and save messages\n" + 
+      "\n" + 
+      "Add a #️⃣ react to a message to quote the message\n" + 
+      "Add a ♿ or :omegaChair: emote to save a quote\n" + 
+      "\n" + 
+      "!listquotes [<id start>] - Get quotes from this guild, optionally starting from <id start>\n" + 
+      "!listquotes <filter> [<id start>] - Get quotes from a given channel or author, optionally starting from <id start>\n" + 
+      "!getquote - Get a random quote\n" + 
+      "!getquote <id> - Get a quote by given id\n" + 
+      "!delquote <id> - Delete a quote by given id";
+
+    sendMessage(command.message.channel, msg);
   }
 
   // Error handler
