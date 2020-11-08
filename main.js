@@ -15,7 +15,8 @@ messenger.newTopic('newErrorLog');
 
 // MongoDB
 mongoose.connect(process.env.MONGO_URI, 
-	{ autoCreate: true, autoIndex: true, useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false });
+	{ autoCreate: true, autoIndex: true, useNewUrlParser: true, 
+		useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true, });
 var db = require('./util/store')(logger);
 
 // Discord Client
