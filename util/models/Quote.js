@@ -29,6 +29,10 @@ QuoteSchema.plugin(AutoIncrement, {id: 'guild_seq', inc_field: 'seq', reference_
 QuoteSchema.statics.getBySeq = function (guild, seq) { 
   return this.findOne({ guild, seq });
 }
+QuoteSchema.statics.getRandom = async function (guild) {
+  var res = await this.aggregate([{ $match: { guild } }, { $sample: { size: 1 } }]).exec();
+  return res.length > 0 ? res[0] : null;
+}
 QuoteSchema.statics.deleteBySeq = function (guild, seq) { 
   return this.deleteOne({ guild, seq });
 }

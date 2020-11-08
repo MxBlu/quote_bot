@@ -60,22 +60,26 @@ module.exports = (logger) => {
     },
 
     // Get a quote with given seq number in a certain guild
-    getQuoteBySeq: async (guildId, seq) => {
+    getQuoteBySeq: (guildId, seq) => {
       return Quote.getBySeq(guildId, seq);
     },
 
+    getRandomQuote: async (guildId) => {
+      return Quote.getRandom(guildId);
+    },
+
     // Get all quotes in a certain guild
-    getQuotesByGuild: async (guildId) => {
+    getQuotesByGuild: (guildId) => {
       return Quote.findByGuild(guildId);
     },
 
     // Get all quotes in a certain channel
-    getQuotesByChannel: async (channelId) => {
+    getQuotesByChannel: (channelId) => {
       return Quote.findByChannel(channelId);
     },
 
     // Get all quotes in by a given author in a certain guild
-    getQuotesByAuthor: async (userId, guildId) => {
+    getQuotesByAuthor: (userId, guildId) => {
       return Quote.findByAuthor(userId, guildId);
     },
 
@@ -96,7 +100,7 @@ module.exports = (logger) => {
     },
 
     // Delete a quote from the db
-    delQuote: async (guildId, seq) => {
+    delQuote: (guildId, seq) => {
       return Quote.deleteBySeq(guildId, seq);
     },
 
