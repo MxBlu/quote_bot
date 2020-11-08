@@ -22,6 +22,11 @@ module.exports = (discord, db, imm, logger) => {
 
   function readyHandler() {
     logger.info("Discord connected", 1);
+
+    // Call fetch on every guild to make sure we have all the members cached
+    discord.guilds.cache.map(
+      g => g.members.fetch().then(logger.info(`Cached members for ${g.id}`, 3))
+    );
   }
 
   async function messageHandler(message) {
