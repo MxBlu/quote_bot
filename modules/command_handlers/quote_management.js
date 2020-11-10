@@ -84,14 +84,32 @@ module.exports = (discord, db, imm, logger) => {
       }
 
       // Generate array of quote display lines
-      let quoteStrings = [];
+      let quoteMsgs = [];
       for (let quote of quotes) {
         let author = await command.message.guild.members.fetch(quote.author);
         let quoter = await command.message.guild.members.fetch(quote.quoter);
         // Get nickname or username if not available
         const author_name = author.nickname || author.user.username;
         const quoter_name = quoter.nickname || quoter.user.username;
-        quoteStrings.push(`${quote.seq}: [**${quoter_name}** quoted **${author_name}** (${quote.timestamp.toLocaleString()})](${quote.link})`);
+        const avatar_url = (author.user.avatar &&
+          `https://cdn.discordapp.com/avatars/${author.id}/${author.user.avatar}.png`) ||
+          author.user.defaultAvatarURL;
+
+        if (command.command === 'listquotes') {
+          // Generate a list of quote links for 'listquotes'
+          quoteMsgs.push(`${quote.seq}: [**${quoter_name}** quoted **${author_name}** (${quote.timestamp.toLocaleString()})](${quote.link})`);
+        } else if (command.command === 'dumpquotes') {
+          // Generate a list of messages with content and embed
+          quoteMsgs.push({
+            content: `**${quote.seq}**: **${quoter_name}** quoted **${author_name}**:`,
+            embed: new MessageEmbed()
+                .setAuthor(author_name, avatar_url)
+                .setDescription(quote.message)
+                .setColor('RANDOM')
+                .setTimestamp(quote.timestamp)
+                .setImage(quote.img)
+          });
+        }
       }
 
       // Append ID if the start value is set
@@ -99,13 +117,22 @@ module.exports = (discord, db, imm, logger) => {
         scope += ` - From id ${start}`;
       }
 
-      // Create embed to display quotes
-      let embed = new MessageEmbed()
-          .setTitle(`Quotes - ${scope}`)
-          .setDescription(quoteStrings.join("\n"))
-      
-      logger.info(`${command.message.author.username} listed quotes - ${scope}`, 2);
-      command.message.channel.send(embed);
+      if (command.command === 'listquotes') {
+        // Create embed to display quotes
+        let embed = new MessageEmbed()
+            .setTitle(`Quotes - ${scope}`)
+            .setDescription(quoteMsgs.join("\n"))
+        
+        logger.info(`${command.message.author.username} listed quotes - ${scope}`, 2);
+        command.message.channel.send(embed);
+      } else if (command.command === 'dumpquotes') {
+        logger.info(`${command.message.author.username} dumped quotes - ${scope} - [ ${quotes.map(q => q.seq).join(', ')} ]`, 2);
+        command.message.channel.send(`**${scope}** - ${quotes.length} quotes`);
+        // Send every generated messaged
+        for (msg of quoteMsgs) {
+          command.message.channel.send(msg);
+        }
+      }
     },
 
     getquoteHandler: async (command) => {

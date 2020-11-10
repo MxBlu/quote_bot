@@ -16,6 +16,7 @@ module.exports = (discord, db, imm, logger) => {
   const commandHandlers = {
     "help": helpHandler,
     "listquotes": quoteManagementHandler.listquotesHandler,
+    "dumpquotes": quoteManagementHandler.listquotesHandler,
     "getquote": quoteManagementHandler.getquoteHandler,
     "delquote": quoteManagementHandler.delquoteHandler
   };
