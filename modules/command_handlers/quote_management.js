@@ -9,6 +9,7 @@ module.exports = (discord, db, imm, logger) => {
       let guildId = command.message.guild.id;
       let quotes = null; // Array of quotes for given criteria
       let scope = ''; // Scope of list query
+      let start = 0; // Starting seq id
 
       switch (command.arguments.length) {
       case 0:
@@ -19,11 +20,11 @@ module.exports = (discord, db, imm, logger) => {
       case 1:
       case 2:
         // Handle as quotes seq number start if first arg is numerical
-        let start = 0;
         if (command.arguments[0].match(/^\d+$/)) {
           quotes = await db.getQuotesByGuild(guildId)
               .where('seq').gte(parseInt(command.arguments[0]))
               .limit(10).exec();
+          scope = "Guild";
           break;
         } else if (command.arguments[1]?.match(/^\d+$/)) {
           start = parseInt(command.arguments[1]);
@@ -44,7 +45,7 @@ module.exports = (discord, db, imm, logger) => {
           quotes = await db.getQuotesByChannel(potentialChannel.id)
               .where('seq').gte(start)
               .limit(10).exec();
-          scope = `Channel #${potentialChannel.name} - From id ${start}`;
+          scope = `Channel #${potentialChannel.name}`;
           break;
         }
 
@@ -64,7 +65,7 @@ module.exports = (discord, db, imm, logger) => {
               .where('seq').gte(start)
               .limit(10).exec();
           user_name = potentialUser.nickname || potentialUser.user.username;
-          scope = `Author @${user_name} - From id ${start}`;
+          scope = `Author @${user_name}`;
           break;
         }
         break;
@@ -89,6 +90,11 @@ module.exports = (discord, db, imm, logger) => {
         const author_name = author.nickname || author.user.username;
         const quoter_name = quoter.nickname || quoter.user.username;
         quoteStrings.push(`${quote.seq}: [**${quoter_name}** quoted **${author_name}** (${quote.timestamp.toLocaleString()})](${quote.link})`);
+      }
+
+      // Append ID if the start value is set
+      if (start > 0) {
+        scope += ` - From id ${start}`;
       }
 
       // Create embed to display quotes
