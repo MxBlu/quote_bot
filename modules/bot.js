@@ -75,7 +75,10 @@ module.exports = (discord, db, imm, logger) => {
       try {
         // Should ensure that it works for DM channels too
         var targetChannel = await discord.channels.fetch(errStream);
-        sendMessage(targetChannel, log);
+        // Only send if we can access the error channel
+        if (targetChannel != null) {
+          sendMessage(targetChannel, log);
+        }
       } catch (e) {
         console.error('Discord error log exception, disabling error log');
         console.error(e);
