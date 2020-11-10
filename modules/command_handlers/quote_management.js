@@ -25,6 +25,7 @@ module.exports = (discord, db, imm, logger) => {
               .where('seq').gte(parseInt(command.arguments[0]))
               .limit(10).exec();
           scope = "Guild";
+          start = 10;
           break;
         } else if (command.arguments[1]?.match(/^\d+$/)) {
           start = parseInt(command.arguments[1]);
