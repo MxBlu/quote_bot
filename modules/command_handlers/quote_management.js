@@ -57,7 +57,7 @@ module.exports = (discord, db, imm, logger) => {
           potentialUser = command.message.guild.members.cache.get(userRx[1]);
         } else {
           potentialUser = command.message.guild.members
-            .cache.find(m => m.nickname.includes(command.arguments[0]) || 
+            .cache.find(m => (m.nickname && m.nickname.includes(command.arguments[0])) || 
                           m.user.username.includes(command.arguments[0]));
         }
         
