@@ -21,11 +21,11 @@ module.exports = (discord, db, imm, logger) => {
       case 2:
         // Handle as quotes seq number start if first arg is numerical
         if (command.arguments[0].match(/^\d+$/)) {
+          start = parseInt(command.arguments[0]);
           quotes = await db.getQuotesByGuild(guildId)
-              .where('seq').gte(parseInt(command.arguments[0]))
+              .where('seq').gte(start)
               .limit(10).exec();
           scope = "Guild";
-          start = 10;
           break;
         } else if (command.arguments[1]?.match(/^\d+$/)) {
           start = parseInt(command.arguments[1]);
