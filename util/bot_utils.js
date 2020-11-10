@@ -53,5 +53,30 @@ function sendMessage(targetChannel, msg) {
     (chunk) => targetChannel.send(chunk));
 }
 
+// Compare 2 strings ignoring case 
+// Return true if they're equivalent
+// Returns true if both strings are null, otherwise 
+// return false if either are null
+function stringEquivalence(str1, str2) {
+  if (str1 === null || str2 == null) {
+    return str1 == str2;
+  }
+
+  return str1.toLowerCase() === str2.toLowerCase();
+}
+
+// Search for str2 in str1 ignoring case
+// Returns true if both strings are null, otherwise 
+// return false if either are null
+function stringSearch(str1, str2) {
+  if (str1 === null || str2 == null) {
+    return str1 == str2;
+  }
+
+  return str1.toLowerCase().includes(str2.toLowerCase());
+}
+
 exports.sendCmdMessage = sendCmdMessage;
 exports.sendMessage = sendMessage;
+exports.stringEquivalence = stringEquivalence;
+exports.stringSearch = stringSearch;

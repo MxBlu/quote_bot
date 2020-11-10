@@ -1,5 +1,5 @@
 const { MessageEmbed } = require("discord.js");
-const { sendCmdMessage } = require("../../util/bot_utils");
+const { sendCmdMessage, stringEquivalence, stringSearch } = require("../../util/bot_utils");
 
 module.exports = (discord, db, imm, logger) => {
 
@@ -38,7 +38,7 @@ module.exports = (discord, db, imm, logger) => {
           potentialChannel = command.message.guild.channels.cache.get(channelRx[1]);
         } else {
           potentialChannel = command.message.guild.channels
-              .cache.find(c => c.name === command.arguments[0]);
+              .cache.find(c => stringEquivalence(c.name, command.arguments[0]));
         }
 
         // If criteria passes, get all quotes for given channel
@@ -57,8 +57,8 @@ module.exports = (discord, db, imm, logger) => {
           potentialUser = command.message.guild.members.cache.get(userRx[1]);
         } else {
           potentialUser = command.message.guild.members
-            .cache.find(m => (m.nickname && m.nickname.includes(command.arguments[0])) || 
-                          m.user.username.includes(command.arguments[0]));
+            .cache.find(m => stringSearch(m.nickname, command.arguments[0]) || 
+                          stringSearch(m.user.username, command.arguments[0]));
         }
         
         // If criteria passes, get all quotes for given user
