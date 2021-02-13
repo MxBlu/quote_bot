@@ -4,13 +4,14 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-
 // MongoDB
 const mongoose = new Mongoose();
-mongoose.connect(process.env.MONGO_URI, { autoCreate: true, autoIndex: true });
+mongoose.connect(process.env.MONGO_URI, { autoCreate: true, autoIndex: true, useNewUrlParser: true, 
+    useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true, });
 
 async function main() {
     try {
+        console.log("Start");
         const quote = await Quote.getBySeq('606704263053180929', 1);
         console.log(quote);
     } catch(err) {
@@ -18,4 +19,4 @@ async function main() {
     }
 }
 
-main();
+main().then(() => console.log("done")).catch(err => console.error(err));

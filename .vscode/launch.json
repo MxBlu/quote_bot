@@ -19,8 +19,7 @@
             "name": "Run Sandbox",
             "preLaunchTask": "tsc: build - tsconfig.json",
             "program": "${workspaceFolder}\\src\\sandbox.ts",
-            "outFiles": ["${workspaceFolder}\\built\\**\\*.js"],
-            "stopOnEntry": true
+            "outFiles": ["${workspaceFolder}\\built\\**\\*.js"]
         }
     ]
 }

@@ -1,5 +1,6 @@
-import { Schema, Model, model, Document } from 'mongoose';
-import * as AutoIncrement from 'mongoose-sequence';
+import { Schema, Model, model, Document, Mongoose } from 'mongoose';
+import * as AutoIncrementFactory from 'mongoose-sequence';
+const AutoIncrement = new AutoIncrementFactory(new Mongoose().connection);
 
 const QuoteSchema = new Schema<Quote>({
   seq: {
@@ -59,23 +60,23 @@ export interface QuoteModel extends Model<Quote> {
 
 // Various helper functions, function as named
 QuoteSchema.statics.getBySeq = function (this: Model<Quote>, guild: String, seq: Number) { 
-  return this.findOne({ guild, seq });
+  return this.findOne({ guild, seq }).exec();
 }
 QuoteSchema.statics.getRandom = async function (this: Model<Quote>, guild: String) {
   var res = await this.aggregate([{ $match: { guild } }, { $sample: { size: 1 } }]).exec();
   return res.length > 0 ? res[0] : null;
 }
 QuoteSchema.statics.deleteBySeq = function (this: Model<Quote>, guild: String, seq: Number) { 
-  return this.deleteOne({ guild, seq });
+  return this.deleteOne({ guild, seq }).exec();
 }
 QuoteSchema.statics.findByGuild = function (this: Model<Quote>, guild: String) { 
-  return this.find({ guild });
+  return this.find({ guild }).exec();
 }
 QuoteSchema.statics.findByChannel = function (this: Model<Quote>, channel: String) { 
-  return this.find({ channel });
+  return this.find({ channel }).exec();
 }
 QuoteSchema.statics.findByAuthor = function (this: Model<Quote>, author: String, guild: String) { 
-  return this.find({ author, guild });
+  return this.find({ author, guild }).exec();
 }
 
 export default model<Quote, QuoteModel>("Quote", QuoteSchema);
