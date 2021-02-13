@@ -17,10 +17,10 @@
             "type": "node",
             "request": "launch",
             "name": "Run Sandbox",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "program": "${workspaceFolder}\\sandbox.js"
+            "preLaunchTask": "tsc: build - tsconfig.json",
+            "program": "${workspaceFolder}\\src\\sandbox.ts",
+            "outFiles": ["${workspaceFolder}\\built\\**\\*.js"],
+            "stopOnEntry": true
         }
     ]
 }
