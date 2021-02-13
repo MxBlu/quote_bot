@@ -8,6 +8,7 @@
     "fstart": "pm2 start --name quotebot main.js"
   },
   "dependencies": {
+    "@typegoose/typegoose": "^7.4.8",
     "bufferutil": "4.0.2",
     "discord.js": "12.4.1",
     "dotenv": "8.0.0",
