@@ -1,10 +1,11 @@
-const Discord       = require('discord.js');
-const mongoose      = require('mongoose');
+import { Client as DiscordClient } from 'discord.js';
+import { Mongoose } from 'mongoose';
+import * as dotenv from 'dotenv';
 
-require('dotenv').config();
+dotenv.config();
 
 // Logger
-const verbosity = process.env.LOG_LEVEL || 3;
+const verbosity : Number = Number(process.env.LOG_LEVEL) || 3;
 var logger = require('./util/logger')(verbosity);
 
 // Inter-module messenger
@@ -14,14 +15,14 @@ logger.registerMessenger(messenger);
 messenger.newTopic('newErrorLog');
 
 // MongoDB
-mongoose.connect(process.env.MONGO_URI, 
+Mongoose.connect(process.env.MONGO_URI, 
 	{ autoCreate: true, autoIndex: true, useNewUrlParser: true, 
 		useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true, });
 var db = require('./util/store')(logger);
 
 // Discord Client
 const discordToken = process.env.DISCORD_TOKEN;
-var discord = new Discord.Client({ partials: [ 'GUILD_MEMBER', 'MESSAGE', 'REACTION' ] });
+const discord = new DiscordClient({ partials: [ 'GUILD_MEMBER', 'MESSAGE', 'REACTION' ] });
 
 // Setup Discord services
 require('./modules/bot')(discord, db, messenger, logger);
