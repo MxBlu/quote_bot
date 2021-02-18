@@ -71,16 +71,16 @@ module.exports = (discord, db, imm, logger) => {
       const quoter_name = quoter.nickname || quoter.user.username;
 
       // Create message to send
-      const messagePreamble = `**${quoter_name}** saved quote a by **${author_name}**:`;
       const embed = generateEmbed(message, author);
 
       // Store quoted message to db
-      await db.addQuote(message.guild.id, message.channel.id, author.id, quoter.id,
+      let quote = await db.addQuote(message.guild.id, message.channel.id, author.id, quoter.id,
         embed.description, embed.image?.url, message.url, message.createdAt);
 
       logger.info(`${quoter_name} saved quote ${message.url}`, 2);
       
       // Send message with embed
+      const messagePreamble = `${quote.seq}: **${quoter_name}** saved quote a by **${author_name}**:`;
       message.channel.send(messagePreamble, embed);
   }
 
