@@ -61,7 +61,7 @@ module.exports = (discord, db, imm, logger) => {
       "Add a ♿ or :omegaChair: emote to save a quote\n" + 
       "\n" + 
       "!listquotes [<id start>] - Get quotes from this guild, optionally starting from <id start>\n" + 
-      "!listquotes <filter> [<id start>] - Get quotes from a given channel or author, optionally starting from <id start>\n" + 
+      "!listquotes <filter> [<id start>] [<count>] - Get quotes from a given channel or author, optionally starting from <id start>\n" + 
       "!dumpquotes <filter> [<id start>] - Takes the same args as listquotes, except displays all the quotes\n" +
       "!getquote - Get a random quote\n" + 
       "!getquote <id> - Get a quote by given id\n" + 
