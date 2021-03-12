@@ -64,6 +64,7 @@ module.exports = (discord, db, imm, logger) => {
       "!listquotes <filter> [<id start>] - Get quotes from a given channel or author, optionally starting from <id start>\n" + 
       "!dumpquotes <filter> [<id start>] - Takes the same args as listquotes, except displays all the quotes\n" +
       "!getquote - Get a random quote\n" + 
+      "!getquote <filter> - Get a random quote from a given author\n" + 
       "!getquote <id> - Get a quote by given id\n" + 
       "!delquote <id> - Delete a quote by given id";
 
