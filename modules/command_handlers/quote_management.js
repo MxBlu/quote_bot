@@ -1,8 +1,6 @@
 const { MessageEmbed } = require("discord.js");
 const { sendCmdMessage, stringEquivalence, stringSearch } = require("../../util/bot_utils");
 
-const QUOTE_LIST_MAX = 100;
-
 module.exports = (discord, db, imm, logger) => {
 
   return {
@@ -12,7 +10,6 @@ module.exports = (discord, db, imm, logger) => {
       let quotes = null; // Array of quotes for given criteria
       let scope = ''; // Scope of list query
       let start = 0; // Starting seq id
-      let count = 10; // Number of quotes to list
 
       switch (command.arguments.length) {
       case 0:
@@ -20,15 +17,6 @@ module.exports = (discord, db, imm, logger) => {
         quotes = await db.getQuotesByGuild(guildId).limit(10).exec();
         scope = "Guild";
         break;
-      case 3:
-        if (command.arguments[2].match(/^\d+$/)) {
-          count = parseInt(command.arguments[2]);
-          if (count > QUOTE_LIST_MAX) {
-            count = QUOTE_LIST_MAX;
-          } else if (count < 0) {
-            count = 10;
-          }
-        }
       case 1:
       case 2:
         // Handle as quotes seq number start if first arg is numerical
@@ -36,7 +24,7 @@ module.exports = (discord, db, imm, logger) => {
           start = parseInt(command.arguments[0]);
           quotes = await db.getQuotesByGuild(guildId)
               .where('seq').gte(start)
-              .limit(count).exec();
+              .limit(10).exec();
           scope = "Guild";
           break;
         } else if (command.arguments[1]?.match(/^\d+$/)) {
@@ -57,7 +45,7 @@ module.exports = (discord, db, imm, logger) => {
         if (potentialChannel != null) {
           quotes = await db.getQuotesByChannel(potentialChannel.id)
               .where('seq').gte(start)
-              .limit(count).exec();
+              .limit(10).exec();
           scope = `Channel #${potentialChannel.name}`;
           break;
         }
@@ -77,7 +65,7 @@ module.exports = (discord, db, imm, logger) => {
         if (potentialUser != null) {
           quotes = await db.getQuotesByAuthor(potentialUser.id, guildId)
               .where('seq').gte(start)
-              .limit(count).exec();
+              .limit(10).exec();
           user_name = potentialUser.nickname || potentialUser.user.username;
           scope = `Author @${user_name}`;
           break;
