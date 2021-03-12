@@ -145,14 +145,29 @@ module.exports = (discord, db, imm, logger) => {
         quote = await db.getRandomQuote(guildId);
         break;
       case 1:
+        // If first arg is a number
         // Get quote with given seq ID
-        try {
+        if (command.arguments[0].match(/^\d+$/)) {
           quote = await db
               .getQuoteBySeq(guildId, parseInt(command.arguments[0])).exec();
-        } catch (e) {
-          // Will be thrown if argument is non-integer
-          sendCmdMessage(command.message, 'Error: invalid argument', 3, logger);
-          return;
+          break;
+        }
+
+        // Handle if first arg may be a username or user nickname
+        let potentialUser = null;
+        let userRx = command.arguments[0].match(/^<@!(\d+)>$/);
+        if (userRx != null) {
+          potentialUser = command.message.guild.members.cache.get(userRx[1]);
+        } else {
+          potentialUser = command.message.guild.members
+            .cache.find(m => stringSearch(m.nickname, command.arguments[0]) || 
+                          stringSearch(m.user.username, command.arguments[0]));
+        }
+        
+        // If criteria passes, get all quotes for given user
+        if (potentialUser != null) {
+          quote = await db.getRandomQuoteFromAuthor(guildId, potentialUser.id);
+          break;
         }
         break;
       default:

@@ -24,6 +24,11 @@ module.exports = (logger) => {
       return Quote.getRandom(guildId);
     },
 
+    // Get a random quote in a certain guild
+    getRandomQuoteFromAuthor: async (guildId, authorId) => {
+      return Quote.getRandomFromAuthor(guildId, authorId);
+    },
+
     // Get all quotes in a certain guild
     getQuotesByGuild: (guildId) => {
       return Quote.findByGuild(guildId);

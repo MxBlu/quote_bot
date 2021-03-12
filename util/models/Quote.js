@@ -36,6 +36,10 @@ QuoteSchema.statics.getRandom = async function (guild) {
   var res = await this.aggregate([{ $match: { guild } }, { $sample: { size: 1 } }]).exec();
   return res.length > 0 ? res[0] : null;
 }
+QuoteSchema.statics.getRandomFromAuthor = async function (guild, author) {
+  var res = await this.aggregate([{ $match: { author, guild } }, { $sample: { size: 1 } }]).exec();
+  return res.length > 0 ? res[0] : null;
+}
 QuoteSchema.statics.deleteBySeq = function (guild, seq) { 
   return this.deleteOne({ guild, seq });
 }
