@@ -18,7 +18,8 @@ module.exports = (discord, db, imm, logger) => {
     "listquotes": quoteManagementHandler.listquotesHandler,
     "dumpquotes": quoteManagementHandler.listquotesHandler,
     "getquote": quoteManagementHandler.getquoteHandler,
-    "delquote": quoteManagementHandler.delquoteHandler
+    "delquote": quoteManagementHandler.delquoteHandler,
+    "reattrquote": quoteManagementHandler.reattrquoteHandler
   };
 
   // Discord event handlers
@@ -66,7 +67,8 @@ module.exports = (discord, db, imm, logger) => {
       "!getquote - Get a random quote\n" + 
       "!getquote <filter> - Get a random quote from a given author\n" + 
       "!getquote <id> - Get a quote by given id\n" + 
-      "!delquote <id> - Delete a quote by given id";
+      "!delquote <id> - Delete a quote by given id\n" +
+      "!reattrquote <id> <user> - Reattribute a quote to a given user";
 
     sendMessage(command.message.channel, msg);
   }

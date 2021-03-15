@@ -1,5 +1,5 @@
 const { MessageEmbed } = require("discord.js");
-const { sendCmdMessage, stringEquivalence, stringSearch } = require("../../util/bot_utils");
+const { sendCmdMessage, stringEquivalence, stringSearch, isAdmin } = require("../../util/bot_utils");
 
 module.exports = (discord, db, imm, logger) => {
 
@@ -231,6 +231,57 @@ module.exports = (discord, db, imm, logger) => {
         sendCmdMessage(command.message, 'Error: incorrect argument count', 3, logger);
         return;
       }
+    },
+
+    reattrquoteHandler: async (command) => {
+      if (! await isAdmin(command.message)) {
+        sendCmdMessage(command.message, 'Error: not admin', 2, logger);
+      }
+
+      let guildId = command.message.guild.id;
+      let newAuthor = null;
+      let quote = null;
+      switch (command.arguments.length) {
+      case 2:
+        // Reattribute a quote to a given user
+        // Admin only
+        try {
+          let quoteId = parseInt(command.arguments[0]);
+          
+          // Get the user to reattribute to
+          let userRx = command.arguments[1].match(/^<@!(\d+)>$/);
+          if (userRx != null) {
+            newAuthor = command.message.guild.members.cache.get(userRx[1]);
+          } else {
+            newAuthor = command.message.guild.members
+              .cache.find(m => stringSearch(m.nickname, command.arguments[1]) || 
+                            stringSearch(m.user.username, command.arguments[1]));
+          }
+
+          if (newAuthor == null) {
+            sendCmdMessage(command.message, `Error: user does not exist`, 2, logger);
+            return;
+          }
+
+          quote = await db.getQuoteBySeq(guildId, quoteId);
+          if (quote == null) {
+            sendCmdMessage(command.message, `Error: invalid quote ID`, 2, logger);
+            return;
+          }
+        } catch (e) {
+          sendCmdMessage(command.message, 'Error: invalid argument', 3, logger);
+          return;
+        }
+        break;
+      default:
+        sendCmdMessage(command.message, 'Error: incorrect argument count', 3, logger);
+        return;
+      }
+
+      // Update the author field and save to db
+      quote.author = newAuthor.id;
+      quote.save();
+      sendCmdMessage(command.message, `Reattributed quote to ${newAuthor.nickname || newAuthor.user.username}`, 2, logger);
     }
     
   }
