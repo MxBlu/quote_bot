@@ -80,7 +80,7 @@ module.exports = (discord, db, imm, logger) => {
       logger.info(`${quoter_name} saved quote ${message.url}`, 2);
       
       // Send message with embed
-      const messagePreamble = `${quote.seq}: **${quoter_name}** saved quote a by **${author_name}**:`;
+      const messagePreamble = `${quote.seq}: **${quoter_name}** saved a quote by **${author_name}**:`;
       message.channel.send(messagePreamble, embed);
   }
 
