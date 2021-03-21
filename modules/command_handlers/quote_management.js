@@ -122,7 +122,7 @@ module.exports = (discord, db, imm, logger) => {
         scope += ` - From id ${start}`;
       }
 
-      if (command.command === 'listquotes') {
+      if (command.command === 'listquotes' || command.command === 'lq') {
         // Create embed to display quotes
         let embed = new MessageEmbed()
             .setTitle(`Quotes - ${scope}`)
