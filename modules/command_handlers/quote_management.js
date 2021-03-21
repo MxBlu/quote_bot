@@ -236,6 +236,7 @@ module.exports = (discord, db, imm, logger) => {
     reattrquoteHandler: async (command) => {
       if (! await isAdmin(command.message)) {
         sendCmdMessage(command.message, 'Error: not admin', 2, logger);
+        return;
       }
 
       let guildId = command.message.guild.id;
