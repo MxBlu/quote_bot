@@ -95,7 +95,7 @@ module.exports = (discord, db, imm, logger) => {
           `https://cdn.discordapp.com/avatars/${author.id}/${author.user.avatar}.png`) ||
           author.user.defaultAvatarURL;
 
-        if (command.command === 'listquotes') {
+        if (command.command === 'listquotes' || command.command === 'lq') {
           // Generate a list of quote links for 'listquotes'
           quoteMsgs.push(`${quote.seq}: [**${quoter_name}** quoted **${author_name}** (${quote.timestamp.toLocaleString()})](${quote.link})`);
         } else if (command.command === 'dumpquotes') {

@@ -15,11 +15,16 @@ module.exports = (discord, db, imm, logger) => {
 
   const commandHandlers = {
     "help": helpHandler,
+    "h": helpHandler,
     "listquotes": quoteManagementHandler.listquotesHandler,
+    "lq": quoteManagementHandler.listquotesHandler,
     "dumpquotes": quoteManagementHandler.listquotesHandler,
     "getquote": quoteManagementHandler.getquoteHandler,
+    "gq": quoteManagementHandler.getquoteHandler,
     "delquote": quoteManagementHandler.delquoteHandler,
-    "reattrquote": quoteManagementHandler.reattrquoteHandler
+    "dq": quoteManagementHandler.delquoteHandler,
+    "reattrquote": quoteManagementHandler.reattrquoteHandler,
+    "rq": quoteManagementHandler.reattrquoteHandler
   };
 
   // Discord event handlers
