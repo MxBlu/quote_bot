@@ -99,6 +99,11 @@ module.exports = (discord, db, imm, logger) => {
           // Generate a list of quote links for 'listquotes'
           quoteMsgs.push(`${quote.seq}: [**${quoter_name}** quoted **${author_name}** (${quote.timestamp.toLocaleString()})](${quote.link})`);
         } else if (command.command === 'dumpquotes') {
+          if (! await isAdmin(command.message)) {
+            sendCmdMessage(command.message, 'Error: not admin', 2, logger);
+            return;
+          }
+    
           // Generate a list of messages with content and embed
           quoteMsgs.push({
             content: `**${quote.seq}**: **${quoter_name}** quoted **${author_name}**:`,
