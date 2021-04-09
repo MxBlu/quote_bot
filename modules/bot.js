@@ -3,7 +3,7 @@ const { sendMessage } = require('../util/bot_utils');
 const errStream = process.env.DISCORD_ERRSTREAM;
 const adminUser = process.env.DISCORD_ADMINUSER;
 
-const commandSyntax = /^\s*!([A-Za-z]+)((?: [^ ]+)+)?\s*$/;
+const commandSyntax = /^\s*!([A-Za-z]+)((?: +[^ ]+)+)?\s*$/;
 
 module.exports = (discord, db, imm, logger) => {
 
@@ -111,10 +111,14 @@ module.exports = (discord, db, imm, logger) => {
       return null;
     }
 
+    // Remove double spaces from arg string, then split it into an array
+    // If no args exist (matchObj[2] == null), create empty array
+    let arguments = matchObj[2] ? matchObj[2].replace(/  +/g, ' ').trim().split(' ') : [];
+
     return {
       message: cmdMessage,
       command: matchObj[1],
-      arguments: matchObj[2] ? matchObj[2].trim().split(' ') : []
+      arguments: arguments
     };
   }
 
