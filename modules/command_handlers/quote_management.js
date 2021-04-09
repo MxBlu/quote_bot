@@ -3,18 +3,58 @@ const { sendCmdMessage, stringEquivalence, stringSearch, isAdmin } = require("..
 
 module.exports = (discord, db, imm, logger, scrollable) => {
 
+  // Generate quote display lines
+  // - used in the modal hence why we're using a function
+  async function generateQuoteMsgs(command, quotes) {
+    // Generate array of quote display lines
+    let quoteMsgs = [];
+    for (let quote of quotes) {
+      let author = await command.message.guild.members.fetch(quote.author);
+      let quoter = await command.message.guild.members.fetch(quote.quoter);
+      // Get nickname or username if not available
+      const author_name = author.nickname || author.user.username;
+      const quoter_name = quoter.nickname || quoter.user.username;
+      const avatar_url = (author.user.avatar &&
+        `https://cdn.discordapp.com/avatars/${author.id}/${author.user.avatar}.png`) ||
+        author.user.defaultAvatarURL;
+
+      if (command.command === 'listquotes' || command.command === 'lq') {
+        // Generate a list of quote links for 'listquotes'
+        quoteMsgs.push(`${quote.seq}: [**${quoter_name}** quoted **${author_name}** (${quote.timestamp.toLocaleString()})](${quote.link})`);
+      } else if (command.command === 'dumpquotes') {
+        if (! await isAdmin(command.message)) {
+          sendCmdMessage(command.message, 'Error: not admin', 2, logger);
+          return;
+        }
+  
+        // Generate a list of messages with content and embed
+        quoteMsgs.push({
+          content: `**${quote.seq}**: **${quoter_name}** quoted **${author_name}**:`,
+          embed: new MessageEmbed()
+              .setAuthor(author_name, avatar_url)
+              .setDescription(quote.message)
+              .setColor('RANDOM')
+              .setTimestamp(quote.timestamp)
+              .setImage(quote.img)
+        });
+      }
+    }
+
+    return quoteMsgs;
+  };
+
   return {
 
     listquotesHandler: async (command) => {
       let guildId = command.message.guild.id;
-      let quotes = null; // Array of quotes for given criteria
+      let query = null; // Query to fulfil given criteria
       let scope = ''; // Scope of list query
       let start = 0; // Starting seq id
 
       switch (command.arguments.length) {
       case 0:
         // List all quotes from the guild
-        quotes = await db.getQuotesByGuild(guildId).limit(10).exec();
+        query = db.getQuotesByGuild(guildId);
         scope = "Guild";
         break;
       case 1:
@@ -22,9 +62,8 @@ module.exports = (discord, db, imm, logger, scrollable) => {
         // Handle as quotes seq number start if first arg is numerical
         if (command.arguments[0].match(/^\d+$/)) {
           start = parseInt(command.arguments[0]);
-          quotes = await db.getQuotesByGuild(guildId)
-              .where('seq').gte(start)
-              .limit(10).exec();
+          query = db.getQuotesByGuild(guildId)
+              .where('seq').gte(start);
           scope = "Guild";
           break;
         } else if (command.arguments[1]?.match(/^\d+$/)) {
@@ -43,9 +82,8 @@ module.exports = (discord, db, imm, logger, scrollable) => {
 
         // If criteria passes, get all quotes for given channel
         if (potentialChannel != null) {
-          quotes = await db.getQuotesByChannel(potentialChannel.id)
-              .where('seq').gte(start)
-              .limit(10).exec();
+          query = db.getQuotesByChannel(potentialChannel.id)
+              .where('seq').gte(start);
           scope = `Channel #${potentialChannel.name}`;
           break;
         }
@@ -63,9 +101,8 @@ module.exports = (discord, db, imm, logger, scrollable) => {
         
         // If criteria passes, get all quotes for given user
         if (potentialUser != null) {
-          quotes = await db.getQuotesByAuthor(potentialUser.id, guildId)
-              .where('seq').gte(start)
-              .limit(10).exec();
+          query = db.getQuotesByAuthor(potentialUser.id, guildId)
+              .where('seq').gte(start);
           user_name = potentialUser.nickname || potentialUser.user.username;
           scope = `Author @${user_name}`;
           break;
@@ -77,45 +114,23 @@ module.exports = (discord, db, imm, logger, scrollable) => {
         return;
       }
 
+      // Couldn't match any criterias, so query is invalid
+      if (query == null) {
+        sendCmdMessage(command.message, 'Invalid query', 2, logger);
+        return;
+      }
+
+      // Execute the query and get 10 quotes
+      let quotes = await query.limit(10).exec();
+
       // If the result set is effectively empty, send a message indicating so
       if (quotes === null || quotes.length == 0) {
         sendCmdMessage(command.message, 'No quotes found', 2, logger);
         return;
       }
 
-      // Generate array of quote display lines
-      let quoteMsgs = [];
-      for (let quote of quotes) {
-        let author = await command.message.guild.members.fetch(quote.author);
-        let quoter = await command.message.guild.members.fetch(quote.quoter);
-        // Get nickname or username if not available
-        const author_name = author.nickname || author.user.username;
-        const quoter_name = quoter.nickname || quoter.user.username;
-        const avatar_url = (author.user.avatar &&
-          `https://cdn.discordapp.com/avatars/${author.id}/${author.user.avatar}.png`) ||
-          author.user.defaultAvatarURL;
-
-        if (command.command === 'listquotes' || command.command === 'lq') {
-          // Generate a list of quote links for 'listquotes'
-          quoteMsgs.push(`${quote.seq}: [**${quoter_name}** quoted **${author_name}** (${quote.timestamp.toLocaleString()})](${quote.link})`);
-        } else if (command.command === 'dumpquotes') {
-          if (! await isAdmin(command.message)) {
-            sendCmdMessage(command.message, 'Error: not admin', 2, logger);
-            return;
-          }
-    
-          // Generate a list of messages with content and embed
-          quoteMsgs.push({
-            content: `**${quote.seq}**: **${quoter_name}** quoted **${author_name}**:`,
-            embed: new MessageEmbed()
-                .setAuthor(author_name, avatar_url)
-                .setDescription(quote.message)
-                .setColor('RANDOM')
-                .setTimestamp(quote.timestamp)
-                .setImage(quote.img)
-          });
-        }
-      }
+      // Generate a list of quote messages
+      let quoteMsgs = await generateQuoteMsgs(command, quotes);
 
       // Append ID if the start value is set
       if (start > 0) {
@@ -131,8 +146,56 @@ module.exports = (discord, db, imm, logger, scrollable) => {
         logger.info(`${command.message.author.username} listed quotes - ${scope}`, 2);
         let message = await command.message.channel.send(embed);
 
+        // Create scroll function handlers
+        let leftHandler = async (modalProps, reaction, user) => {
+          if (modalProps.skip == 0) {
+            // Already left-most, can't go more left
+            return;
+          } else {
+            // Go back 10 results
+            modalProps.skip -= 10;
+          }
+
+          // Cloned query with our new "skip" value
+          quotes = await query.model.find().merge(query)
+              .skip(modalProps.skip).limit(10).exec();
+          
+          // Convert new results into quote display lines
+          quoteMsgs = await generateQuoteMsgs(command, quotes);
+          
+          // Modify original message with new quotes
+          logger.info(`${user.username} navigated quote list - ${scope} skip ${modalProps.skip}`, 2);
+          message.edit(new MessageEmbed()
+              .setTitle(`Quotes - ${scope}`)
+              .setDescription(quoteMsgs.join("\n"))
+              .setFooter(modalProps.skip > 0 ? `+${modalProps.skip}` : ''));
+        };
+
+        let rightHandler = async (modalProps, reaction, user) => {
+          // Go forward 10 results
+          modalProps.skip += 10;
+
+          // Cloned query with our new "skip" value
+          quotes = await query.model.find().merge(query)
+              .skip(modalProps.skip).limit(10).exec();
+          
+          // Convert new results into quote display lines
+          quoteMsgs = await generateQuoteMsgs(command, quotes);
+          
+          // Modify original message with new quotes
+          logger.info(`${user.username} navigated quote list - ${scope} skip ${modalProps.skip}`, 2);
+          message.edit(new MessageEmbed()
+              .setTitle(`Quotes - ${scope}`)
+              .setDescription(quoteMsgs.join("\n"))
+              .setFooter(`+${modalProps.skip}`));
+        };
+        
         // Create scrollable modal
-        scrollable.addModal(message, {});
+        scrollable.addModal(message, {
+          leftHandler: leftHandler,
+          rightHandler: rightHandler,
+          skip: 0
+        });
       } else if (command.command === 'dumpquotes') {
         logger.info(`${command.message.author.username} dumped quotes - ${scope} - [ ${quotes.map(q => q.seq).join(', ')} ]`, 2);
         command.message.channel.send(`**${scope}** - ${quotes.length} quotes`);

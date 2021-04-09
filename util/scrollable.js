@@ -1,5 +1,5 @@
 // Default time for a modal to stay active
-const DEFAULT_MODAL_DURATION = 300000; // 5 minutes
+const DEFAULT_MODAL_DURATION = 120000; // 2 minutes
 
 module.exports = (discord, logger) => {
 
@@ -22,6 +22,8 @@ module.exports = (discord, logger) => {
     delete activeModals[message.id];
     // Remove all reactions
     message.reactions.removeAll();
+
+    logger.info(`Modal removed for message ${message.id}`, 4);
   }
 
   return {
@@ -41,6 +43,8 @@ module.exports = (discord, logger) => {
 
       // Set lifetime timer
       setTimeout((m) => removeModal(m), duration, message);
+
+      logger.info(`Modal created for message ${message.id}`, 4);
     },
 
     messageReactionHandler: async (reaction, user) => {
