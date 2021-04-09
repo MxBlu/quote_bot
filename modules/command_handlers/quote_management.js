@@ -164,7 +164,7 @@ module.exports = (discord, db, imm, logger, scrollable) => {
           quoteMsgs = await generateQuoteMsgs(command, quotes);
           
           // Modify original message with new quotes
-          logger.info(`${user.username} navigated quote list - ${scope} skip ${modalProps.skip}`, 2);
+          logger.info(`${user.user.username} navigated quote list - ${scope} skip ${modalProps.skip}`, 2);
           message.edit(new MessageEmbed()
               .setTitle(`Quotes - ${scope}`)
               .setDescription(quoteMsgs.join("\n"))
@@ -183,7 +183,7 @@ module.exports = (discord, db, imm, logger, scrollable) => {
           quoteMsgs = await generateQuoteMsgs(command, quotes);
           
           // Modify original message with new quotes
-          logger.info(`${user.username} navigated quote list - ${scope} skip ${modalProps.skip}`, 2);
+          logger.info(`${user.user.username} navigated quote list - ${scope} skip ${modalProps.skip}`, 2);
           message.edit(new MessageEmbed()
               .setTitle(`Quotes - ${scope}`)
               .setDescription(quoteMsgs.join("\n"))
