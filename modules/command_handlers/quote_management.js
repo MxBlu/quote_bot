@@ -1,7 +1,7 @@
 const { MessageEmbed } = require("discord.js");
 const { sendCmdMessage, stringEquivalence, stringSearch, isAdmin } = require("../../util/bot_utils");
 
-module.exports = (discord, db, imm, logger) => {
+module.exports = (discord, db, imm, logger, scrollable) => {
 
   return {
 
@@ -129,7 +129,10 @@ module.exports = (discord, db, imm, logger) => {
             .setDescription(quoteMsgs.join("\n"))
         
         logger.info(`${command.message.author.username} listed quotes - ${scope}`, 2);
-        command.message.channel.send(embed);
+        let message = await command.message.channel.send(embed);
+
+        // Create scrollable modal
+        scrollable.addModal(message, {});
       } else if (command.command === 'dumpquotes') {
         logger.info(`${command.message.author.username} dumped quotes - ${scope} - [ ${quotes.map(q => q.seq).join(', ')} ]`, 2);
         command.message.channel.send(`**${scope}** - ${quotes.length} quotes`);

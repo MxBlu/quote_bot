@@ -87,11 +87,6 @@ module.exports = (discord, db, imm, logger) => {
 	return {
 
     messageReactionHandler: async (reaction, user) => {
-      // Dumb ass shit cause Discord.js doesn't resolve them
-      reaction = await reaction.fetch();
-      user = await reaction.message.guild.members.fetch(user.id);
-
-      logger.info(`Reaction with emoji ${reaction.emoji.name} detected`, 4);
       // Handle emojis we care about
       // Remove reaction if we're handling em
       switch (reaction.emoji.name) {

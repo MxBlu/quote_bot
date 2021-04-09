@@ -9,9 +9,12 @@ module.exports = (discord, db, imm, logger) => {
 
   var errLogDisabled = false;
 
+  // Scrollable modal handler
+  const scrollableManager = require('../util/scrollable')(discord, logger);
+
   // Command handlers
   const quoteEventHandler       = require('./command_handlers/quote_event')(discord, db, imm, logger);
-  const quoteManagementHandler  = require('./command_handlers/quote_management')(discord, db, imm, logger);
+  const quoteManagementHandler  = require('./command_handlers/quote_management')(discord, db, imm, logger, scrollableManager);
 
   const commandHandlers = {
     "help": helpHandler,
@@ -117,7 +120,17 @@ module.exports = (discord, db, imm, logger) => {
 
   discord.once('ready', readyHandler);
   discord.on('message', messageHandler);
-  discord.on('messageReactionAdd', quoteEventHandler.messageReactionHandler);
+  discord.on('messageReactionAdd', async (reaction, user) => {
+    // Dumb ass shit cause Discord.js doesn't resolve them
+    reaction = await reaction.fetch();
+    user = await reaction.message.guild.members.fetch(user.id);
+
+    logger.info(`Reaction with emoji ${reaction.emoji.name} detected`, 4);
+
+    // Handlers
+    quoteEventHandler.messageReactionHandler(reaction, user);
+    scrollableManager.messageReactionHandler(reaction, user);
+  });
 
   imm.subscribe('newErrorLog', errorLogHandler);
 }
