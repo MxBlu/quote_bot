@@ -149,8 +149,14 @@ module.exports = (discord, db, imm, logger, scrollable) => {
         // Create scroll function handlers
         let leftHandler = async (modalProps, reaction, user) => {
           if (modalProps.skip == 0) {
-            // Already left-most, can't go more left
-            return;
+            // Already left-most, loop around
+
+            // Count total results in cloned query
+            // The max number limit this is to bypass the limit value set prior
+            let resCount = await query.model.find().merge(query)
+                .limit(Number.MAX_SAFE_INTEGER).countDocuments();
+            // Go to the next lowest value of 10 (ensuring we don't end up on the same value)
+            modalProps.skip = (resCount - 1) - ((resCount - 1) % 10);
           } else {
             // Go back 10 results
             modalProps.skip -= 10;
@@ -178,6 +184,13 @@ module.exports = (discord, db, imm, logger, scrollable) => {
           // Cloned query with our new "skip" value
           quotes = await query.model.find().merge(query)
               .skip(modalProps.skip).limit(10).exec();
+
+          if (quotes.length == 0) {
+            // We've gone past the last page, reset
+            modalProps.skip = 0;
+            quotes = await query.model.find().merge(query)
+                .skip(modalProps.skip).limit(10).exec();
+          }
           
           // Convert new results into quote display lines
           quoteMsgs = await generateQuoteMsgs(command, quotes);
@@ -187,7 +200,7 @@ module.exports = (discord, db, imm, logger, scrollable) => {
           message.edit(new MessageEmbed()
               .setTitle(`Quotes - ${scope}`)
               .setDescription(quoteMsgs.join("\n"))
-              .setFooter(`+${modalProps.skip}`));
+              .setFooter(modalProps.skip > 0 ? `+${modalProps.skip}` : ''));
         };
         
         // Create scrollable modal
