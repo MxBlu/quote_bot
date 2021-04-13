@@ -117,7 +117,7 @@ module.exports = (discord, db, imm, logger) => {
 
     return {
       message: cmdMessage,
-      command: matchObj[1],
+      command: matchObj[1].toLowerCase(),
       arguments: arguments
     };
   }
