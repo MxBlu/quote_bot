@@ -107,7 +107,7 @@ module.exports = (discord, db, imm, logger) => {
     var matchObj = cmdMessage.content.match(commandSyntax);
 
     // Check if command is valid
-    if (matchObj == null || !(matchObj[1] in commandHandlers)) {
+    if (matchObj == null || !(matchObj[1].toLowerCase() in commandHandlers)) {
       return null;
     }
 
