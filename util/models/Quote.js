@@ -52,5 +52,8 @@ QuoteSchema.statics.findByChannel = function (channel) {
 QuoteSchema.statics.findByAuthor = function (author, guild) { 
   return this.find({ author, guild });
 }
+QuoteSchema.statics.checkExists = function (link) { 
+  return this.exists({ link });
+}
 
 module.exports = mongoose.model('Quote', QuoteSchema);

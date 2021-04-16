@@ -60,6 +60,11 @@ module.exports = (logger) => {
       return quote.save();
     },
 
+    // Check if a quote exists with given message link
+    checkQuoteExists: async (link) => {
+      return Quote.checkExists(link);
+    },
+
     // Delete a quote from the db
     delQuote: (guildId, seq) => {
       return Quote.deleteBySeq(guildId, seq);

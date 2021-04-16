@@ -1,4 +1,5 @@
 const { MessageEmbed } = require("discord.js");
+const { sendMessage } = require("../../util/bot_utils");
 
 const IMG_RX = /https?:\/\/[^\s]+\.(?:jpg|png)/i;
 
@@ -43,45 +44,52 @@ module.exports = (discord, db, imm, logger) => {
   }
 
   async function quoteHandler(message, quoter) {
-      // Properly resolve guild members from message author
-      // I think it's a discord.js issue
-      const author = await message.guild.members.fetch(message.author.id);
+    // Properly resolve guild members from message author
+    // I think it's a discord.js issue
+    const author = await message.guild.members.fetch(message.author.id);
 
-      // Get nickname or username if not available
-      const author_name = author.nickname || author.user.username;
-      const quoter_name = quoter.nickname || quoter.user.username;
+    // Get nickname or username if not available
+    const author_name = author.nickname || author.user.username;
+    const quoter_name = quoter.nickname || quoter.user.username;
 
-      // Create message to send
-      const messagePreamble = `**${quoter_name}** quoted **${author_name}**:`;
-      const embed = generateEmbed(message, author);
+    // Create message to send
+    const messagePreamble = `**${quoter_name}** quoted **${author_name}**:`;
+    const embed = generateEmbed(message, author);
 
-      logger.info(`${quoter_name} quoted ${message.url}`, 2);
-      
-      // Send message with embed
-      message.channel.send(messagePreamble, embed);
+    logger.info(`${quoter_name} quoted ${message.url}`, 2);
+    
+    // Send message with embed
+    message.channel.send(messagePreamble, embed);
   }
 
   async function quoteSaveHandler(message, quoter) {
-      // Properly resolve guild members from message author
-      // I think it's a discord.js issue
-      const author = await message.guild.members.fetch(message.author.id);
+    // Make sure the quote doesn't exist first
+    if (await db.checkQuoteExists(message.url)) {
+      logger.info(`${quoter.username} - ${message.guild.name} - Error: Quote already exists`, 2);
+      sendMessage(message.channel, "Error: Quote already exists");
+      return;
+    }
 
-      // Get nickname or username if not available
-      const author_name = author.nickname || author.user.username;
-      const quoter_name = quoter.nickname || quoter.user.username;
+    // Properly resolve guild members from message author
+    // I think it's a discord.js issue
+    const author = await message.guild.members.fetch(message.author.id);
 
-      // Create message to send
-      const embed = generateEmbed(message, author);
+    // Get nickname or username if not available
+    const author_name = author.nickname || author.user.username;
+    const quoter_name = quoter.nickname || quoter.user.username;
 
-      // Store quoted message to db
-      let quote = await db.addQuote(message.guild.id, message.channel.id, author.id, quoter.id,
-        embed.description, embed.image?.url, message.url, message.createdAt);
+    // Create message to send
+    const embed = generateEmbed(message, author);
 
-      logger.info(`${quoter_name} saved quote ${message.url}`, 2);
-      
-      // Send message with embed
-      const messagePreamble = `${quote.seq}: **${quoter_name}** saved a quote by **${author_name}**:`;
-      message.channel.send(messagePreamble, embed);
+    // Store quoted message to db
+    let quote = await db.addQuote(message.guild.id, message.channel.id, author.id, quoter.id,
+      embed.description, embed.image?.url, message.url, message.createdAt);
+
+    logger.info(`${quoter_name} saved quote ${message.url}`, 2);
+    
+    // Send message with embed
+    const messagePreamble = `${quote.seq}: **${quoter_name}** saved a quote by **${author_name}**:`;
+    message.channel.send(messagePreamble, embed);
   }
 
 	return {
