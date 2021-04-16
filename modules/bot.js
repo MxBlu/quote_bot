@@ -37,8 +37,15 @@ module.exports = (discord, db, imm, logger) => {
 
     // Call fetch on every guild to make sure we have all the members cached
     discord.guilds.cache.map(
-      g => g.members.fetch().then(logger.info(`Cached members for ${g.id}`, 3))
+      g => g.members.fetch()
+          .then(c => c.map(m => db.upsertUser(m.id, g.id, m.displayName)))
+          .then(logger.info(`Cached members for ${g.id}`, 3))
     );
+  }
+
+  async function memberUpdateHandler(member) {
+    db.upsertUser(member.id, member.guild.id, member.displayName);
+    logger.info(`Updated member '${member.displayName}' for guild '${member.guild.name}`, 4);
   }
 
   async function messageHandler(message) {
@@ -135,6 +142,8 @@ module.exports = (discord, db, imm, logger) => {
     quoteEventHandler.messageReactionHandler(reaction, user);
     scrollableManager.messageReactionHandler(reaction, user);
   });
+  discord.on('guildMemberAdd', memberUpdateHandler);
+  discord.on('guildMemberUpdate', (_, m) => memberUpdateHandler(m)); // ignore 'old member' param
 
   imm.subscribe('newErrorLog', errorLogHandler);
 }

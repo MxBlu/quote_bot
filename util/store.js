@@ -1,6 +1,7 @@
 const mongoose  = require('mongoose');
 
 const Quote = require('./models/Quote');
+const User = require('./models/User');
 
 module.exports = (logger) => {
 
@@ -69,6 +70,16 @@ module.exports = (logger) => {
     delQuote: (guildId, seq) => {
       return Quote.deleteBySeq(guildId, seq);
     },
+
+    // Insert/update a user in the db
+    upsertUser: (userId, guildId, displayName) => {
+      return User.upsert(userId, guildId, displayName);
+    },
+
+    // Get user from the db
+    getUser: (userId, guildId) => {
+      return User.getById(userId, guildId);
+    }
 
   }
 }
