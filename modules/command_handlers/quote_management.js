@@ -11,16 +11,11 @@ module.exports = (discord, db, imm, logger, scrollable) => {
     for (let quote of quotes) {
       let author = await command.message.guild.members.fetch(quote.author);
       let quoter = await command.message.guild.members.fetch(quote.quoter);
-      // Get nickname or username if not available
-      const author_name = author.nickname || author.user.username;
-      const quoter_name = quoter.nickname || quoter.user.username;
-      const avatar_url = (author.user.avatar &&
-        `https://cdn.discordapp.com/avatars/${author.id}/${author.user.avatar}.png`) ||
-        author.user.defaultAvatarURL;
 
       if (command.command === 'listquotes' || command.command === 'lq') {
         // Generate a list of quote links for 'listquotes'
-        quoteMsgs.push(`${quote.seq}: [**${quoter_name}** quoted **${author_name}** (${quote.timestamp.toLocaleString()})](${quote.link})`);
+        quoteMsgs.push(`${quote.seq}: [**${quoter.displayName}** quoted **${author.displayName}** ` +
+                `(${quote.timestamp.toLocaleString()})](${quote.link})`);
       } else if (command.command === 'dumpquotes') {
         if (! await isAdmin(command.message)) {
           sendCmdMessage(command.message, 'Error: not admin', 2, logger);
@@ -29,9 +24,9 @@ module.exports = (discord, db, imm, logger, scrollable) => {
   
         // Generate a list of messages with content and embed
         quoteMsgs.push({
-          content: `**${quote.seq}**: **${quoter_name}** quoted **${author_name}**:`,
+          content: `**${quote.seq}**: **${quoter.displayName}** quoted **${author.displayName}**:`,
           embed: new MessageEmbed()
-              .setAuthor(author_name, avatar_url)
+              .setAuthor(author.displyName, author.user.displayAvatarURL())
               .setDescription(quote.message)
               .setColor('RANDOM')
               .setTimestamp(quote.timestamp)
@@ -103,8 +98,7 @@ module.exports = (discord, db, imm, logger, scrollable) => {
         if (potentialUser != null) {
           query = db.getQuotesByAuthor(potentialUser.id, guildId)
               .where('seq').gte(start);
-          user_name = potentialUser.nickname || potentialUser.user.username;
-          scope = `Author @${user_name}`;
+          scope = `Author @${potentialUser.displayName}`;
           break;
         }
         break;
@@ -270,17 +264,11 @@ module.exports = (discord, db, imm, logger, scrollable) => {
       // Get GuildMember objects for author and quoter
       let author = await command.message.guild.members.fetch(quote.author);
       let quoter = await command.message.guild.members.fetch(quote.quoter);
-      // Get nickname or username if not available
-      const author_name = author.nickname || author.user.username;
-      const quoter_name = quoter.nickname || quoter.user.username;
 
       // Re-generate quote from stored data
-      const messagePreamble = `**${quote.seq}**: **${quoter_name}** quoted **${author_name}**:`;
-      const avatar_url = (author.user.avatar &&
-        `https://cdn.discordapp.com/avatars/${author.id}/${author.user.avatar}.png`) ||
-        author.user.defaultAvatarURL;
+      const messagePreamble = `**${quote.seq}**: **${quoter.displayName}** quoted **${author.displayName}**:`;
       let embed = new MessageEmbed()
-          .setAuthor(author_name, avatar_url)
+          .setAuthor(author.displayName, author.user.displayAvatarURL())
           .setDescription(quote.message)
           .setColor('RANDOM')
           .setTimestamp(quote.timestamp)
@@ -366,7 +354,7 @@ module.exports = (discord, db, imm, logger, scrollable) => {
       // Update the author field and save to db
       quote.author = newAuthor.id;
       quote.save();
-      sendCmdMessage(command.message, `Reattributed quote to ${newAuthor.nickname || newAuthor.user.username}`, 2, logger);
+      sendCmdMessage(command.message, `Reattributed quote to ${newAuthor.displayName}`, 2, logger);
     }
     
   }

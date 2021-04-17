@@ -7,10 +7,7 @@ module.exports = (discord, db, imm, logger) => {
 
   // Create a quote embed
   function generateEmbed(message, author) {
-    // Generate avatar URL
-    const avatar_url = (author.user.avatar &&
-        `https://cdn.discordapp.com/avatars/${author.id}/${author.user.avatar}.png`) ||
-        author.user.defaultAvatarURL;
+    // Create embed content
     let content = `${message.content}\n`
                 + `[Link](${message.url})`;
 
@@ -18,14 +15,18 @@ module.exports = (discord, db, imm, logger) => {
     const embed = new MessageEmbed()
         .setColor('RANDOM')
         .setTimestamp(message.createdAt)
-        .setAuthor(author.nickname || author.user.username, avatar_url);
+        .setAuthor(author.displayName, author.user.displayAvatarURL());
 
     // If there's any images or attachments, add them to the embed
+    // First check for an image URL in the contents
     let imgRegex = message.content.match(IMG_RX);
     if (imgRegex !== null) {
       embed.setImage(imgRegex[0]);
     }
+    // Then add every attachment to the embed
     message.attachments.map(a => {
+      // If we don't already have an image set
+      // test if the current attachment is one and add if so
       if (embed.image === null) {
         imgRegex = a.url.match(IMG_RX);
         if (imgRegex !== null) {
@@ -34,6 +35,9 @@ module.exports = (discord, db, imm, logger) => {
         }
       }
 
+      // If the attachment is not an image or
+      // we already have one on the embed,
+      // add it to the bottom of the content
       content += "\n\n" +
                   `**Attachment**: [${a.name}](${a.url})`;
     });
@@ -48,17 +52,13 @@ module.exports = (discord, db, imm, logger) => {
     // I think it's a discord.js issue
     const author = await message.guild.members.fetch(message.author.id);
 
-    // Get nickname or username if not available
-    const author_name = author.nickname || author.user.username;
-    const quoter_name = quoter.nickname || quoter.user.username;
-
     // Create message to send
-    const messagePreamble = `**${quoter_name}** quoted **${author_name}**:`;
     const embed = generateEmbed(message, author);
 
-    logger.info(`${quoter_name} quoted ${message.url}`, 2);
+    logger.info(`${quoter.user.username} quoted ${message.url}`, 2);
     
     // Send message with embed
+    const messagePreamble = `**${quoter.displayName}** quoted **${author.displayName}**:`;
     message.channel.send(messagePreamble, embed);
   }
 
@@ -74,10 +74,6 @@ module.exports = (discord, db, imm, logger) => {
     // I think it's a discord.js issue
     const author = await message.guild.members.fetch(message.author.id);
 
-    // Get nickname or username if not available
-    const author_name = author.nickname || author.user.username;
-    const quoter_name = quoter.nickname || quoter.user.username;
-
     // Create message to send
     const embed = generateEmbed(message, author);
 
@@ -85,10 +81,10 @@ module.exports = (discord, db, imm, logger) => {
     let quote = await db.addQuote(message.guild.id, message.channel.id, author.id, quoter.id,
       embed.description, embed.image?.url, message.url, message.createdAt);
 
-    logger.info(`${quoter_name} saved quote ${message.url}`, 2);
+    logger.info(`${quoter.user.username} saved quote ${message.url}`, 2);
     
     // Send message with embed
-    const messagePreamble = `${quote.seq}: **${quoter_name}** saved a quote by **${author_name}**:`;
+    const messagePreamble = `${quote.seq}: **${quoter.displayName}** saved a quote by **${author.displayName}**:`;
     message.channel.send(messagePreamble, embed);
   }
 
