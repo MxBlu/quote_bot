@@ -90,6 +90,8 @@ module.exports = (discord, db, imm, logger, scrollable) => {
         if (userRx != null) {
           potentialUser = command.message.guild.members.cache.get(userRx[1]);
         } else {
+          // Ensure the member cache is populated
+          await command.message.guild.members.fetch();
           potentialUser = command.message.guild.members
             .cache.find(m => stringSearch(m.nickname, command.arguments[0]) || 
                           stringSearch(m.user.username, command.arguments[0]));
@@ -238,6 +240,8 @@ module.exports = (discord, db, imm, logger, scrollable) => {
         if (userRx != null) {
           potentialUser = command.message.guild.members.cache.get(userRx[1]);
         } else {
+          // Ensure the member cache is populated
+          await command.message.guild.members.fetch();
           potentialUser = command.message.guild.members
             .cache.find(m => stringSearch(m.nickname, command.arguments[0]) || 
                           stringSearch(m.user.username, command.arguments[0]));
@@ -327,6 +331,8 @@ module.exports = (discord, db, imm, logger, scrollable) => {
           if (userRx != null) {
             newAuthor = command.message.guild.members.cache.get(userRx[1]);
           } else {
+            // Ensure the member cache is populated
+            await command.message.guild.members.fetch();
             newAuthor = command.message.guild.members
               .cache.find(m => stringSearch(m.nickname, command.arguments[1]) || 
                             stringSearch(m.user.username, command.arguments[1]));
