@@ -1,5 +1,5 @@
 const { MessageEmbed } = require("discord.js");
-const { sendCmdMessage, stringEquivalence, stringSearch, isAdmin } = require("../../util/bot_utils");
+const { sendCmdMessage, stringEquivalence, stringSearch, isAdmin, getBestGuildMember, getBestGuildMemberById } = require("../../util/bot_utils");
 
 module.exports = (discord, db, imm, logger, scrollable) => {
 
@@ -9,8 +9,9 @@ module.exports = (discord, db, imm, logger, scrollable) => {
     // Generate array of quote display lines
     let quoteMsgs = [];
     for (let quote of quotes) {
-      let author = await command.message.guild.members.fetch(quote.author);
-      let quoter = await command.message.guild.members.fetch(quote.quoter);
+      // Get author and quoter GuildMember objects best we can
+      let author = await getBestGuildMemberById(db, command.message.guild, quote.author);
+      let quoter = await getBestGuildMemberById(db, command.message.guild, quote.quoter);
 
       if (command.command === 'listquotes' || command.command === 'lq') {
         // Generate a list of quote links for 'listquotes'
@@ -262,8 +263,8 @@ module.exports = (discord, db, imm, logger, scrollable) => {
       }
 
       // Get GuildMember objects for author and quoter
-      let author = await command.message.guild.members.fetch(quote.author);
-      let quoter = await command.message.guild.members.fetch(quote.quoter);
+      let author = await getBestGuildMemberById(db, command.message.guild, quote.author);
+      let quoter = await getBestGuildMemberById(db, command.message.guild, quote.quoter);
 
       // Re-generate quote from stored data
       const messagePreamble = `**${quote.seq}**: **${quoter.displayName}** quoted **${author.displayName}**:`;

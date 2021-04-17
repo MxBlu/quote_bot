@@ -1,5 +1,5 @@
 const { MessageEmbed } = require("discord.js");
-const { sendMessage } = require("../../util/bot_utils");
+const { sendMessage, getBestGuildMember } = require("../../util/bot_utils");
 
 const IMG_RX = /https?:\/\/[^\s]+\.(?:jpg|png)/i;
 
@@ -48,9 +48,8 @@ module.exports = (discord, db, imm, logger) => {
   }
 
   async function quoteHandler(message, quoter) {
-    // Properly resolve guild members from message author
-    // I think it's a discord.js issue
-    const author = await message.guild.members.fetch(message.author.id);
+    // Get GuildMember for given user
+    const author = await getBestGuildMember(db, message.guild, message.author);
 
     // Create message to send
     const embed = generateEmbed(message, author);
@@ -70,9 +69,8 @@ module.exports = (discord, db, imm, logger) => {
       return;
     }
 
-    // Properly resolve guild members from message author
-    // I think it's a discord.js issue
-    const author = await message.guild.members.fetch(message.author.id);
+    // Get GuildMember for given user
+    const author = await getBestGuildMember(db, message.guild, message.author);
 
     // Create message to send
     const embed = generateEmbed(message, author);

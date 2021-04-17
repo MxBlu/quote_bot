@@ -82,8 +82,83 @@ async function isAdmin(message) {
   return author.permissions.has("ADMINISTRATOR");
 }
 
+// Get the best GuildMember object for a given User
+async function getBestGuildMember(db, guild, user) {
+  // First, try and get the user from the guild
+  try {
+    return await guild.members.fetch(user.id);
+  } catch(e) {
+    // Only DiscordAPIError is passable - means the user is not in the guild anymore
+    if (e.name !== 'DiscordAPIError') {
+      throw e;
+    }
+  }
+
+  // Ok user isn't in the guild, that's ok...
+  // Get data from the db instead
+  const dbUser = await db.getUser(user.id, guild.id);
+  if (dbUser != null) {
+    // Make a mock "GuildMember" object
+    return {
+      id: user.id,
+      displayName: dbUser.displayName,
+      user: {
+        displayAvatarURL: () => user.displayAvatarURL()
+      }
+    }
+  }
+
+  // If nothing else, create a mock GUildMember with whatever we have
+  return {
+    id: user.id,
+    displayName: user.username,
+    user: {
+      displayAvatarURL: () => user.displayAvatarURL()
+    }
+  }
+}
+
+// Get the best GuildMember object for a given User id
+async function getBestGuildMemberById(db, guild, userId) {
+  // First, try and get the user from the guild
+  try {
+    return await guild.members.fetch(userId);
+  } catch(e) {
+    // Only DiscordAPIError is passable - means the user is not in the guild anymore
+    if (e.name !== 'DiscordAPIError') {
+      throw e;
+    }
+  }
+
+  // Ok user isn't in the guild, that's ok...
+  // Get data from the db instead
+  const dbUser = await db.getUser(userId, guild.id);
+  if (dbUser != null) {
+    // Make a mock "GuildMember" object
+    // Default avatar URL 
+    return {
+      id: userId,
+      displayName: dbUser.displayName,
+      user: {
+        displayAvatarURL: () => guild.client.rest.cdn.DefaultAvatar(dbUser.discriminator % 5)
+      }
+    }
+  }
+
+  // If nothing else, create a mock GUildMember with whatever we have
+  return {
+    id: userId,
+    displayName: '(Unknown)',
+    user: {
+      displayAvatarURL: () => guild.client.rest.cdn.DefaultAvatar(parseInt(userId) % 5)
+    }
+  }
+}
+
 exports.sendCmdMessage = sendCmdMessage;
 exports.sendMessage = sendMessage;
 exports.stringEquivalence = stringEquivalence;
 exports.stringSearch = stringSearch;
 exports.isAdmin = isAdmin;
+exports.getBestGuildMember = getBestGuildMember;
+exports.getBestGuildMemberById = getBestGuildMemberById;
