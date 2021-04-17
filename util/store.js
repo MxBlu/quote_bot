@@ -72,8 +72,8 @@ module.exports = (logger) => {
     },
 
     // Insert/update a user in the db
-    upsertUser: (userId, guildId, displayName) => {
-      return User.upsert(userId, guildId, displayName);
+    upsertUser: (userId, guildId, displayName, discriminator) => {
+      return User.upsert(userId, guildId, displayName, discriminator);
     },
 
     // Get user from the db
