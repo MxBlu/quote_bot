@@ -22,7 +22,7 @@ const QuoteSchema = new mongoose.Schema({
   quoter: String, // User ID of quote saver
   img: String, // Image link if present in message
   link: {
-    String, // URL of quoted message
+    type: String, // URL of quoted message
     index: true
   },
   timestamp: Date // Date of quoted message
