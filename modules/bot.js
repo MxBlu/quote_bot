@@ -44,7 +44,7 @@ module.exports = (discord, db, imm, logger) => {
   }
 
   async function memberUpdateHandler(member) {
-    db.upsertUser(member.id, member.guild.id, member.displayName);
+    db.upsertUser(member.id, member.guild.id, member.displayName, member.user.disriminator);
     logger.info(`Updated member '${member.displayName}' for guild '${member.guild.name}`, 4);
   }
 
