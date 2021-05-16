@@ -38,13 +38,13 @@ module.exports = (discord, db, imm, logger) => {
     // Call fetch on every guild to make sure we have all the members cached
     discord.guilds.cache.map(
       g => g.members.fetch()
-          .then(c => c.map(m => db.upsertUser(m.id, g.id, m.displayName, m.user.disriminator)))
+          .then(c => c.map(m => memberUpdateHandler(m)))
           .then(logger.info(`Cached members for ${g.id}`, 3))
     );
   }
 
   async function memberUpdateHandler(member) {
-    db.upsertUser(member.id, member.guild.id, member.displayName, member.user.disriminator);
+    db.upsertUser(member.id, member.guild.id, member.displayName, member.user.discriminator);
     logger.info(`Updated member '${member.displayName}' for guild '${member.guild.name}`, 4);
   }
 

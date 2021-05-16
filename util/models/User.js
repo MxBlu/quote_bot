@@ -7,7 +7,7 @@ const UserSchema = new mongoose.Schema({
   },
   guild: String, // Guild to tie this 
   displayName: String, // Last known display name
-  discriminator: Number // Discord user discriminator
+  discriminator: String // Discord user discriminator
 });
 UserSchema.statics.getById = function (user, guild) { 
   return this.findById({ user, guild })
