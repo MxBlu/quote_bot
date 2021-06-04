@@ -1,10 +1,8 @@
-import { Mongoose } from 'mongoose';
 import { getModelForClass, plugin, prop, ReturnModelType } from '@typegoose/typegoose';
-import * as AutoIncrementFactory from 'mongoose-sequence';
+import { AutoIncrementID } from '@typegoose/auto-increment';
 
-const AutoIncrement = new AutoIncrementFactory(new Mongoose().connection);
-
-@plugin(AutoIncrement, {id: 'guild_seq', inc_field: 'seq', reference_fields: ['guild']})
+// TODO: Convert mongoose-auto-increment counter to new one 
+@plugin(AutoIncrementID, {trackerModelName: 'guild_seq', field: 'seq', reference_fields: ['guild']})
 export class Quote {
   // Sequencing value, unique to the guild. For referencing quotes in a list
   @prop({index: true})
