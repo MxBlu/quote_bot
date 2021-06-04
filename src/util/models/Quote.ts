@@ -40,30 +40,30 @@ export class Quote {
   @prop()
   public timestamp: Date;
 
-  public static async getBySeq(this: ReturnModelType<typeof Quote>, guild: String, seq: Number) {
+  public static async getBySeq(this: ReturnModelType<typeof Quote>, guild: String, seq: Number): Promise<Quote> {
     return this.findOne({ guild, seq }).exec();
   }
 
-  public static async getRandom(this: ReturnModelType<typeof Quote>, guild: String) {
+  public static async getRandom(this: ReturnModelType<typeof Quote>, guild: String): Promise<Quote> {
     var res = await this.aggregate([{ $match: { guild } }, { $sample: { size: 1 } }]).exec();
     return res.length > 0 ? res[0] : null;
   }
 
-  public static async deleteBySeq(this: ReturnModelType<typeof Quote>, guild: String, seq: Number) {
+  public static async deleteBySeq(this: ReturnModelType<typeof Quote>, guild: String, seq: Number): Promise<void> {
     return this.findOne({ guild, seq }).exec();
   }
 
-  public static async findByGuild(this: ReturnModelType<typeof Quote>, guild: String) {
+  public static async findByGuild(this: ReturnModelType<typeof Quote>, guild: String): Promise<Quote[]> {
     return this.find({ guild }).exec();
   }
 
-  public static async findByChannel(this: ReturnModelType<typeof Quote>, channel: String) {
+  public static async findByChannel(this: ReturnModelType<typeof Quote>, channel: String): Promise<Quote[]> {
     return this.find({ channel }).exec();
   }
 
-  public static async findByAuthor(this: ReturnModelType<typeof Quote>, author: String, guild: String) {
+  public static async findByAuthor(this: ReturnModelType<typeof Quote>, author: String, guild: String): Promise<Quote[]> {
     return this.find({ author, guild }).exec();
   }
 }
 
-export default getModelForClass(Quote);
+export const QuoteModel = getModelForClass(Quote);

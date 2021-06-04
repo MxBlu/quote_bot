@@ -1,9 +1,3 @@
-/*
-  Simple logging assistant
-  Mostly for the job of appending timestamps
-  Also logs errors to Discord if available
-*/
-
 import { InterModuleMessenger } from "./imm";
 
 // Get a time string of the current time
@@ -17,6 +11,11 @@ function getTimeString() {
   return `${hrs}:${min}:${sec}`;
 }
 
+/*
+  Simple logging assistant
+  Mostly for the job of appending timestamps
+  Also logs errors to Discord if available
+*/
 export class Logger {
   // Min verbosity for a log message to be processed
   loggerVebosity: Number;
@@ -29,7 +28,7 @@ export class Logger {
 
   // Generic log event, lower verbosity is higher priority
     // Default to verbosity = 1
-  public info(message: String, verbosity = 1) {
+  public info(message: String, verbosity = 1): void {
     if (this.loggerVebosity >= verbosity) {
       console.log(`[INFO${verbosity}] ${getTimeString()} ${message}`);
     }
@@ -37,7 +36,7 @@ export class Logger {
 
   // Log event as error, where verbosity = 0
     // Logs to Discord if available
-  public error (message: String) {
+  public error (message: String): void {
     if (this.loggerVebosity >= 0) {
       const logStr = `[ERROR] ${getTimeString()} ${message}`;
       console.error(logStr);
@@ -48,7 +47,7 @@ export class Logger {
   }
 
   // Register messenger for Discord logging
-  public registerMessenger (messenger: InterModuleMessenger) {
+  public registerMessenger (messenger: InterModuleMessenger): void {
     this.imm = messenger;
   }
 }
