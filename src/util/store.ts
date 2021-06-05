@@ -7,6 +7,22 @@ import { Quote, QuoteModel } from './models/Quote';
   In this case, MongoDB / Mongoose
 */
 export class Store {
+
+  // Singleton instance
+  private static _instance: Store;
+
+  // Create a Store if one is not present
+  public static ensure(): void {
+    if (this._instance == null) {
+      this._instance = new Store();
+    }
+  }
+
+  // Return singleton instance
+  public static get(): Store {
+    return this._instance;
+  }
+
   // General logger
   logger: Logger;
 
