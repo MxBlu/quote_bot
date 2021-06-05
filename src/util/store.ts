@@ -28,27 +28,27 @@ export class Store {
 
   // Get a quote with given seq number in a certain guild
   public getQuoteBySeq (guildId: string, seq: Number): Promise<Quote> {
-    return Quote.getBySeq(guildId, seq);
+    return QuoteModel.getBySeq(guildId, seq);
   }
 
   // Get a random quote in a certain guild
   public getRandomQuote (guildId: string): Promise<Quote> {
-    return Quote.getRandom(guildId);
+    return QuoteModel.getRandom(guildId);
   }
 
   // Get all quotes in a certain guild
   public getQuotesByGuild (guildId: string): Promise<Quote[]> {
-    return Quote.findByGuild(guildId);
+    return QuoteModel.findByGuild(guildId);
   }
 
   // Get all quotes in a certain channel
   public getQuotesByChannel (channelId: string): Promise<Quote[]> {
-    return Quote.findByChannel(channelId);
+    return QuoteModel.findByChannel(channelId);
   }
 
   // Get all quotes in by a given author in a certain guild
   public getQuotesByAuthor (userId: string, guildId: string): Promise<Quote[]> {
-    return Quote.findByAuthor(userId, guildId);
+    return QuoteModel.findByAuthor(userId, guildId);
   }
 
   // Add a quote to the db
@@ -69,8 +69,9 @@ export class Store {
   }
 
   // Delete a quote from the db
-  delQuote (guildId: string, seq: Number): Promise<void> {
-    return Quote.deleteBySeq(guildId, seq);
+  // TODO: FIXME
+  delQuote (guildId: string, seq: Number): Promise<Quote> {
+    return QuoteModel.deleteBySeq(guildId, seq);
   }
 
 }

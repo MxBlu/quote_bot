@@ -6,7 +6,7 @@ import { AutoIncrementID } from '@typegoose/auto-increment';
 export class Quote {
   // Sequencing value, unique to the guild. For referencing quotes in a list
   @prop({index: true})
-  public seq: Number;
+  public seq?: Number;
 
   // Channel ID of quoted message
   @prop({index: true})
@@ -49,7 +49,8 @@ export class Quote {
     return res.length > 0 ? res[0] : null;
   }
 
-  public static async deleteBySeq(this: ReturnModelType<typeof Quote>, guild: String, seq: Number): Promise<void> {
+  // TODO: FIXME
+  public static async deleteBySeq(this: ReturnModelType<typeof Quote>, guild: String, seq: Number): Promise<Quote> {
     return this.findOne({ guild, seq }).exec();
   }
 
