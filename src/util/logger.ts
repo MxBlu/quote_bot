@@ -32,7 +32,7 @@ export class Logger {
   // Min verbosity for a log message to be processed
   loggerVebosity: number;
 
-  constructor(name: string, loggerVebosity: number) {
+  constructor(name: string, loggerVebosity = DEFAULT_LOG_LEVEL) {
     this.name = name;
     this.loggerVebosity = loggerVebosity;
   }

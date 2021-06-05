@@ -4,7 +4,6 @@
   This has better logging for my sanity anyway
 */
 
-import { DEFAULT_LOG_LEVEL } from "../constants/constants.js";
 import { Logger, LogLevels } from "./logger.js";
 
 type EventCallbackFunction = (data: any, topic: MessengerTopic) => void;
@@ -20,7 +19,7 @@ export class MessengerTopic {
   lastData : any;
 
   constructor(name: string) {
-    this.logger = new Logger(`MessengerTopic.${name}`, DEFAULT_LOG_LEVEL);
+    this.logger = new Logger(`MessengerTopic.${name}`);
     this.subscribers = new Map<string, EventCallbackFunction>();
     this.logger.info(`Topic generated`, LogLevels.INFO3);
   }

@@ -10,8 +10,8 @@ export class Store {
   // General logger
   logger: Logger;
 
-  constructor (logger: Logger) {
-    this.logger = logger;
+  constructor () {
+    this.logger = new Logger("Store");
     this.registerMongoHandlers();
   }
 
