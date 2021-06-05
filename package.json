@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Quote messages and store quotes",
   "main": "main.js",
+  "type": "module",
   "scripts": {
     "start": "nodemon main.js",
     "fstart": "pm2 start --name quotebot main.js",
@@ -11,7 +12,7 @@
   },
   "dependencies": {
     "@typegoose/auto-increment": "MxBlu/auto-increment",
-    "@typegoose/typegoose": "^7.4.8",
+    "@typegoose/typegoose": "^7.6.1",
     "bufferutil": "4.0.2",
     "discord.js": "12.4.1",
     "dotenv": "8.0.0",

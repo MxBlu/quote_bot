@@ -1,11 +1,11 @@
-import { Mongoose } from 'mongoose';
-import Quote from './util/models/Quote';
+
+import { Quote, QuoteModel } from './util/models/Quote.js';
 import * as dotenv from 'dotenv';
+import * as mongoose from 'mongoose';
 
 dotenv.config();
 
 // MongoDB
-const mongoose = new Mongoose();
 mongoose.connect(process.env.MONGO_URI, { autoCreate: true, autoIndex: true, useNewUrlParser: true, 
   useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true, });
 
