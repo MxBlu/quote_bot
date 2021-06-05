@@ -6,7 +6,7 @@
 
 import { Logger, LogLevels } from "./logger.js";
 
-type EventCallbackFunction = (data: any, topic: MessengerTopic) => void;
+type EventCallbackFunction = (data: any, topic: MessengerTopic) => Promise<void>;
 
 export class MessengerTopic {
   // Topic name

@@ -1,4 +1,4 @@
-import { MessageEmbed, Client as DiscordClient, MessageReaction, GuildMember, Message } from "discord.js";
+import { MessageEmbed, Client as DiscordClient, MessageReaction, GuildMember, Message, User, PartialUser } from "discord.js";
 import { Logger } from "../../util/logger.js";
 import { Store } from "../../util/store.js";
 
@@ -14,10 +14,10 @@ export class QuoteEventHandler {
     this.logger = new Logger("QuoteEventHandler");
   }
 
-  public async messageReactionHandler(reaction: MessageReaction, user: GuildMember): Promise<void> {
+  public async messageReactionHandler(reaction: MessageReaction, user: User | PartialUser): Promise<void> {
     // Dumb ass shit cause Discord.js doesn't resolve them
     reaction = await reaction.fetch();
-    user = await reaction.message.guild.members.fetch(user.id);
+    let guildUser = await reaction.message.guild.members.fetch(user.id);
 
     this.logger.info(`Reaction with emoji ${reaction.emoji.name} detected`, 4);
     // Handle emojis we care about
@@ -25,13 +25,13 @@ export class QuoteEventHandler {
     switch (reaction.emoji.name) {
     case "#️⃣":
       // Quote on hash react
-      this.quoteHandler(reaction.message, user);
+      this.quoteHandler(reaction.message, guildUser);
       reaction.remove();
       break;
     case "omegachair":
     case "♿":
       // Save on wheelchair react
-      this.quoteSaveHandler(reaction.message, user);
+      this.quoteSaveHandler(reaction.message, guildUser);
       reaction.remove();
       break;
     }
