@@ -20,6 +20,22 @@ export class BotCommand {
 }
 
 export class Bot {
+
+  // Singleton instance
+  private static _instance: Bot;
+
+  // Create a Bot if one is not present
+  public static ensure(discord: DiscordClient): void {
+    if (this._instance == null) {
+      this._instance = new Bot(discord);
+    }
+  }
+
+  // Return singleton instance
+  public static get(): Bot {
+    return this._instance;
+  }
+
   discord: DiscordClient;
   
   logger: Logger;

@@ -1,32 +1,27 @@
 import { Client as DiscordClient } from 'discord.js';
-import { Mongoose } from 'mongoose';
+import * as mongoose from 'mongoose';
 import * as dotenv from 'dotenv';
+import { Store } from './util/store.js';
+import { Logger } from './util/logger.js';
+import { Bot } from './modules/bot.js';
 
 dotenv.config();
 
-// Logger
-const verbosity : Number = Number(process.env.LOG_LEVEL) || 3;
-var logger = require('./util/logger')(verbosity);
-
-// Inter-module messenger
-var messenger = require('./util/imm')(logger);
-// For discord logging of errors
-logger.registerMessenger(messenger);
-messenger.newTopic('newErrorLog');
+// Main level logger
+const logger = new Logger("Server");
 
 // MongoDB
-const mongoose = new Mongoose();
+Store.ensure(); // Ensure the singleton class has been created with mongoose hooks
 mongoose.connect(process.env.MONGO_URI, 
 	{ autoCreate: true, autoIndex: true, useNewUrlParser: true, 
 		useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true });
-var db = require('./util/store')(logger);
 
 // Discord Client
-const discordToken = process.env.DISCORD_TOKEN;
+const discordToken: string = process.env.DISCORD_TOKEN;
 const discord = new DiscordClient({ partials: [ 'GUILD_MEMBER', 'MESSAGE', 'REACTION' ] });
 
 // Setup Discord services
-require('./modules/bot')(discord, db, messenger, logger);
+Bot.ensure(discord);
 discord.login(discordToken);
 
 logger.info(`Server started`);
