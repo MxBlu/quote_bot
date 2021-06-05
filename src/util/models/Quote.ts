@@ -1,6 +1,10 @@
 import { getModelForClass, plugin, prop, ReturnModelType } from '@typegoose/typegoose';
 import { AutoIncrementID } from '@typegoose/auto-increment';
 
+// We can't define the types for the DocumentQuery's correctly yet
+// TODO: Revisit
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 // TODO: Convert mongoose-auto-increment counter to new one 
 @plugin(AutoIncrementID, {trackerModelName: 'guild_seq', field: 'seq', reference_fields: ['guild']})
 export class Quote {

@@ -1,6 +1,5 @@
 import { Message, Client as DiscordClient, TextChannel } from "discord.js";
 import { sendMessage } from "../util/bot_utils.js";
-import { MessengerTopic } from "../util/imm.js";
 import { Logger, NewErrorLogTopic } from "../util/logger.js";
 import { QuoteEventHandler } from "./command_handlers/quote_event.js";
 import { QuoteManagementHandler } from "./command_handlers/quote_management.js";
@@ -111,7 +110,7 @@ export class Bot {
       return;
     }
 
-    let msg = 
+    const msg = 
       "Quote Bot v2 - Quote and save messages\n" + 
       "\n" + 
       "Add a #️⃣ react to a message to quote the message\n" + 
@@ -129,14 +128,14 @@ export class Bot {
 
   // Error handler
 
-  private async errorLogHandler(data: any, topic: MessengerTopic): Promise<void> {
+  private async errorLogHandler(data): Promise<void> {
     // Log message
-    let log: string = data;
+    const log: string = data;
 
     if (!this.errLogDisabled) {
       try {
         // Should ensure that it works for DM channels too
-        let targetChannel = await this.discord.channels.fetch(errStream);
+        const targetChannel = await this.discord.channels.fetch(errStream);
         // Only send if we can access the error channel
         if (targetChannel != null && targetChannel instanceof TextChannel) {
           sendMessage(targetChannel, log);
@@ -153,14 +152,14 @@ export class Bot {
 
   private parseCommand(cmdMessage: Message): BotCommand {
     // Compare against command syntax
-    var matchObj = cmdMessage.content.match(commandSyntax);
+    const matchObj = cmdMessage.content.match(commandSyntax);
 
     // Check if command is valid
     if (matchObj == null || !this.commandHandlers.has(matchObj[1])) {
       return null;
     }
 
-    let command = new BotCommand();
+    const command = new BotCommand();
     command.message = cmdMessage;
     command.command = matchObj[1];
     command.arguments = matchObj[2] ? matchObj[2].trim().split(' ') : [];

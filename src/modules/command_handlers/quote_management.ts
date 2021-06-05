@@ -13,7 +13,7 @@ export class QuoteManagementHandler {
   }
 
   public async listquotesHandler(command: BotCommand): Promise<void> {
-    let guildId = command.message.guild.id;
+    const guildId = command.message.guild.id;
     let quotes: Quote[] = null; // Array of quotes for given criteria
     let scope = ''; // Scope of list query
     let start = 0; // Starting seq id
@@ -39,8 +39,8 @@ export class QuoteManagementHandler {
       }
 
       // Handle if first arg may be a channel name or channel mention
+      const channelRx = command.arguments[0].match(/^<#(\d+)>$/);
       let potentialChannel: GuildChannel = null;
-      let channelRx = command.arguments[0].match(/^<#(\d+)>$/);
       if (channelRx != null) {
         potentialChannel = command.message.guild.channels.cache.get(channelRx[1]);
       } else {
@@ -58,8 +58,8 @@ export class QuoteManagementHandler {
       }
 
       // Handle if first arg may be a username or user nickname
+      const userRx = command.arguments[0].match(/^<@!(\d+)>$/);
       let potentialUser: GuildMember = null;
-      let userRx = command.arguments[0].match(/^<@!(\d+)>$/);
       if (userRx != null) {
         potentialUser = command.message.guild.members.cache.get(userRx[1]);
       } else {
@@ -73,7 +73,7 @@ export class QuoteManagementHandler {
         quotes = await Store.get().getQuotesByAuthor(potentialUser.id, guildId)
             .where('seq').gte(start)
             .limit(10).exec();
-        let user_name = potentialUser.nickname || potentialUser.user.username;
+        const user_name = potentialUser.nickname || potentialUser.user.username;
         scope = `Author @${user_name}`;
         break;
       }
@@ -91,16 +91,13 @@ export class QuoteManagementHandler {
     }
 
     // Generate array of quote display lines
-    let quoteMsgs: string[] = [];
-    for (let quote of quotes) {
-      let author = await command.message.guild.members.fetch(quote.author);
-      let quoter = await command.message.guild.members.fetch(quote.quoter);
+    const quoteMsgs: string[] = [];
+    for (const quote of quotes) {
+      const author = await command.message.guild.members.fetch(quote.author);
+      const quoter = await command.message.guild.members.fetch(quote.quoter);
       // Get nickname or username if not available
       const author_name = author.nickname || author.user.username;
       const quoter_name = quoter.nickname || quoter.user.username;
-      const avatar_url = (author.user.avatar &&
-        `https://cdn.discordapp.com/avatars/${author.id}/${author.user.avatar}.png`) ||
-        author.user.defaultAvatarURL;
 
       // Generate a list of quote links for 'listquotes'
       quoteMsgs.push(`${quote.seq}: [**${quoter_name}** quoted **${author_name}** (${quote.timestamp.toLocaleString()})](${quote.link})`);
@@ -112,7 +109,7 @@ export class QuoteManagementHandler {
     }
 
     // Create embed to display quotes
-    let embed = new MessageEmbed()
+    const embed = new MessageEmbed()
         .setTitle(`Quotes - ${scope}`)
         .setDescription(quoteMsgs.join("\n"))
     
@@ -121,7 +118,7 @@ export class QuoteManagementHandler {
   }
 
   public async getquoteHandler(command: BotCommand): Promise<void> {
-    let guildId = command.message.guild.id;
+    const guildId = command.message.guild.id;
     let quote: Quote = null;
 
     switch (command.arguments.length) {
@@ -154,8 +151,8 @@ export class QuoteManagementHandler {
     }
 
     // Get GuildMember objects for author and quoter
-    let author = await command.message.guild.members.fetch(quote.author);
-    let quoter = await command.message.guild.members.fetch(quote.quoter);
+    const author = await command.message.guild.members.fetch(quote.author);
+    const quoter = await command.message.guild.members.fetch(quote.quoter);
     // Get nickname or username if not available
     const author_name = author.nickname || author.user.username;
     const quoter_name = quoter.nickname || quoter.user.username;
@@ -165,7 +162,7 @@ export class QuoteManagementHandler {
     const avatar_url = (author.user.avatar &&
       `https://cdn.discordapp.com/avatars/${author.id}/${author.user.avatar}.png`) ||
       author.user.defaultAvatarURL;
-    let embed = new MessageEmbed()
+    const embed = new MessageEmbed()
         .setAuthor(author_name, avatar_url)
         .setDescription(quote.message)
         .setColor('RANDOM')
@@ -177,13 +174,13 @@ export class QuoteManagementHandler {
   }
 
   public async delquoteHandler(command: BotCommand): Promise<void> {
-    let guildId = command.message.guild.id;
+    const guildId = command.message.guild.id;
     switch (command.arguments.length) {
     case 1:
       // Delete quote with given seq ID
       try {
         // Attempt to delete quote with given id
-        let res = await Store.get()
+        const res = await Store.get()
             .delQuote(guildId, parseInt(command.arguments[0])).exec();
         if (res.deletedCount != null && res.deletedCount > 0) {
           sendCmdMessage(command.message, `Quote ${command.arguments[0]} deleted.`, 2, this.logger);

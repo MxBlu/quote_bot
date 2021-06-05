@@ -6,6 +6,11 @@ import { Quote, QuoteModel } from './models/Quote.js';
   API class to interact with underlying storage implementation
   In this case, MongoDB / Mongoose
 */
+
+// We can't define the types for the DocumentQuery's correctly yet
+// TODO: Revisit
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 export class Store {
 
   // Singleton instance
@@ -33,7 +38,7 @@ export class Store {
 
   // Register logging handlers for Mongo events
   private registerMongoHandlers(): void {
-    mongoose.connection.on('error', (err: any) => {  
+    mongoose.connection.on('error', (err) => {  
       this.logger.error(`MongoDB error: ${err}`);
     });
   
@@ -71,7 +76,7 @@ export class Store {
   public async addQuote(guildId: string, channelId: string,
       authorId: string, quoterId: string, message: string, 
       img: string, link: string, timestamp: Date): Promise<Quote> {
-    let quote = await QuoteModel.create({
+    const quote = await QuoteModel.create({
       channel: channelId,
       guild: guildId,
       message,

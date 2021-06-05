@@ -17,7 +17,7 @@ export class QuoteEventHandler {
   public async messageReactionHandler(reaction: MessageReaction, user: User | PartialUser): Promise<void> {
     // Dumb ass shit cause Discord.js doesn't resolve them
     reaction = await reaction.fetch();
-    let guildUser = await reaction.message.guild.members.fetch(user.id);
+    const guildUser = await reaction.message.guild.members.fetch(user.id);
 
     this.logger.info(`Reaction with emoji ${reaction.emoji.name} detected`, 4);
     // Handle emojis we care about

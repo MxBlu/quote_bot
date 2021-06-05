@@ -4,6 +4,9 @@
   This has better logging for my sanity anyway
 */
 
+// We use any here for arbitrary data, no way around it
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
+
 import { Logger, LogLevels } from "./logger.js";
 
 type EventCallbackFunction = (data: any, topic: MessengerTopic) => Promise<void>;
