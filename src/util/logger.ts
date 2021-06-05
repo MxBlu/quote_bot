@@ -18,17 +18,17 @@ function getTimeString() {
 */
 export class Logger {
   // Min verbosity for a log message to be processed
-  loggerVebosity: Number;
+  loggerVebosity: number;
   // Messenger for Discord error logging
   imm: InterModuleMessenger;
 
-  constructor(loggerVebosity: Number) {
+  constructor(loggerVebosity: number) {
     this.loggerVebosity = loggerVebosity;
   }
 
   // Generic log event, lower verbosity is higher priority
     // Default to verbosity = 1
-  public info(message: String, verbosity = 1): void {
+  public info(message: string, verbosity = 1): void {
     if (this.loggerVebosity >= verbosity) {
       console.log(`[INFO${verbosity}] ${getTimeString()} ${message}`);
     }
@@ -36,7 +36,7 @@ export class Logger {
 
   // Log event as error, where verbosity = 0
     // Logs to Discord if available
-  public error (message: String): void {
+  public error (message: string): void {
     if (this.loggerVebosity >= 0) {
       const logStr = `[ERROR] ${getTimeString()} ${message}`;
       console.error(logStr);

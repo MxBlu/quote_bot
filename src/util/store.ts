@@ -27,7 +27,7 @@ export class Store {
   }
 
   // Get a quote with given seq number in a certain guild
-  public getQuoteBySeq (guildId: string, seq: Number): Promise<Quote> {
+  public getQuoteBySeq (guildId: string, seq: number): Promise<Quote> {
     return QuoteModel.getBySeq(guildId, seq);
   }
 
@@ -70,7 +70,7 @@ export class Store {
 
   // Delete a quote from the db
   // TODO: FIXME
-  delQuote (guildId: string, seq: Number): Promise<Quote> {
+  delQuote (guildId: string, seq: number): Promise<Quote> {
     return QuoteModel.deleteBySeq(guildId, seq);
   }
 

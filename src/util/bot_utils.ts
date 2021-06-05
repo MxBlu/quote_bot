@@ -6,7 +6,7 @@ const DISCORD_MAX_LEN = 1900;
 // Split up a string into ideally endline terminated strings
 // at most length DISCORD_MAX_LEN
 export const chunkString = function (str: string): string[] {
-  let chunks: string[] = [];
+  const chunks: string[] = [];
   let strBuffer = '';
 
   // Split by newline and concat strings until ideal length
@@ -53,7 +53,7 @@ export const sendCmdMessage = function (message: Message, msg: string,
 // Send message to a given channel, chunking if necessary
 export const sendMessage = function (targetChannel: TextChannel | DMChannel | NewsChannel, 
     msg: string): void {
-  let msgChunks = chunkString(msg);
+  const msgChunks = chunkString(msg);
   msgChunks.forEach(
     (chunk) => targetChannel.send(chunk));
 }
