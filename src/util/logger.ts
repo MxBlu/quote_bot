@@ -1,4 +1,14 @@
-import { InterModuleMessenger } from "./imm";
+import { DEFAULT_LOG_LEVEL } from "../constants/constants.js";
+import { MessengerTopic } from "./imm.js";
+
+export enum LogLevels {
+  IGNORE = -1,
+  ERROR,
+  INFO1,
+  INFO2,
+  INFO3,
+  INFO4
+}
 
 // Get a time string of the current time
 function getTimeString() {
@@ -17,37 +27,36 @@ function getTimeString() {
   Also logs errors to Discord if available
 */
 export class Logger {
+  // Name to append on to logs
+  name: string;
   // Min verbosity for a log message to be processed
   loggerVebosity: number;
-  // Messenger for Discord error logging
-  imm: InterModuleMessenger;
 
-  constructor(loggerVebosity: number) {
+  constructor(name: string, loggerVebosity: number) {
+    this.name = name;
     this.loggerVebosity = loggerVebosity;
   }
 
   // Generic log event, lower verbosity is higher priority
     // Default to verbosity = 1
-  public info(message: string, verbosity = 1): void {
+  public info(message: string, verbosity = LogLevels.INFO1): void {
     if (this.loggerVebosity >= verbosity) {
-      console.log(`[INFO${verbosity}] ${getTimeString()} ${message}`);
+      console.log(`${getTimeString()} - ${this.name} - [INFO${verbosity}] ${message}`);
     }
   }
 
   // Log event as error, where verbosity = 0
-    // Logs to Discord if available
+  // Logs to Discord if available
   public error (message: string): void {
-    if (this.loggerVebosity >= 0) {
-      const logStr = `[ERROR] ${getTimeString()} ${message}`;
+    if (this.loggerVebosity >= LogLevels.ERROR) {
+      const logStr = `${getTimeString()} - ${this.name} - [ERROR] ${message}`;
       console.error(logStr);
-      if (this.imm != null) {
-        this.imm.notify('newErrorLog', logStr);
-      }
+      // Log to Discord if it happens to be listening
+      NewErrorLogTopic.notify(logStr);
     }
   }
 
-  // Register messenger for Discord logging
-  public registerMessenger (messenger: InterModuleMessenger): void {
-    this.imm = messenger;
-  }
 }
+
+// Message topic for Discord error logging
+export const NewErrorLogTopic = new MessengerTopic("newErrorLog");
