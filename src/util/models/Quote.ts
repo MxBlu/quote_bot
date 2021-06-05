@@ -40,8 +40,8 @@ export class Quote {
   @prop()
   public timestamp: Date;
 
-  public static async getBySeq(this: ReturnModelType<typeof Quote>, guild: string, seq: number): Promise<Quote> {
-    return this.findOne({ guild, seq }).exec();
+  public static getBySeq(this: ReturnModelType<typeof Quote>, guild: string, seq: number) {
+    return this.findOne({ guild, seq });
   }
 
   public static async getRandom(this: ReturnModelType<typeof Quote>, guild: string): Promise<Quote> {
@@ -50,21 +50,23 @@ export class Quote {
   }
 
   // TODO: FIXME
-  public static async deleteBySeq(this: ReturnModelType<typeof Quote>, guild: string, seq: number): Promise<Quote> {
-    return this.findOne({ guild, seq }).exec();
+  public static deleteBySeq(this: ReturnModelType<typeof Quote>, guild: string, seq: number) {
+    return this.deleteOne({ guild, seq });
   }
 
-  public static async findByGuild(this: ReturnModelType<typeof Quote>, guild: string): Promise<Quote[]> {
-    return this.find({ guild }).exec();
+  public static findByGuild(this: ReturnModelType<typeof Quote>, guild: string) {
+    return this.find({ guild });
   }
 
-  public static async findByChannel(this: ReturnModelType<typeof Quote>, channel: string): Promise<Quote[]> {
-    return this.find({ channel }).exec();
+  public static findByChannel(this: ReturnModelType<typeof Quote>, channel: string) {
+    return this.find({ channel });
   }
 
-  public static async findByAuthor(this: ReturnModelType<typeof Quote>, author: string, guild: string): Promise<Quote[]> {
-    return this.find({ author, guild }).exec();
+  public static findByAuthor(this: ReturnModelType<typeof Quote>, author: string, guild: string) {
+    return this.find({ author, guild });
   }
 }
+
+export type QuoteQuery = typeof QuoteModel.find;
 
 export const QuoteModel = getModelForClass(Quote);

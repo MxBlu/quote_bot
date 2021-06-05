@@ -1,6 +1,6 @@
 import * as mongoose from 'mongoose';
-import { Logger } from './logger';
-import { Quote, QuoteModel } from './models/Quote';
+import { Logger } from './logger.js';
+import { Quote, QuoteModel } from './models/Quote.js';
 
 /*
   API class to interact with underlying storage implementation
@@ -43,27 +43,27 @@ export class Store {
   }
 
   // Get a quote with given seq number in a certain guild
-  public getQuoteBySeq (guildId: string, seq: number): Promise<Quote> {
+  public getQuoteBySeq(guildId: string, seq: number) {
     return QuoteModel.getBySeq(guildId, seq);
   }
 
   // Get a random quote in a certain guild
-  public getRandomQuote (guildId: string): Promise<Quote> {
+  public getRandomQuote(guildId: string) {
     return QuoteModel.getRandom(guildId);
   }
 
   // Get all quotes in a certain guild
-  public getQuotesByGuild (guildId: string): Promise<Quote[]> {
+  public getQuotesByGuild(guildId: string){
     return QuoteModel.findByGuild(guildId);
   }
 
   // Get all quotes in a certain channel
-  public getQuotesByChannel (channelId: string): Promise<Quote[]> {
+  public getQuotesByChannel(channelId: string) {
     return QuoteModel.findByChannel(channelId);
   }
 
   // Get all quotes in by a given author in a certain guild
-  public getQuotesByAuthor (userId: string, guildId: string): Promise<Quote[]> {
+  public getQuotesByAuthor(userId: string, guildId: string) {
     return QuoteModel.findByAuthor(userId, guildId);
   }
 
@@ -86,8 +86,8 @@ export class Store {
 
   // Delete a quote from the db
   // TODO: FIXME
-  delQuote (guildId: string, seq: number): Promise<Quote> {
+  delQuote(guildId: string, seq: number) {
     return QuoteModel.deleteBySeq(guildId, seq);
   }
-
+ 
 }

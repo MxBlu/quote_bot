@@ -1,5 +1,5 @@
 import { DMChannel, Message, NewsChannel, TextChannel } from "discord.js";
-import { Logger } from "./logger";
+import { Logger } from "./logger.js";
 
 const DISCORD_MAX_LEN = 1900;
 
