@@ -41,7 +41,7 @@ export class Logger {
     // Default to verbosity = 1
   public info(message: string, verbosity = LogLevels.INFO1): void {
     if (this.loggerVebosity >= verbosity) {
-      console.log(`${getTimeString()} - ${this.name} - [INFO${verbosity}] ${message}`);
+      console.log(`${getTimeString()} - [INFO${verbosity}] ${this.name} - ${message}`);
     }
   }
 
@@ -49,7 +49,7 @@ export class Logger {
   // Logs to Discord if available
   public error (message: string): void {
     if (this.loggerVebosity >= LogLevels.ERROR) {
-      const logStr = `${getTimeString()} - ${this.name} - [ERROR] ${message}`;
+      const logStr = `${getTimeString()} - [ERROR] ${this.name} - ${message}`;
       console.error(logStr);
       // Log to Discord if it happens to be listening
       NewErrorLogTopic.notify(logStr);
