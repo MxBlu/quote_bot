@@ -38,7 +38,7 @@ export class Logger {
   }
 
   // Generic log event, lower verbosity is higher priority
-    // Default to verbosity = 1
+  // Default to verbosity = 1
   public info(message: string, verbosity = LogLevels.INFO1): void {
     if (this.loggerVebosity >= verbosity) {
       console.log(`${getTimeString()} - [INFO${verbosity}] ${this.name} - ${message}`);
