@@ -1,7 +1,7 @@
 import { DEFAULT_LOG_LEVEL } from "../constants/constants.js";
 import { MessengerTopic } from "./imm.js";
 
-export enum LogLevels {
+export const enum LogLevels {
   IGNORE = -1,
   ERROR,
   INFO1,
