@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { Logger } from './logger.js';
 import { Quote, QuoteModel } from './models/Quote.js';
+import { User, UserModel } from './models/User.js';
 
 /*
   API class to interact with underlying storage implementation
@@ -53,12 +54,17 @@ export class Store {
   }
 
   // Get a random quote in a certain guild
+  public getRandomQuoteFromAuthor(guildId: string, authorId: string) {
+    return QuoteModel.getRandomFromAuthor(guildId, authorId);
+  }
+
+  // Get a random quote in a certain guild
   public getRandomQuote(guildId: string) {
     return QuoteModel.getRandom(guildId);
   }
 
   // Get all quotes in a certain guild
-  public getQuotesByGuild(guildId: string){
+  public getQuotesByGuild(guildId: string) {
     return QuoteModel.findByGuild(guildId);
   }
 
@@ -89,10 +95,25 @@ export class Store {
     return quote.save();
   }
 
+  // Check if a quote exists with given message link
+  public checkQuoteExists (link: string) {
+    return QuoteModel.checkExists(link);
+  }
+
   // Delete a quote from the db
-  // TODO: FIXME
-  delQuote(guildId: string, seq: number) {
+  public delQuote(guildId: string, seq: number) {
     return QuoteModel.deleteBySeq(guildId, seq);
+  }
+
+  // Insert/update a user in the db
+  public upsertUser(userId: string, guildId: string, 
+      displayName: string, discriminator: string): Promise<User> {
+    return UserModel.upsert(userId, guildId, displayName, discriminator);
+  }
+
+  // Get user from the db
+  public getUser(userId: string, guildId: string) {
+    return UserModel.getById(userId, guildId);
   }
  
 }

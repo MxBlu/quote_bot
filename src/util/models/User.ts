@@ -29,7 +29,7 @@ export class User {
   }
   
   public static upsert(this: ReturnModelType<typeof User>, 
-      user: string, guild: string, displayName: string, discriminator: string) {
+      user: string, guild: string, displayName: string, discriminator: string): Promise<User> {
     return this.updateOne(
       { _id: { user, guild } },
       { $set: { displayName, discriminator } },
