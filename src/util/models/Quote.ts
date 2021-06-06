@@ -71,6 +71,4 @@ export class Quote {
   }
 }
 
-export type QuoteQuery = typeof QuoteModel.find;
-
 export const QuoteModel = getModelForClass(Quote);
