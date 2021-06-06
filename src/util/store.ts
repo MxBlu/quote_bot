@@ -1,4 +1,4 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
 import { Logger } from './logger.js';
 import { Quote, QuoteModel } from './models/Quote.js';
 
