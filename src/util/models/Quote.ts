@@ -6,7 +6,7 @@ import { AutoIncrementID } from '@typegoose/auto-increment';
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 
 // TODO: Convert mongoose-auto-increment counter to new one 
-@plugin(AutoIncrementID, {trackerModelName: 'guild_seq', field: 'seq', reference_fields: ['guild']})
+@plugin(AutoIncrementID, {trackerCollection: 'seq_counters', field: 'seq', startAt: 1, reference_fields: ['guild']})
 export class Quote {
   // Sequencing value, unique to the guild. For referencing quotes in a list
   @prop({index: true})

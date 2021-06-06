@@ -15,8 +15,8 @@ mongoose.connect(process.env.MONGO_URI, { autoCreate: true, autoIndex: true, use
 async function main() {
   try {
     console.log("Start");
-    const quote: Quote = await QuoteModel.getBySeq('606704263053180929', 1);
-    console.log(quote.author);
+    const quote: Quote = await Store.get().addQuote("test2", "test", "test", "test", "test", "test", "test", new Date());
+    console.log(quote);
   } catch(err) {
     console.error(err);
   }

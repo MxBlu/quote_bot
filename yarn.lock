@@ -75,7 +75,7 @@
 
 "@typegoose/auto-increment@MxBlu/auto-increment":
   version "0.6.1"
-  resolved "https://codeload.github.com/MxBlu/auto-increment/tar.gz/9299a69ca7743c9dac0e26a4ba052d5c4f91ce1c"
+  resolved "https://codeload.github.com/MxBlu/auto-increment/tar.gz/0c118569f79aa95d3e7e6c02712a9e0613066559"
   dependencies:
     loglevel "^1.7.0"
     tslib "^2.0.3"

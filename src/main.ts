@@ -1,5 +1,5 @@
 import { Client as DiscordClient } from 'discord.js';
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
 import * as dotenv from 'dotenv';
 import { Store } from './util/store.js';
 import { Logger } from './util/logger.js';
