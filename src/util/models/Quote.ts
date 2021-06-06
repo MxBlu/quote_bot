@@ -37,7 +37,7 @@ export class Quote {
   public img: string;
 
   // URL of quoted message
-  @prop()
+  @prop({index: true})
   public link: string;
 
   // Date of quoted message
@@ -52,8 +52,13 @@ export class Quote {
     const res = await this.aggregate([{ $match: { guild } }, { $sample: { size: 1 } }]).exec();
     return res.length > 0 ? res[0] : null;
   }
+  
+  public static async getRandomFromAuthor(this: ReturnModelType<typeof Quote>, 
+      guild: string, author: string): Promise<Quote> {
+    const res = await this.aggregate([{ $match: { author, guild } }, { $sample: { size: 1 } }]).exec();
+    return res.length > 0 ? res[0] : null;
+  }
 
-  // TODO: FIXME
   public static deleteBySeq(this: ReturnModelType<typeof Quote>, guild: string, seq: number) {
     return this.deleteOne({ guild, seq });
   }
@@ -68,6 +73,10 @@ export class Quote {
 
   public static findByAuthor(this: ReturnModelType<typeof Quote>, author: string, guild: string) {
     return this.find({ author, guild });
+  }
+
+  public static checkExists(this: ReturnModelType<typeof Quote>, link: string) {
+    return this.exists({ link });
   }
 }
 
