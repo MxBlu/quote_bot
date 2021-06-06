@@ -78,9 +78,28 @@ export class Bot {
     this.discord.on('messageReactionAdd', this.quoteEventHandler.messageReactionHandler);
   }
 
+  // Utility functions
+
+  private parseCommand(cmdMessage: Message): BotCommand {
+    // Compare against command syntax
+    const matchObj = cmdMessage.content.match(commandSyntax);
+
+    // Check if command is valid
+    if (matchObj == null || !this.commandHandlers.has(matchObj[1])) {
+      return null;
+    }
+
+    const command = new BotCommand();
+    command.message = cmdMessage;
+    command.command = matchObj[1];
+    command.arguments = matchObj[2] ? matchObj[2].trim().split(' ') : [];
+
+    return command;
+  }
+
   // Discord event handlers
 
-  private readyHandler(): void {
+  private readyHandler = (): void => {
     this.logger.info("Discord connected", 1);
 
     // Call fetch on every guild to make sure we have all the members cached
@@ -89,7 +108,7 @@ export class Bot {
     );
   }
 
-  private async messageHandler(message: Message) {
+  private messageHandler = async (message: Message): Promise<void> => {
     // Ignore bot messages to avoid messy situations
     if (message.author.bot) {
       return;
@@ -103,7 +122,7 @@ export class Bot {
     }
   }
 
-  private async helpHandler(command: BotCommand): Promise<void> {
+  private helpHandler = async (command: BotCommand): Promise<void> => {
     if (command.arguments == null ||
           command.arguments[0] !== "quotebot") {
       // Only send help for !help quotebot
@@ -128,7 +147,7 @@ export class Bot {
 
   // Error handler
 
-  private async errorLogHandler(data): Promise<void> {
+  private errorLogHandler = async (data): Promise<void> => {
     // Log message
     const log: string = data;
 
@@ -146,25 +165,6 @@ export class Bot {
         this.errLogDisabled = true;
       }
     }
-  }
-
-  // Utility functions
-
-  private parseCommand(cmdMessage: Message): BotCommand {
-    // Compare against command syntax
-    const matchObj = cmdMessage.content.match(commandSyntax);
-
-    // Check if command is valid
-    if (matchObj == null || !this.commandHandlers.has(matchObj[1])) {
-      return null;
-    }
-
-    const command = new BotCommand();
-    command.message = cmdMessage;
-    command.command = matchObj[1];
-    command.arguments = matchObj[2] ? matchObj[2].trim().split(' ') : [];
-
-    return command;
   }
 
 }

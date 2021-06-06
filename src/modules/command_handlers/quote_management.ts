@@ -12,7 +12,7 @@ export class QuoteManagementHandler {
     this.logger = new Logger("QuoteManagementHandler");
   }
 
-  public async listquotesHandler(command: BotCommand): Promise<void> {
+  public listquotesHandler = async (command: BotCommand): Promise<void> => {
     const guildId = command.message.guild.id;
     let quotes: Quote[] = null; // Array of quotes for given criteria
     let scope = ''; // Scope of list query
@@ -117,7 +117,7 @@ export class QuoteManagementHandler {
     command.message.channel.send(embed);
   }
 
-  public async getquoteHandler(command: BotCommand): Promise<void> {
+  public getquoteHandler = async (command: BotCommand): Promise<void> => {
     const guildId = command.message.guild.id;
     let quote: Quote = null;
 
@@ -173,7 +173,7 @@ export class QuoteManagementHandler {
     command.message.channel.send(messagePreamble, embed);
   }
 
-  public async delquoteHandler(command: BotCommand): Promise<void> {
+  public delquoteHandler = async (command: BotCommand): Promise<void> => {
     const guildId = command.message.guild.id;
     switch (command.arguments.length) {
     case 1:

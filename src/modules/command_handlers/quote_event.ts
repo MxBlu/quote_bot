@@ -14,7 +14,7 @@ export class QuoteEventHandler {
     this.logger = new Logger("QuoteEventHandler");
   }
 
-  public async messageReactionHandler(reaction: MessageReaction, user: User | PartialUser): Promise<void> {
+  public messageReactionHandler = async (reaction: MessageReaction, user: User | PartialUser): Promise<void> => {
     // Dumb ass shit cause Discord.js doesn't resolve them
     reaction = await reaction.fetch();
     const guildUser = await reaction.message.guild.members.fetch(user.id);
@@ -35,48 +35,6 @@ export class QuoteEventHandler {
       reaction.remove();
       break;
     }
-  }
-
-  private async quoteHandler(message: Message, quoter: GuildMember): Promise<void> {
-    // Properly resolve guild members from message author
-    // I think it's a discord.js issue
-    const author = await message.guild.members.fetch(message.author.id);
-
-    // Get nickname or username if not available
-    const author_name = author.nickname || author.user.username;
-    const quoter_name = quoter.nickname || quoter.user.username;  
-
-    // Create message to send
-    const messagePreamble = `**${quoter_name}** quoted **${author_name}**:`;
-    const embed = this.generateEmbed(message, author);
-
-    this.logger.info(`${quoter_name} quoted ${message.url}`, 2);
-    
-    // Send message with embed
-    message.channel.send(messagePreamble, embed);
-  }
-
-  private async quoteSaveHandler(message: Message, quoter: GuildMember): Promise<void> {
-    // Properly resolve guild members from message author
-    // I think it's a discord.js issue
-    const author = await message.guild.members.fetch(message.author.id);
-
-    // Get nickname or username if not available
-    const author_name = author.nickname || author.user.username;
-    const quoter_name = quoter.nickname || quoter.user.username;
-
-    // Create message to send
-    const messagePreamble = `**${quoter_name}** saved quote a by **${author_name}**:`;
-    const embed = this.generateEmbed(message, author);
-
-    // Store quoted message to db
-    await Store.get().addQuote(message.guild.id, message.channel.id, author.id, quoter.id,
-      embed.description, embed.image?.url, message.url, message.createdAt);
-
-    this.logger.info(`${quoter_name} saved quote ${message.url}`, 2);
-    
-    // Send message with embed
-    message.channel.send(messagePreamble, embed);
   }
 
   // Create a quote embed
@@ -115,5 +73,47 @@ export class QuoteEventHandler {
     // Set embed content
     embed.setDescription(content);
     return embed;
+  }
+
+  private quoteHandler = async(message: Message, quoter: GuildMember): Promise<void> => {
+    // Properly resolve guild members from message author
+    // I think it's a discord.js issue
+    const author = await message.guild.members.fetch(message.author.id);
+
+    // Get nickname or username if not available
+    const author_name = author.nickname || author.user.username;
+    const quoter_name = quoter.nickname || quoter.user.username;  
+
+    // Create message to send
+    const messagePreamble = `**${quoter_name}** quoted **${author_name}**:`;
+    const embed = this.generateEmbed(message, author);
+
+    this.logger.info(`${quoter_name} quoted ${message.url}`, 2);
+    
+    // Send message with embed
+    message.channel.send(messagePreamble, embed);
+  }
+
+  private quoteSaveHandler = async (message: Message, quoter: GuildMember): Promise<void> => {
+    // Properly resolve guild members from message author
+    // I think it's a discord.js issue
+    const author = await message.guild.members.fetch(message.author.id);
+
+    // Get nickname or username if not available
+    const author_name = author.nickname || author.user.username;
+    const quoter_name = quoter.nickname || quoter.user.username;
+
+    // Create message to send
+    const messagePreamble = `**${quoter_name}** saved quote a by **${author_name}**:`;
+    const embed = this.generateEmbed(message, author);
+
+    // Store quoted message to db
+    await Store.get().addQuote(message.guild.id, message.channel.id, author.id, quoter.id,
+      embed.description, embed.image?.url, message.url, message.createdAt);
+
+    this.logger.info(`${quoter_name} saved quote ${message.url}`, 2);
+    
+    // Send message with embed
+    message.channel.send(messagePreamble, embed);
   }
 }
