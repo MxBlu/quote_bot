@@ -1,4 +1,4 @@
-import { Client as DiscordClient, GuildMember, Message, MessageReaction, PartialUser, User } from "discord.js";
+import { Client as DiscordClient, GuildMember, Message, MessageReaction } from "discord.js";
 import { DEFAULT_MODAL_DURATION } from "../constants/constants.js";
 import { Logger } from "./logger.js";
 
@@ -90,8 +90,7 @@ export class ScrollableModalManager {
     this.logger.info(`Modal removed for message ${message.id}`, 4);
   }
 
-  public messageReactionHandler = async (reaction: MessageReaction, 
-      user: User | PartialUser): Promise<void> => {
+  public messageReactionHandler = async (reaction: MessageReaction, user: GuildMember): Promise<void> => {
     // Only handle reactions for active modals
     if (!this.activeModals.has(reaction.message.id)) {
       return;

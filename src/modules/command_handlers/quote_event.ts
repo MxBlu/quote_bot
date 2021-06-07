@@ -1,4 +1,5 @@
-import { MessageEmbed, Client as DiscordClient, MessageReaction, GuildMember, Message, User, PartialUser } from "discord.js";
+import { MessageEmbed, Client as DiscordClient, MessageReaction, GuildMember, Message } from "discord.js";
+import { sendMessage } from "../../util/bot_utils.js";
 import { Logger } from "../../util/logger.js";
 import { Store } from "../../util/store.js";
 
@@ -14,24 +15,19 @@ export class QuoteEventHandler {
     this.logger = new Logger("QuoteEventHandler");
   }
 
-  public messageReactionHandler = async (reaction: MessageReaction, user: User | PartialUser): Promise<void> => {
-    // Dumb ass shit cause Discord.js doesn't resolve them
-    reaction = await reaction.fetch();
-    const guildUser = await reaction.message.guild.members.fetch(user.id);
-
-    this.logger.info(`Reaction with emoji ${reaction.emoji.name} detected`, 4);
+  public messageReactionHandler = async (reaction: MessageReaction, user: GuildMember): Promise<void> => {
     // Handle emojis we care about
     // Remove reaction if we're handling em
     switch (reaction.emoji.name) {
     case "#️⃣":
       // Quote on hash react
-      this.quoteHandler(reaction.message, guildUser);
+      this.quoteHandler(reaction.message, user);
       reaction.remove();
       break;
     case "omegachair":
     case "♿":
       // Save on wheelchair react
-      this.quoteSaveHandler(reaction.message, guildUser);
+      this.quoteSaveHandler(reaction.message, user);
       reaction.remove();
       break;
     }
@@ -39,10 +35,7 @@ export class QuoteEventHandler {
 
   // Create a quote embed
   private generateEmbed(message: Message, author: GuildMember): MessageEmbed {
-    // Generate avatar URL
-    const avatar_url = (author.user.avatar &&
-        `https://cdn.discordapp.com/avatars/${author.id}/${author.user.avatar}.png`) ||
-        author.user.defaultAvatarURL;
+    // Create embed content
     let content = `${message.content}\n`
                 + `[Link](${message.url})`;
 
@@ -50,14 +43,18 @@ export class QuoteEventHandler {
     const embed = new MessageEmbed()
         .setColor('RANDOM')
         .setTimestamp(message.createdAt)
-        .setAuthor(author.nickname || author.user.username, avatar_url);
+        .setAuthor(author.displayName, author.user.displayAvatarURL());
 
     // If there's any images or attachments, add them to the embed
+    // First check for an image URL in the contents
     let imgRegex = message.content.match(IMG_RX);
     if (imgRegex !== null) {
       embed.setImage(imgRegex[0]);
     }
+    // Then add every attachment to the embed
     message.attachments.map(a => {
+      // If we don't already have an image set
+      // test if the current attachment is one and add if so
       if (embed.image === null) {
         imgRegex = a.url.match(IMG_RX);
         if (imgRegex !== null) {
@@ -66,6 +63,9 @@ export class QuoteEventHandler {
         }
       }
 
+      // If the attachment is not an image or
+      // we already have one on the embed,
+      // add it to the bottom of the content
       content += "\n\n" +
                   `**Attachment**: [${a.name}](${a.url})`;
     });
@@ -80,40 +80,39 @@ export class QuoteEventHandler {
     // I think it's a discord.js issue
     const author = await message.guild.members.fetch(message.author.id);
 
-    // Get nickname or username if not available
-    const author_name = author.nickname || author.user.username;
-    const quoter_name = quoter.nickname || quoter.user.username;  
-
     // Create message to send
-    const messagePreamble = `**${quoter_name}** quoted **${author_name}**:`;
     const embed = this.generateEmbed(message, author);
 
-    this.logger.info(`${quoter_name} quoted ${message.url}`, 2);
+    this.logger.info(`${quoter.user.username} quoted ${message.url}`, 2);
     
     // Send message with embed
+    const messagePreamble = `**${quoter.displayName}** quoted **${author.displayName}**:`;
     message.channel.send(messagePreamble, embed);
   }
 
   private quoteSaveHandler = async (message: Message, quoter: GuildMember): Promise<void> => {
+    // Make sure the quote doesn't exist first
+    if (await Store.get().checkQuoteExists(message.url)) {
+      this.logger.info(`${quoter.user.username} - ${message.guild.name} - Error: Quote already exists`, 2);
+      sendMessage(message.channel, "Error: Quote already exists");
+      return;
+    }
+
     // Properly resolve guild members from message author
     // I think it's a discord.js issue
     const author = await message.guild.members.fetch(message.author.id);
 
-    // Get nickname or username if not available
-    const author_name = author.nickname || author.user.username;
-    const quoter_name = quoter.nickname || quoter.user.username;
-
     // Create message to send
-    const messagePreamble = `**${quoter_name}** saved quote a by **${author_name}**:`;
     const embed = this.generateEmbed(message, author);
 
     // Store quoted message to db
-    await Store.get().addQuote(message.guild.id, message.channel.id, author.id, quoter.id,
+    const quote = await Store.get().addQuote(message.guild.id, message.channel.id, author.id, quoter.id,
       embed.description, embed.image?.url, message.url, message.createdAt);
 
-    this.logger.info(`${quoter_name} saved quote ${message.url}`, 2);
+    this.logger.info(`${quoter.user.username} saved quote ${message.url}`, 2);
     
     // Send message with embed
+    const messagePreamble = `${quote.seq}: **${quoter.displayName}** saved a quote by **${author.displayName}**:`;
     message.channel.send(messagePreamble, embed);
   }
 }

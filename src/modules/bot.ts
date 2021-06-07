@@ -1,4 +1,4 @@
-import { Message, Client as DiscordClient, TextChannel } from "discord.js";
+import { Message, Client as DiscordClient, TextChannel, MessageReaction, User, PartialUser } from "discord.js";
 import { sendMessage } from "../util/bot_utils.js";
 import { Logger, NewErrorLogTopic } from "../util/logger.js";
 import { QuoteEventHandler } from "./command_handlers/quote_event.js";
@@ -75,7 +75,7 @@ export class Bot {
   private initDiscordEventHandlers(): void {
     this.discord.once('ready', this.readyHandler);
     this.discord.on('message', this.messageHandler);
-    this.discord.on('messageReactionAdd', this.quoteEventHandler.messageReactionHandler);
+    this.discord.on('messageReactionAdd', this.reactionHandler);
   }
 
   // Utility functions
@@ -120,6 +120,17 @@ export class Bot {
           `!${command.command} - '${command.arguments.join(' ')}'`, 2);
       this.commandHandlers.get(command.command)(command);
     }
+  }
+
+  private reactionHandler = async (reaction: MessageReaction, user: User | PartialUser): Promise<void> => {
+    // Dumb ass shit cause Discord.js doesn't resolve them
+    reaction = await reaction.fetch();
+    const guildMember = await reaction.message.guild.members.fetch(user.id);
+
+    this.logger.info(`Reaction with emoji ${reaction.emoji.name} detected`, 4);
+
+    // Handlers
+    this.quoteEventHandler.messageReactionHandler(reaction, guildMember);
   }
 
   private helpHandler = async (command: BotCommand): Promise<void> => {
