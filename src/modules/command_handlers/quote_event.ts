@@ -1,4 +1,4 @@
-import { MessageEmbed, Client as DiscordClient, MessageReaction, GuildMember, Message } from "discord.js";
+import { MessageEmbed, MessageReaction, GuildMember, Message } from "discord.js";
 import { sendMessage } from "../../util/bot_utils.js";
 import { Logger } from "../../util/logger.js";
 import { getBestGuildMember, UserLite } from "../../util/models/UserLite.js";
