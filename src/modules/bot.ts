@@ -1,12 +1,14 @@
 import { Message, Client as DiscordClient, TextChannel, MessageReaction, User, PartialUser } from "discord.js";
 import { sendMessage } from "../util/bot_utils.js";
 import { Logger, NewErrorLogTopic } from "../util/logger.js";
+import { ScrollableModalManager } from "../util/scrollable.js";
+import { Store } from "../util/store.js";
 import { QuoteEventHandler } from "./command_handlers/quote_event.js";
 import { QuoteManagementHandler } from "./command_handlers/quote_management.js";
 
 const errStream: string = process.env.DISCORD_ERRSTREAM;
 
-const commandSyntax = /^\s*!([A-Za-z]+)((?: [^ ]+)+)?\s*$/;
+const commandSyntax = /^\s*!([A-Za-z]+)((?: +[^ ]+)+)?\s*$/;
 
 type BotCommandHandlerFunction = (command: BotCommand) => Promise<void>;
 
@@ -41,7 +43,9 @@ export class Bot {
 
   // For when we hit an error logging to Discord itself
   errLogDisabled: boolean;
-
+  // Manager for scrolling modals
+  scrollableManager: ScrollableModalManager;
+  // Map of command names to handlers
   commandHandlers: Map<string, BotCommandHandlerFunction>;
 
   // Command handlers
@@ -51,6 +55,7 @@ export class Bot {
   constructor(discord: DiscordClient) {
     this.discord = discord;
     this.errLogDisabled = false;
+    this.scrollableManager = new ScrollableModalManager(discord);
     this.logger = new Logger("Bot");
 
     this.commandHandlers = new Map<string, BotCommandHandlerFunction>();
@@ -66,16 +71,21 @@ export class Bot {
     this.quoteManagementHandler = new QuoteManagementHandler();
 
     this.commandHandlers.set("help", this.helpHandler);
+    this.commandHandlers.set("h", this.helpHandler);
     this.commandHandlers.set("listquotes", this.quoteManagementHandler.listquotesHandler);
-    this.commandHandlers.set("dumpquotes", this.quoteManagementHandler.listquotesHandler);
+    this.commandHandlers.set("lq", this.quoteManagementHandler.listquotesHandler);
     this.commandHandlers.set("getquote", this.quoteManagementHandler.getquoteHandler);
+    this.commandHandlers.set("gq", this.quoteManagementHandler.getquoteHandler);
     this.commandHandlers.set("delquote", this.quoteManagementHandler.delquoteHandler);
+    this.commandHandlers.set("dq", this.quoteManagementHandler.delquoteHandler);
   }
 
   private initDiscordEventHandlers(): void {
     this.discord.once('ready', this.readyHandler);
     this.discord.on('message', this.messageHandler);
     this.discord.on('messageReactionAdd', this.reactionHandler);
+    this.discord.on('guildMemberAdd', this.memberUpdateHandler);
+    this.discord.on('guildMemberUpdate', (_, m) => this.memberUpdateHandler(m)); // ignore 'old member' param
   }
 
   // Utility functions
@@ -85,14 +95,18 @@ export class Bot {
     const matchObj = cmdMessage.content.match(commandSyntax);
 
     // Check if command is valid
-    if (matchObj == null || !this.commandHandlers.has(matchObj[1])) {
+    if (matchObj == null || !this.commandHandlers.has(matchObj[1].toLowerCase())) {
       return null;
     }
 
+    // Remove double spaces from arg string, then split it into an array
+    // If no args exist (matchObj[2] == null), create empty array
+    const cmdArgs = matchObj[2] ? matchObj[2].replace(/  +/g, ' ').trim().split(' ') : [];
+
     const command = new BotCommand();
     command.message = cmdMessage;
-    command.command = matchObj[1];
-    command.arguments = matchObj[2] ? matchObj[2].trim().split(' ') : [];
+    command.command = matchObj[1].toLowerCase();
+    command.arguments = cmdArgs;
 
     return command;
   }
@@ -104,8 +118,15 @@ export class Bot {
 
     // Call fetch on every guild to make sure we have all the members cached
     this.discord.guilds.cache.map(
-      g => g.members.fetch().then(() => this.logger.info(`Cached members for ${g.id}`, 3))
+      g => g.members.fetch()
+          .then(c => c.map(m => this.memberUpdateHandler(m)))
+          .then(() => this.logger.info(`Cached members for ${g.id}`, 3))
     );
+  }
+
+  private memberUpdateHandler = async (member) => {
+    Store.get().upsertUser(member.id, member.guild.id, member.displayName, member.user.discriminator);
+    this.logger.info(`Updated member '${member.displayName}' for guild '${member.guild.name}`, 4);
   }
 
   private messageHandler = async (message: Message): Promise<void> => {
@@ -131,6 +152,7 @@ export class Bot {
 
     // Handlers
     this.quoteEventHandler.messageReactionHandler(reaction, guildMember);
+    this.scrollableManager.messageReactionHandler(reaction, guildMember);
   }
 
   private helpHandler = async (command: BotCommand): Promise<void> => {
@@ -148,7 +170,6 @@ export class Bot {
       "\n" + 
       "!listquotes [<id start>] - Get quotes from this guild, optionally starting from <id start>\n" + 
       "!listquotes <filter> [<id start>] - Get quotes from a given channel or author, optionally starting from <id start>\n" + 
-      "!dumpquotes <filter> [<id start>] - Takes the same args as listquotes, except displays all the quotes\n" +
       "!getquote - Get a random quote\n" + 
       "!getquote <id> - Get a quote by given id\n" + 
       "!delquote <id> - Delete a quote by given id";
