@@ -1,9 +1,10 @@
-import { DocumentType, getModelForClass, prop, ReturnModelType } from "@typegoose/typegoose";
+import { DocumentType, getModelForClass, modelOptions, prop, ReturnModelType, Severity } from "@typegoose/typegoose";
 import { DocumentQuery } from "mongoose";
 
 export type UserSingleQuery = DocumentQuery<DocumentType<User>, DocumentType<User>>;
 
 // For persisting user information in case they leave the guild or such
+@modelOptions({ options: { allowMixed: Severity.ALLOW } })
 export class User {
   // Sequencing value, unique to the guild. For referencing quotes in a list
   @prop()
