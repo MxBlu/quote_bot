@@ -1,6 +1,7 @@
 import { MessageEmbed, Client as DiscordClient, MessageReaction, GuildMember, Message } from "discord.js";
 import { sendMessage } from "../../util/bot_utils.js";
 import { Logger } from "../../util/logger.js";
+import { getBestGuildMember, UserLite } from "../../util/models/UserLite.js";
 import { Store } from "../../util/store.js";
 
 const IMG_RX = /https?:\/\/[^\s]+\.(?:jpg|png)/i;
@@ -34,7 +35,7 @@ export class QuoteEventHandler {
   }
 
   // Create a quote embed
-  private generateEmbed(message: Message, author: GuildMember): MessageEmbed {
+  private generateEmbed(message: Message, author: UserLite): MessageEmbed {
     // Create embed content
     let content = `${message.content}\n`
                 + `[Link](${message.url})`;
@@ -43,7 +44,7 @@ export class QuoteEventHandler {
     const embed = new MessageEmbed()
         .setColor('RANDOM')
         .setTimestamp(message.createdAt)
-        .setAuthor(author.displayName, author.user.displayAvatarURL());
+        .setAuthor(author.displayName, author.displayAvatarURL);
 
     // If there's any images or attachments, add them to the embed
     // First check for an image URL in the contents
@@ -76,9 +77,8 @@ export class QuoteEventHandler {
   }
 
   private quoteHandler = async(message: Message, quoter: GuildMember): Promise<void> => {
-    // Properly resolve guild members from message author
-    // I think it's a discord.js issue
-    const author = await message.guild.members.fetch(message.author.id);
+    // Get best guild member we can for the author
+    const author = await getBestGuildMember(message.guild, message.author);
 
     // Create message to send
     const embed = this.generateEmbed(message, author);
@@ -98,9 +98,8 @@ export class QuoteEventHandler {
       return;
     }
 
-    // Properly resolve guild members from message author
-    // I think it's a discord.js issue
-    const author = await message.guild.members.fetch(message.author.id);
+    // Get best guild member we can for the author
+    const author = await getBestGuildMember(message.guild, message.author);
 
     // Create message to send
     const embed = this.generateEmbed(message, author);

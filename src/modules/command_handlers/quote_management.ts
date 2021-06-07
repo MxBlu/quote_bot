@@ -2,6 +2,7 @@ import { Guild, GuildChannel, GuildMember, MessageEmbed, MessageReaction } from 
 import { isAdmin, sendCmdMessage, stringEquivalence, stringSearch } from "../../util/bot_utils.js";
 import { Logger } from "../../util/logger.js";
 import { Quote, QuoteMultiQuery } from "../../util/models/Quote.js";
+import { getBestGuildMemberById } from "../../util/models/UserLite.js";
 import { ScrollableModal, ScrollableModalManager } from "../../util/scrollable.js";
 import { Store } from "../../util/store.js";
 import { BotCommand } from "../bot.js";
@@ -189,13 +190,13 @@ export class QuoteManagementHandler {
     }
 
     // Get GuildMember objects for author and quoter
-    const author = await command.message.guild.members.fetch(quote.author);
-    const quoter = await command.message.guild.members.fetch(quote.quoter);
+      const author = await getBestGuildMemberById(command.message.guild, quote.author);
+      const quoter = await getBestGuildMemberById(command.message.guild, quote.quoter);
 
     // Re-generate quote from stored data
     const messagePreamble = `**${quote.seq}**: **${quoter.displayName}** quoted **${author.displayName}**:`;
     const embed = new MessageEmbed()
-        .setAuthor(author.displayName, author.user.displayAvatarURL())
+        .setAuthor(author.displayName, author.displayAvatarURL)
         .setDescription(quote.message)
         .setColor('RANDOM')
         .setTimestamp(quote.timestamp)
@@ -292,10 +293,8 @@ export class QuoteManagementHandler {
     const quoteMsgs: string[] = [];
     for (const quote of quotes) {
       // Get author and quoter GuildMember objects best we can
-      // let author = await getBestGuildMemberById(db, command.message.guild, quote.author);
-      // let quoter = await getBestGuildMemberById(db, command.message.guild, quote.quoter);
-      const author = await guild.members.fetch(quote.author);
-      const quoter = await guild.members.fetch(quote.quoter);
+      const author = await getBestGuildMemberById(guild, quote.author);
+      const quoter = await getBestGuildMemberById(guild, quote.quoter);
 
       // Generate a list of quote links for 'listquotes'
       quoteMsgs.push(`${quote.seq}: [**${quoter.displayName}** quoted **${author.displayName}** ` +

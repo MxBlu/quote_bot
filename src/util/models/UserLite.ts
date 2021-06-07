@@ -1,6 +1,6 @@
-import { Guild, Constants as DiscordConstants } from "discord.js";
-import { Store } from "../store";
-import { User } from "./User";
+import { Guild, Constants as DiscordConstants, User as DiscordUser } from "discord.js";
+import { Store } from "../store.js";
+import { User } from "./User.js";
 
 const DISCORD_CDN = DiscordConstants.Endpoints.CDN(DiscordConstants.DefaultOptions.http.cdn);  
 
@@ -12,42 +12,6 @@ export class UserLite {
   displayName: string;
   // URL to avatar
   displayAvatarURL: string;
-}
-
-// Get the best GuildMember object for a given User
-async function getBestGuildMember(db, guild, user) {
-  // First, try and get the user from the guild
-  try {
-    return await guild.members.fetch(user.id);
-  } catch(e) {
-    // Only DiscordAPIError is passable - means the user is not in the guild anymore
-    if (e.name !== 'DiscordAPIError') {
-      throw e;
-    }
-  }
-
-  // Ok user isn't in the guild, that's ok...
-  // Get data from the db instead
-  const dbUser = await db.getUser(user.id, guild.id);
-  if (dbUser != null) {
-    // Make a mock "GuildMember" object
-    return {
-      id: user.id,
-      displayName: dbUser.displayName,
-      user: {
-        displayAvatarURL: () => user.displayAvatarURL()
-      }
-    }
-  }
-
-  // If nothing else, create a mock GUildMember with whatever we have
-  return {
-    id: user.id,
-    displayName: user.username,
-    user: {
-      displayAvatarURL: () => user.displayAvatarURL()
-    }
-  }
 }
 
 // Get the best GuildMember object for a given User id
@@ -82,4 +46,9 @@ export const getBestGuildMemberById = async function(guild: Guild, userId: strin
   bestUser.displayName = '(Unknown)';
   bestUser.displayAvatarURL = DISCORD_CDN.DefaultAvatar(parseInt(userId) % 5);
   return bestUser;
+}
+
+// Get the best GuildMember object for a User
+export const getBestGuildMember = async function(guild: Guild, user: DiscordUser): Promise<UserLite> {
+  return getBestGuildMemberById(guild, user.id);
 }
