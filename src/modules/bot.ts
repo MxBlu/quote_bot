@@ -68,7 +68,7 @@ export class Bot {
 
   private initCommandHandlers(): void {
     this.quoteEventHandler =  new QuoteEventHandler(this.discord);
-    this.quoteManagementHandler = new QuoteManagementHandler();
+    this.quoteManagementHandler = new QuoteManagementHandler(this.scrollableManager);
 
     this.commandHandlers.set("help", this.helpHandler);
     this.commandHandlers.set("h", this.helpHandler);
