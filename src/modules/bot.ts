@@ -63,7 +63,7 @@ export class Bot {
     this.initDiscordEventHandlers();
 
     // Subscribe to error handler topic to post them to discord
-    NewErrorLogTopic.subscribe(this.errorLogHandler);
+    NewErrorLogTopic.subscribe("errorLogHandler", this.errorLogHandler);
   }
 
   private initCommandHandlers(): void {
