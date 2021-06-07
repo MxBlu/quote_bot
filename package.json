@@ -5,8 +5,8 @@
   "main": "main.js",
   "type": "module",
   "scripts": {
-    "start": "nodemon main.js",
-    "fstart": "pm2 start --name quotebot main.js",
+    "start": "nodemon built/main.js",
+    "fstart": "pm2 start --name quotebot built/main.js",
     "build": "tsc --build tsconfig.json",
     "clean": "tsc --build --clean",
     "lint": "eslint . --ext .ts"
