@@ -7,12 +7,10 @@ import { Store } from "../../util/store.js";
 const IMG_RX = /https?:\/\/[^\s]+\.(?:jpg|png)/i;
 
 export class QuoteEventHandler {
-  discord: DiscordClient;
 
   logger: Logger;
 
-  constructor(discord: DiscordClient) {
-    this.discord = discord;
+  constructor() {
     this.logger = new Logger("QuoteEventHandler");
   }
 
