@@ -73,6 +73,11 @@ export class Store {
     return QuoteModel.findByAuthor(userId, guildId);
   }
 
+  // Clones a given multi-result query
+  public cloneQuoteQuery(query: QuoteMultiQuery): QuoteMultiQuery {
+    return QuoteModel.find().merge(query);
+  }
+
   // Add a quote to the db
   public async addQuote(guildId: string, channelId: string,
       authorId: string, quoterId: string, message: string, 

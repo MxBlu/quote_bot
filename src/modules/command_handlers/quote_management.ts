@@ -247,7 +247,7 @@ export class QuoteManagementHandler {
 
       // Count total results in cloned query
       // The max number limit this is to bypass the limit value set prior
-      const resCount = await props.query.model.find().merge(props.query)
+      const resCount = await Store.get().cloneQuoteQuery(props.query)
           .limit(Number.MAX_SAFE_INTEGER).countDocuments();
       // Go to the next lowest value of 10 (ensuring we don't end up on the same value)
       props.skip = (resCount - 1) - ((resCount - 1) % 10);
@@ -257,7 +257,7 @@ export class QuoteManagementHandler {
     }
 
     // Cloned query with our new "skip" value
-    const quotes = await props.query.model.find().merge(props.query)
+    const quotes = await Store.get().cloneQuoteQuery(props.query)
         .skip(props.skip).limit(10).exec();
     
     // Convert new results into quote display lines
@@ -278,13 +278,13 @@ export class QuoteManagementHandler {
     props.skip += 10;
 
     // Cloned query with our new "skip" value
-    let quotes = await props.query.model.find().merge(props.query)
+    let quotes = await Store.get().cloneQuoteQuery(props.query)
         .skip(props.skip).limit(10).exec();
 
     if (quotes.length == 0) {
       // We've gone past the last page, reset
       props.skip = 0;
-      quotes = await props.query.model.find().merge(props.query)
+      quotes = await Store.get().cloneQuoteQuery(props.query)
           .skip(props.skip).limit(10).exec();
     }
     
