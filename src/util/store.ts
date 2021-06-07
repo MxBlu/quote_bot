@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { randomInt } from 'node:crypto';
 import { Logger } from './logger.js';
 import { Quote, QuoteDeleteQuery, QuoteModel, QuoteMultiQuery, QuoteSingleQuery } from './models/Quote.js';
 import { User, UserModel, UserSingleQuery } from './models/User.js';

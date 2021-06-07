@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 
 dotenv.config();
 
-import { Quote, QuoteModel } from './util/models/Quote.js';
+import { Quote } from './util/models/Quote.js';
 import { Store } from './util/store.js';
 
 // MongoDB
