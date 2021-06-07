@@ -4,12 +4,9 @@
   This has better logging for my sanity anyway
 */
 
-// We use any here for arbitrary data, no way around it
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
-
 import { Logger, LogLevels } from "./logger.js";
 
-type EventCallbackFunction = (data: any, topic: MessengerTopic) => Promise<void>;
+type EventCallbackFunction = (data: never, topic: MessengerTopic) => Promise<void>;
 
 export class MessengerTopic {
   // Topic name
@@ -19,7 +16,7 @@ export class MessengerTopic {
   // Subscribed functions, to be called on event
   subscribers : Map<string, EventCallbackFunction>;
   // Data from last event
-  lastData : any;
+  lastData : never;
 
   constructor(name: string) {
     this.logger = new Logger(`MessengerTopic.${name}`);
@@ -63,7 +60,7 @@ export class MessengerTopic {
 
   // Call all subscribed functions for a topic with provided data asynchronously
   // Assumes topic does exist
-  public notify(data: any): void {
+  public notify(data: never): void {
     this.logger.info(`Notifying topic ${this.name}`, 3);
     this.lastData = data;
     this.subscribers.forEach( async (f) => {
@@ -73,7 +70,7 @@ export class MessengerTopic {
 
   // Get the last data that was added to the topic
   // Assumes topic does exist
-  public getLastData(): any {
+  public getLastData(): never {
     return this.lastData;
   }
 }

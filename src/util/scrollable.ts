@@ -5,12 +5,16 @@ import { Logger } from "./logger.js";
 export class ScrollableModal {
   // Message that contains the modal
   message: Message;
+  // Arbitrary stateful data
+  props: never;
   // Function to call on remove
   removeHandler: (model: ScrollableModal) => Promise<void>;
   // Function to scroll left
-  scrollLeftHandler: (reaction: MessageReaction, user: GuildMember) => Promise<void>;
+  scrollLeftHandler: (model: ScrollableModal, reaction: MessageReaction, 
+      user: GuildMember) => Promise<void>;
   // Function to scroll right
-  scrollRightHandler: (reaction: MessageReaction, user: GuildMember) => Promise<void>;
+  scrollRightHandler: (model: ScrollableModal, reaction: MessageReaction, 
+      user: GuildMember) => Promise<void>;
 
   public async activate(): Promise<void> {
     // Add nav reactions
@@ -30,14 +34,14 @@ export class ScrollableModal {
   public async scrollLeft(reaction: MessageReaction, user: GuildMember): Promise<void> {
     // If we have a function to scroll, call it
     if (this.scrollLeftHandler != null) {
-      this.scrollLeftHandler(reaction, user);
+      this.scrollLeftHandler(this, reaction, user);
     }
   }
 
   public async scrollRight(reaction: MessageReaction, user: GuildMember): Promise<void> {
     // If we have a function to scroll, call it
     if (this.scrollRightHandler != null) {
-      this.scrollRightHandler(reaction, user);
+      this.scrollRightHandler(this, reaction, user);
     }
   }
 }
