@@ -1,5 +1,5 @@
 import { Guild, GuildChannel, GuildMember, MessageEmbed, MessageReaction } from "discord.js";
-import { sendCmdMessage, stringEquivalence, stringSearch } from "../../util/bot_utils.js";
+import { isAdmin, sendCmdMessage, stringEquivalence, stringSearch } from "../../util/bot_utils.js";
 import { Logger } from "../../util/logger.js";
 import { Quote, QuoteMultiQuery } from "../../util/models/Quote.js";
 import { ScrollableModal, ScrollableModalManager } from "../../util/scrollable.js";
@@ -147,14 +147,31 @@ export class QuoteManagementHandler {
       quote = await Store.get().getRandomQuote(guildId);
       break;
     case 1:
+      // If first arg is a number
       // Get quote with given seq ID
-      try {
+      if (command.arguments[0].match(/^\d+$/)) {
         quote = await Store.get()
-            .getQuoteBySeq(guildId, parseInt(command.arguments[0])).exec();
-      } catch (e) {
-        // Will be thrown if argument is non-integer
-        sendCmdMessage(command.message, 'Error: invalid argument', 3, this.logger);
-        return;
+            .getQuoteBySeq(guildId, Number(command.arguments[0])).exec();
+        break;
+      }
+
+      // Handle if first arg may be a username or user nickname
+      let potentialUser = null;
+      const userRx = command.arguments[0].match(/^<@!(\d+)>$/);
+      if (userRx != null) {
+        potentialUser = command.message.guild.members.cache.get(userRx[1]);
+      } else {
+        // Ensure the member cache is populated
+        await command.message.guild.members.fetch();
+        potentialUser = command.message.guild.members
+          .cache.find(m => stringSearch(m.nickname, command.arguments[0]) || 
+                        stringSearch(m.user.username, command.arguments[0]));
+      }
+      
+      // If criteria passes, get all quotes for given user
+      if (potentialUser != null) {
+        quote = await Store.get().getRandomQuoteFromAuthor(guildId, potentialUser.id);
+        break;
       }
       break;
     default:
@@ -173,17 +190,11 @@ export class QuoteManagementHandler {
     // Get GuildMember objects for author and quoter
     const author = await command.message.guild.members.fetch(quote.author);
     const quoter = await command.message.guild.members.fetch(quote.quoter);
-    // Get nickname or username if not available
-    const author_name = author.nickname || author.user.username;
-    const quoter_name = quoter.nickname || quoter.user.username;
 
     // Re-generate quote from stored data
-    const messagePreamble = `**${quote.seq}**: **${quoter_name}** quoted **${author_name}**:`;
-    const avatar_url = (author.user.avatar &&
-      `https://cdn.discordapp.com/avatars/${author.id}/${author.user.avatar}.png`) ||
-      author.user.defaultAvatarURL;
+    const messagePreamble = `**${quote.seq}**: **${quoter.displayName}** quoted **${author.displayName}**:`;
     const embed = new MessageEmbed()
-        .setAuthor(author_name, avatar_url)
+        .setAuthor(author.displayName, author.user.displayAvatarURL())
         .setDescription(quote.message)
         .setColor('RANDOM')
         .setTimestamp(quote.timestamp)
@@ -201,7 +212,7 @@ export class QuoteManagementHandler {
       try {
         // Attempt to delete quote with given id
         const res = await Store.get()
-            .delQuote(guildId, parseInt(command.arguments[0])).exec();
+            .delQuote(guildId, Number(command.arguments[0])).exec();
         if (res.deletedCount != null && res.deletedCount > 0) {
           sendCmdMessage(command.message, `Quote ${command.arguments[0]} deleted.`, 2, this.logger);
           return;
@@ -218,6 +229,60 @@ export class QuoteManagementHandler {
       sendCmdMessage(command.message, 'Error: incorrect argument count', 3, this.logger);
       return;
     }
+  }
+
+  public reattrquoteHandler = async (command: BotCommand): Promise<void> => {
+    if (! await isAdmin(command.message)) {
+      sendCmdMessage(command.message, 'Error: not admin', 2, this.logger);
+      return;
+    }
+
+    const guildId = command.message.guild.id;
+    let newAuthor: GuildMember = null;
+    let quote: Quote = null;
+
+    switch (command.arguments.length) {
+    case 2:
+      // Reattribute a quote to a given user
+      // Admin only
+      try {
+        const quoteId = Number(command.arguments[0]);
+        
+        // Get the user to reattribute to
+        const userRx = command.arguments[1].match(/^<@!(\d+)>$/);
+        if (userRx != null) {
+          newAuthor = command.message.guild.members.cache.get(userRx[1]);
+        } else {
+          // Ensure the member cache is populated
+          await command.message.guild.members.fetch();
+          newAuthor = command.message.guild.members
+            .cache.find(m => stringSearch(m.nickname, command.arguments[1]) || 
+                          stringSearch(m.user.username, command.arguments[1]));
+        }
+
+        if (newAuthor == null) {
+          sendCmdMessage(command.message, `Error: user does not exist`, 2, this.logger);
+          return;
+        }
+
+        quote = await Store.get().getQuoteBySeq(guildId, quoteId);
+        if (quote == null) {
+          sendCmdMessage(command.message, `Error: invalid quote ID`, 2, this.logger);
+          return;
+        }
+      } catch (e) {
+        sendCmdMessage(command.message, 'Error: invalid argument', 3, this.logger);
+        return;
+      }
+      break;
+    default:
+      sendCmdMessage(command.message, 'Error: incorrect argument count', 3, this.logger);
+      return;
+    }
+
+    // Update the author field and save to db
+    quote.author = newAuthor.id;
+    sendCmdMessage(command.message, `Reattributed quote to ${newAuthor.displayName}`, 2, this.logger);
   }
 
   // Generate quote display lines

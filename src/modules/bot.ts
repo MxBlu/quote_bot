@@ -78,6 +78,8 @@ export class Bot {
     this.commandHandlers.set("gq", this.quoteManagementHandler.getquoteHandler);
     this.commandHandlers.set("delquote", this.quoteManagementHandler.delquoteHandler);
     this.commandHandlers.set("dq", this.quoteManagementHandler.delquoteHandler);
+    this.commandHandlers.set("reattrquote", this.quoteManagementHandler.reattrquoteHandler);
+    this.commandHandlers.set("rq", this.quoteManagementHandler.reattrquoteHandler);
   }
 
   private initDiscordEventHandlers(): void {
@@ -171,8 +173,10 @@ export class Bot {
       "!listquotes [<id start>] - Get quotes from this guild, optionally starting from <id start>\n" + 
       "!listquotes <filter> [<id start>] - Get quotes from a given channel or author, optionally starting from <id start>\n" + 
       "!getquote - Get a random quote\n" + 
+      "!getquote <filter> - Get a random quote from a given author\n" + 
       "!getquote <id> - Get a quote by given id\n" + 
-      "!delquote <id> - Delete a quote by given id";
+      "!delquote <id> - Delete a quote by given id\n" +
+      "!reattrquote <id> <user> - Reattribute a quote to a given user";
 
     sendMessage(command.message.channel, msg);
   }
