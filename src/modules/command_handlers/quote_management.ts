@@ -134,7 +134,8 @@ export class QuoteManagementHandler {
     scrollable.props.query = query;
     scrollable.props.scope = scope;
 
-      
+    // Activate and track the modal
+    this.scrollableManager.addModal(scrollable);
   }
 
   public getquoteHandler = async (command: BotCommand): Promise<void> => {

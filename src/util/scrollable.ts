@@ -50,7 +50,7 @@ export class ScrollableModalManager {
 
   discord: DiscordClient;
   // Active scroll modals
-  activeModals: Map<string, ScrollableModal<never>>;
+  activeModals: Map<string, ScrollableModal<any>>;
   // General logger
   logger: Logger;
 
@@ -60,7 +60,7 @@ export class ScrollableModalManager {
     this.logger = new Logger("ScrollableModalManager");
   }
 
-  public async addModal(modal: ScrollableModal<never>, duration = DEFAULT_MODAL_DURATION): Promise<void> {
+  public async addModal(modal: ScrollableModal<any>, duration = DEFAULT_MODAL_DURATION): Promise<void> {
     // Ensure the message doesn't already have an active modal
     if (this.activeModals.has(modal.message.id)) {
       this.logger.error(`Message ID ${modal.message.id} already has an active modal`);
