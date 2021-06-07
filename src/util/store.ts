@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { Logger } from './logger.js';
-import { Quote, QuoteDeleteQuery, QuoteModel, QuoteMultiQuery, QuoteSingleQuery } from './models/Quote.js';
+import { QuoteDeleteQuery, QuoteDoc, QuoteModel, QuoteMultiQuery, QuoteSingleQuery } from './models/Quote.js';
 import { User, UserModel, UserSingleQuery } from './models/User.js';
 
 /*
@@ -33,12 +33,12 @@ class StoreImpl {
   }
 
   // Get a random quote in a certain guild
-  public getRandomQuoteFromAuthor(guildId: string, authorId: string): Promise<Quote> {
+  public getRandomQuoteFromAuthor(guildId: string, authorId: string): Promise<QuoteDoc> {
     return QuoteModel.getRandomFromAuthor(guildId, authorId);
   }
 
   // Get a random quote in a certain guild
-  public getRandomQuote(guildId: string): Promise<Quote> {
+  public getRandomQuote(guildId: string): Promise<QuoteDoc> {
     return QuoteModel.getRandom(guildId);
   }
 
@@ -65,7 +65,7 @@ class StoreImpl {
   // Add a quote to the db
   public async addQuote(guildId: string, channelId: string,
       authorId: string, quoterId: string, message: string, 
-      img: string, link: string, timestamp: Date): Promise<Quote> {
+      img: string, link: string, timestamp: Date): Promise<QuoteDoc> {
     const quote = await QuoteModel.create({
       channel: channelId,
       guild: guildId,

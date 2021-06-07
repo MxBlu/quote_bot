@@ -1,7 +1,7 @@
 import { Guild, GuildChannel, GuildMember, MessageEmbed, MessageReaction } from "discord.js";
 import { isAdmin, sendCmdMessage, stringEquivalence, stringSearch } from "../../util/bot_utils.js";
 import { Logger } from "../../util/logger.js";
-import { Quote, QuoteMultiQuery } from "../../util/models/Quote.js";
+import { QuoteDoc, QuoteMultiQuery } from "../../util/models/Quote.js";
 import { getBestGuildMemberById } from "../../util/models/UserLite.js";
 import { ScrollableModal, ScrollableModalManager } from "../../util/scrollable.js";
 import { Store } from "../../util/store.js";
@@ -101,7 +101,7 @@ export class QuoteManagementHandler {
     }
 
     // Execute the query and get 10 quotes
-    const quotes: Quote[] = await query.limit(10).exec();
+    const quotes: QuoteDoc[] = await query.limit(10).exec();
 
     // If the result set is effectively empty, send a message indicating so
     if (quotes === null || quotes.length == 0) {
@@ -141,7 +141,7 @@ export class QuoteManagementHandler {
 
   public getquoteHandler = async (command: BotCommand): Promise<void> => {
     const guildId = command.message.guild.id;
-    let quote: Quote = null;
+    let quote: QuoteDoc = null;
 
     switch (command.arguments.length) {
     case 0:
@@ -241,7 +241,7 @@ export class QuoteManagementHandler {
 
     const guildId = command.message.guild.id;
     let newAuthor: GuildMember = null;
-    let quote: Quote = null;
+    let quote: QuoteDoc = null;
 
     switch (command.arguments.length) {
     case 2:
@@ -284,11 +284,12 @@ export class QuoteManagementHandler {
 
     // Update the author field and save to db
     quote.author = newAuthor.id;
+    quote.save();
     sendCmdMessage(command.message, `Reattributed quote to ${newAuthor.displayName}`, 2, this.logger);
   }
 
   // Generate quote display lines
-  private async generateQuoteMsgs(guild: Guild, quotes: Quote[]): Promise<string[]> {
+  private async generateQuoteMsgs(guild: Guild, quotes: QuoteDoc[]): Promise<string[]> {
     // Generate array of quote display lines
     const quoteMsgs: string[] = [];
     for (const quote of quotes) {

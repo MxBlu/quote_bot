@@ -2,8 +2,9 @@ import { DocumentType, getModelForClass, plugin, prop, ReturnModelType } from '@
 import { AutoIncrementID } from '@typegoose/auto-increment';
 import { DocumentQuery, Query } from 'mongoose';
 
-export type QuoteSingleQuery = DocumentQuery<DocumentType<Quote>, DocumentType<Quote>>;
-export type QuoteMultiQuery = DocumentQuery<DocumentType<Quote>[], DocumentType<Quote>>;
+export type QuoteDoc = DocumentType<Quote>;
+export type QuoteSingleQuery = DocumentQuery<QuoteDoc, QuoteDoc>;
+export type QuoteMultiQuery = DocumentQuery<QuoteDoc[], QuoteDoc>;
 export type QuoteDeleteQuery = Query<{ ok?: number; n?: number; deletedCount?: number;}>
 
 // TODO: Convert mongoose-auto-increment counter to new one 
@@ -49,13 +50,13 @@ export class Quote {
     return this.findOne({ guild, seq });
   }
 
-  public static async getRandom(this: ReturnModelType<typeof Quote>, guild: string): Promise<Quote> {
+  public static async getRandom(this: ReturnModelType<typeof Quote>, guild: string): Promise<QuoteDoc> {
     const res = await this.aggregate([{ $match: { guild } }, { $sample: { size: 1 } }]).exec();
     return res.length > 0 ? res[0] : null;
   }
   
   public static async getRandomFromAuthor(this: ReturnModelType<typeof Quote>, 
-      guild: string, author: string): Promise<Quote> {
+      guild: string, author: string): Promise<QuoteDoc> {
     const res = await this.aggregate([{ $match: { author, guild } }, { $sample: { size: 1 } }]).exec();
     return res.length > 0 ? res[0] : null;
   }
