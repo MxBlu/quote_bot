@@ -1,9 +1,9 @@
-import { getModelForClass, prop, ReturnModelType } from "@typegoose/typegoose";
+import { DocumentType, getModelForClass, prop, ReturnModelType } from "@typegoose/typegoose";
+import { DocumentQuery } from "mongoose";
 
-// We can't define the types for the DocumentQuery's correctly yet
-// TODO: Revisit
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+export type UserSingleQuery = DocumentQuery<DocumentType<User>, DocumentType<User>>;
 
+// For persisting user information in case they leave the guild or such
 export class User {
   // Sequencing value, unique to the guild. For referencing quotes in a list
   @prop()
@@ -24,7 +24,7 @@ export class User {
   @prop()
   public discriminator: string;
   
-  public static getById(this: ReturnModelType<typeof User>, user: string, guild: string) {
+  public static getById(this: ReturnModelType<typeof User>, user: string, guild: string): UserSingleQuery {
     return this.findById({ user, guild });
   }
   

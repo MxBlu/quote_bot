@@ -1,17 +1,12 @@
 import mongoose from 'mongoose';
 import { Logger } from './logger.js';
-import { Quote, QuoteModel } from './models/Quote.js';
-import { User, UserModel } from './models/User.js';
+import { Quote, QuoteDeleteQuery, QuoteModel, QuoteMultiQuery, QuoteSingleQuery } from './models/Quote.js';
+import { User, UserModel, UserSingleQuery } from './models/User.js';
 
 /*
   API class to interact with underlying storage implementation
   In this case, MongoDB / Mongoose
 */
-
-// We can't define the types for the DocumentQuery's correctly yet
-// TODO: Revisit
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-
 export class Store {
 
   // Singleton instance
@@ -49,32 +44,32 @@ export class Store {
   }
 
   // Get a quote with given seq number in a certain guild
-  public getQuoteBySeq(guildId: string, seq: number) {
+  public getQuoteBySeq(guildId: string, seq: number): QuoteSingleQuery {
     return QuoteModel.getBySeq(guildId, seq);
   }
 
   // Get a random quote in a certain guild
-  public getRandomQuoteFromAuthor(guildId: string, authorId: string) {
+  public getRandomQuoteFromAuthor(guildId: string, authorId: string): Promise<Quote> {
     return QuoteModel.getRandomFromAuthor(guildId, authorId);
   }
 
   // Get a random quote in a certain guild
-  public getRandomQuote(guildId: string) {
+  public getRandomQuote(guildId: string): Promise<Quote> {
     return QuoteModel.getRandom(guildId);
   }
 
   // Get all quotes in a certain guild
-  public getQuotesByGuild(guildId: string) {
+  public getQuotesByGuild(guildId: string): QuoteMultiQuery {
     return QuoteModel.findByGuild(guildId);
   }
 
   // Get all quotes in a certain channel
-  public getQuotesByChannel(channelId: string) {
+  public getQuotesByChannel(channelId: string): QuoteMultiQuery {
     return QuoteModel.findByChannel(channelId);
   }
 
   // Get all quotes in by a given author in a certain guild
-  public getQuotesByAuthor(userId: string, guildId: string) {
+  public getQuotesByAuthor(userId: string, guildId: string): QuoteMultiQuery {
     return QuoteModel.findByAuthor(userId, guildId);
   }
 
@@ -96,12 +91,12 @@ export class Store {
   }
 
   // Check if a quote exists with given message link
-  public checkQuoteExists (link: string) {
+  public checkQuoteExists (link: string): Promise<boolean> {
     return QuoteModel.checkExists(link);
   }
 
   // Delete a quote from the db
-  public delQuote(guildId: string, seq: number) {
+  public delQuote(guildId: string, seq: number): QuoteDeleteQuery {
     return QuoteModel.deleteBySeq(guildId, seq);
   }
 
@@ -112,7 +107,7 @@ export class Store {
   }
 
   // Get user from the db
-  public getUser(userId: string, guildId: string) {
+  public getUser(userId: string, guildId: string): UserSingleQuery {
     return UserModel.getById(userId, guildId);
   }
  

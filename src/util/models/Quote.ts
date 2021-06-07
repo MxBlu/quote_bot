@@ -1,9 +1,10 @@
-import { getModelForClass, plugin, prop, ReturnModelType } from '@typegoose/typegoose';
+import { DocumentType, getModelForClass, plugin, prop, ReturnModelType } from '@typegoose/typegoose';
 import { AutoIncrementID } from '@typegoose/auto-increment';
+import { DocumentQuery, Query } from 'mongoose';
 
-// We can't define the types for the DocumentQuery's correctly yet
-// TODO: Revisit
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+export type QuoteSingleQuery = DocumentQuery<DocumentType<Quote>, DocumentType<Quote>>;
+export type QuoteMultiQuery = DocumentQuery<DocumentType<Quote>[], DocumentType<Quote>>;
+export type QuoteDeleteQuery = Query<{ ok?: number; n?: number; deletedCount?: number;}>
 
 // TODO: Convert mongoose-auto-increment counter to new one 
 @plugin(AutoIncrementID, {trackerCollection: 'seq_counters', field: 'seq', startAt: 1, reference_fields: ['guild']})
@@ -44,7 +45,7 @@ export class Quote {
   @prop()
   public timestamp: Date;
 
-  public static getBySeq(this: ReturnModelType<typeof Quote>, guild: string, seq: number) {
+  public static getBySeq(this: ReturnModelType<typeof Quote>, guild: string, seq: number): QuoteSingleQuery {
     return this.findOne({ guild, seq });
   }
 
@@ -59,23 +60,23 @@ export class Quote {
     return res.length > 0 ? res[0] : null;
   }
 
-  public static deleteBySeq(this: ReturnModelType<typeof Quote>, guild: string, seq: number) {
+  public static deleteBySeq(this: ReturnModelType<typeof Quote>, guild: string, seq: number): QuoteDeleteQuery {
     return this.deleteOne({ guild, seq });
   }
 
-  public static findByGuild(this: ReturnModelType<typeof Quote>, guild: string) {
+  public static findByGuild(this: ReturnModelType<typeof Quote>, guild: string): QuoteMultiQuery {
     return this.find({ guild });
   }
 
-  public static findByChannel(this: ReturnModelType<typeof Quote>, channel: string) {
+  public static findByChannel(this: ReturnModelType<typeof Quote>, channel: string): QuoteMultiQuery {
     return this.find({ channel });
   }
 
-  public static findByAuthor(this: ReturnModelType<typeof Quote>, author: string, guild: string) {
+  public static findByAuthor(this: ReturnModelType<typeof Quote>, author: string, guild: string): QuoteMultiQuery {
     return this.find({ author, guild });
   }
 
-  public static checkExists(this: ReturnModelType<typeof Quote>, link: string) {
+  public static checkExists(this: ReturnModelType<typeof Quote>, link: string): Promise<boolean> {
     return this.exists({ link });
   }
 }
