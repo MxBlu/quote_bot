@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { randomInt } from 'node:crypto';
 import { Logger } from './logger.js';
 import { Quote, QuoteDeleteQuery, QuoteModel, QuoteMultiQuery, QuoteSingleQuery } from './models/Quote.js';
 import { User, UserModel, UserSingleQuery } from './models/User.js';
@@ -7,33 +8,17 @@ import { User, UserModel, UserSingleQuery } from './models/User.js';
   API class to interact with underlying storage implementation
   In this case, MongoDB / Mongoose
 */
-export class Store {
-
-  // Singleton instance
-  private static _instance: Store;
-
-  // Create a Store if one is not present
-  public static ensure(): void {
-    if (this._instance == null) {
-      this._instance = new Store();
-    }
-  }
-
-  // Return singleton instance
-  public static get(): Store {
-    return this._instance;
-  }
+class StoreImpl {
 
   // General logger
   logger: Logger;
 
   constructor () {
     this.logger = new Logger("Store");
-    this.registerMongoHandlers();
   }
 
   // Register logging handlers for Mongo events
-  private registerMongoHandlers(): void {
+  public registerMongoHandlers(): void {
     mongoose.connection.on('error', (err) => {  
       this.logger.error(`MongoDB error: ${err}`);
     });
@@ -117,3 +102,5 @@ export class Store {
   }
  
 }
+
+export const Store = new StoreImpl();

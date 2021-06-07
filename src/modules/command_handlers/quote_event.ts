@@ -92,7 +92,7 @@ export class QuoteEventHandler {
 
   private quoteSaveHandler = async (message: Message, quoter: GuildMember): Promise<void> => {
     // Make sure the quote doesn't exist first
-    if (await Store.get().checkQuoteExists(message.url)) {
+    if (await Store.checkQuoteExists(message.url)) {
       this.logger.info(`${quoter.user.username} - ${message.guild.name} - Error: Quote already exists`, 2);
       sendMessage(message.channel, "Error: Quote already exists");
       return;
@@ -105,7 +105,7 @@ export class QuoteEventHandler {
     const embed = this.generateEmbed(message, author);
 
     // Store quoted message to db
-    const quote = await Store.get().addQuote(message.guild.id, message.channel.id, author.id, quoter.id,
+    const quote = await Store.addQuote(message.guild.id, message.channel.id, author.id, quoter.id,
       embed.description, embed.image?.url, message.url, message.createdAt);
 
     this.logger.info(`${quoter.user.username} saved quote ${message.url}`, 2);

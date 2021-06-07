@@ -11,7 +11,7 @@ dotenv.config();
 const logger = new Logger("Server");
 
 // MongoDB
-Store.ensure(); // Ensure the singleton class has been created with mongoose hooks
+Store.registerMongoHandlers(); // Ensure the singleton class has been created with mongoose hooks
 mongoose.connect(process.env.MONGO_URI, 
 	{ autoCreate: true, autoIndex: true, useNewUrlParser: true, 
 		useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true });

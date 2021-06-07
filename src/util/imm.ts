@@ -4,6 +4,8 @@
   This has better logging for my sanity anyway
 */
 
+// TODO: Properly test
+
 import { Logger, LogLevels } from "./logger.js";
 
 type EventCallbackFunction = <T>(data: T, topic: MessengerTopic<T>) => Promise<void>;

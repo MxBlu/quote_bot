@@ -35,7 +35,7 @@ export class QuoteManagementHandler {
     switch (command.arguments.length) {
     case 0:
       // List all quotes from the guild
-      query = Store.get().getQuotesByGuild(guildId);
+      query = Store.getQuotesByGuild(guildId);
       scope = "Guild";
       break;
     case 1:
@@ -43,7 +43,7 @@ export class QuoteManagementHandler {
       // Handle as quotes seq number start if first arg is numerical
       if (command.arguments[0].match(/^\d+$/)) {
         start = Number(command.arguments[0]);
-        query = Store.get().getQuotesByGuild(guildId)
+        query = Store.getQuotesByGuild(guildId)
             .where('seq').gte(start);
         scope = "Guild";
         break;
@@ -63,7 +63,7 @@ export class QuoteManagementHandler {
 
       // If criteria passes, get all quotes for given channel
       if (potentialChannel != null) {
-        query = Store.get().getQuotesByChannel(potentialChannel.id)
+        query = Store.getQuotesByChannel(potentialChannel.id)
             .where('seq').gte(start);
         scope = `Channel #${potentialChannel.name}`;
         break;
@@ -82,7 +82,7 @@ export class QuoteManagementHandler {
       
       // If criteria passes, get all quotes for given user
       if (potentialUser != null) {
-        query = Store.get().getQuotesByAuthor(potentialUser.id, guildId)
+        query = Store.getQuotesByAuthor(potentialUser.id, guildId)
             .where('seq').gte(start);
         scope = `Author @${potentialUser.displayName}`;
         break;
@@ -146,14 +146,14 @@ export class QuoteManagementHandler {
     switch (command.arguments.length) {
     case 0:
       // Get random quote
-      quote = await Store.get().getRandomQuote(guildId);
+      quote = await Store.getRandomQuote(guildId);
       break;
     case 1:
       // If first arg is a number
       // Get quote with given seq ID
       if (command.arguments[0].match(/^\d+$/)) {
-        quote = await Store.get()
-            .getQuoteBySeq(guildId, Number(command.arguments[0])).exec();
+        quote = await Store.getQuoteBySeq(guildId, 
+            Number(command.arguments[0])).exec();
         break;
       }
 
@@ -172,7 +172,7 @@ export class QuoteManagementHandler {
       
       // If criteria passes, get all quotes for given user
       if (potentialUser != null) {
-        quote = await Store.get().getRandomQuoteFromAuthor(guildId, potentialUser.id);
+        quote = await Store.getRandomQuoteFromAuthor(guildId, potentialUser.id);
         break;
       }
       break;
@@ -213,8 +213,8 @@ export class QuoteManagementHandler {
       // Delete quote with given seq ID
       try {
         // Attempt to delete quote with given id
-        const res = await Store.get()
-            .delQuote(guildId, Number(command.arguments[0])).exec();
+        const res = await Store.delQuote(guildId, 
+            Number(command.arguments[0])).exec();
         if (res.deletedCount != null && res.deletedCount > 0) {
           sendCmdMessage(command.message, `Quote ${command.arguments[0]} deleted.`, 2, this.logger);
           return;
@@ -267,7 +267,7 @@ export class QuoteManagementHandler {
           return;
         }
 
-        quote = await Store.get().getQuoteBySeq(guildId, quoteId);
+        quote = await Store.getQuoteBySeq(guildId, quoteId);
         if (quote == null) {
           sendCmdMessage(command.message, `Error: invalid quote ID`, 2, this.logger);
           return;
@@ -312,7 +312,7 @@ export class QuoteManagementHandler {
 
       // Count total results in cloned query
       // The max number limit this is to bypass the limit value set prior
-      const resCount = await Store.get().cloneQuoteQuery(props.query)
+      const resCount = await Store.cloneQuoteQuery(props.query)
           .limit(Number.MAX_SAFE_INTEGER).countDocuments();
       // Go to the next lowest value of 10 (ensuring we don't end up on the same value)
       props.skip = (resCount - 1) - ((resCount - 1) % 10);
@@ -322,7 +322,7 @@ export class QuoteManagementHandler {
     }
 
     // Cloned query with our new "skip" value
-    const quotes = await Store.get().cloneQuoteQuery(props.query)
+    const quotes = await Store.cloneQuoteQuery(props.query)
         .skip(props.skip).limit(10).exec();
     
     // Convert new results into quote display lines
@@ -343,13 +343,13 @@ export class QuoteManagementHandler {
     props.skip += 10;
 
     // Cloned query with our new "skip" value
-    let quotes = await Store.get().cloneQuoteQuery(props.query)
+    let quotes = await Store.cloneQuoteQuery(props.query)
         .skip(props.skip).limit(10).exec();
 
     if (quotes.length == 0) {
       // We've gone past the last page, reset
       props.skip = 0;
-      quotes = await Store.get().cloneQuoteQuery(props.query)
+      quotes = await Store.cloneQuoteQuery(props.query)
           .skip(props.skip).limit(10).exec();
     }
     

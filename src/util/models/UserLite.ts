@@ -33,7 +33,7 @@ export const getBestGuildMemberById = async function(guild: Guild, userId: strin
 
   // Ok user isn't in the guild, that's ok...
   // Get data from the db instead
-  const dbUser: User = await Store.get().getUser(userId, guild.id).exec();
+  const dbUser: User = await Store.getUser(userId, guild.id).exec();
   if (dbUser != null) {
     // Make a mock "GuildMember" object
     // Default avatar URL

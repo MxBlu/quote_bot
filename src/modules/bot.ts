@@ -127,7 +127,7 @@ export class Bot {
   }
 
   private memberUpdateHandler = async (member) => {
-    Store.get().upsertUser(member.id, member.guild.id, member.displayName, member.user.discriminator);
+    Store.upsertUser(member.id, member.guild.id, member.displayName, member.user.discriminator);
     this.logger.info(`Updated member '${member.displayName}' for guild '${member.guild.name}`, 4);
   }
 
