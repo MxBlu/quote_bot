@@ -2,18 +2,18 @@ import { Client as DiscordClient, GuildMember, Message, MessageReaction } from "
 import { DEFAULT_MODAL_DURATION } from "../constants/constants.js";
 import { Logger } from "./logger.js";
 
-export class ScrollableModal {
+export class ScrollableModal<T> {
   // Message that contains the modal
   message: Message;
   // Arbitrary stateful data
-  props: never;
+  props: T;
   // Function to call on remove
-  removeHandler: (model: ScrollableModal) => Promise<void>;
+  removeHandler: (modal: ScrollableModal<T>) => Promise<void>;
   // Function to scroll left
-  scrollLeftHandler: (model: ScrollableModal, reaction: MessageReaction, 
+  scrollLeftHandler: (modal: ScrollableModal<T>, reaction: MessageReaction, 
       user: GuildMember) => Promise<void>;
   // Function to scroll right
-  scrollRightHandler: (model: ScrollableModal, reaction: MessageReaction, 
+  scrollRightHandler: (modal: ScrollableModal<T>, reaction: MessageReaction, 
       user: GuildMember) => Promise<void>;
 
   public async activate(): Promise<void> {
@@ -50,7 +50,7 @@ export class ScrollableModalManager {
 
   discord: DiscordClient;
   // Active scroll modals
-  activeModals: Map<string, ScrollableModal>;
+  activeModals: Map<string, ScrollableModal<never>>;
   // General logger
   logger: Logger;
 
@@ -60,7 +60,7 @@ export class ScrollableModalManager {
     this.logger = new Logger("ScrollableModalManager");
   }
 
-  public async addModal(modal: ScrollableModal, duration = DEFAULT_MODAL_DURATION): Promise<void> {
+  public async addModal(modal: ScrollableModal<never>, duration = DEFAULT_MODAL_DURATION): Promise<void> {
     // Ensure the message doesn't already have an active modal
     if (this.activeModals.has(modal.message.id)) {
       this.logger.error(`Message ID ${modal.message.id} already has an active modal`);

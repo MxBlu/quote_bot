@@ -6,17 +6,17 @@
 
 import { Logger, LogLevels } from "./logger.js";
 
-type EventCallbackFunction = (data: never, topic: MessengerTopic) => Promise<void>;
+type EventCallbackFunction = <T>(data: T, topic: MessengerTopic<T>) => Promise<void>;
 
-export class MessengerTopic {
+export class MessengerTopic<T> {
   // Topic name
   name: string
   // Universal logger instance
   logger: Logger;
   // Subscribed functions, to be called on event
-  subscribers : Map<string, EventCallbackFunction>;
+  subscribers: Map<string, EventCallbackFunction>;
   // Data from last event
-  lastData : never;
+  lastData: T;
 
   constructor(name: string) {
     this.logger = new Logger(`MessengerTopic.${name}`);
@@ -60,7 +60,7 @@ export class MessengerTopic {
 
   // Call all subscribed functions for a topic with provided data asynchronously
   // Assumes topic does exist
-  public notify(data: never): void {
+  public notify(data: T): void {
     this.logger.info(`Notifying topic ${this.name}`, 3);
     this.lastData = data;
     this.subscribers.forEach( async (f) => {
@@ -70,7 +70,7 @@ export class MessengerTopic {
 
   // Get the last data that was added to the topic
   // Assumes topic does exist
-  public getLastData(): never {
+  public getLastData(): T {
     return this.lastData;
   }
 }
