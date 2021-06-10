@@ -20,22 +20,7 @@ export class BotCommand {
   arguments: string[];
 }
 
-export class Bot {
-
-  // Singleton instance
-  private static _instance: Bot;
-
-  // Create a Bot if one is not present
-  public static ensure(discord: DiscordClient): void {
-    if (this._instance == null) {
-      this._instance = new Bot(discord);
-    }
-  }
-
-  // Return singleton instance
-  public static get(): Bot {
-    return this._instance;
-  }
+export class BotImpl {
 
   discord: DiscordClient;
   
@@ -52,16 +37,19 @@ export class Bot {
   quoteEventHandler: QuoteEventHandler;
   quoteManagementHandler: QuoteManagementHandler;
 
-  constructor(discord: DiscordClient) {
-    this.discord = discord;
+  constructor() {
     this.errLogDisabled = false;
-    this.scrollableManager = new ScrollableModalManager(discord);
     this.logger = new Logger("Bot");
-
     this.commandHandlers = new Map<string, BotCommandHandlerFunction>();
+  }
+
+  public init(discord: DiscordClient): void {
+    this.discord = discord;
+    this.scrollableManager = new ScrollableModalManager(discord);
+
     this.initCommandHandlers();
     this.initDiscordEventHandlers();
-
+    
     // Subscribe to error handler topic to post them to discord
     NewErrorLogTopic.subscribe("errorLogHandler", this.errorLogHandler);
   }
@@ -204,3 +192,5 @@ export class Bot {
   }
 
 }
+
+export const Bot = new BotImpl();

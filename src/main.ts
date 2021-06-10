@@ -11,7 +11,7 @@ dotenv.config();
 const logger = new Logger("Server");
 
 // MongoDB
-Store.registerMongoHandlers(); // Ensure the singleton class has been created with mongoose hooks
+Store.init();
 mongoose.connect(process.env.MONGO_URI, 
 	{ autoCreate: true, autoIndex: true, useNewUrlParser: true, 
 		useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true });
@@ -21,7 +21,7 @@ const discordToken: string = process.env.DISCORD_TOKEN;
 const discord = new DiscordClient({ partials: [ 'GUILD_MEMBER', 'MESSAGE', 'REACTION' ] });
 
 // Setup Discord services
-Bot.ensure(discord);
+Bot.init(discord);
 discord.login(discordToken);
 
 logger.info(`Server started`);

@@ -16,6 +16,10 @@ class StoreImpl {
     this.logger = new Logger("Store");
   }
 
+  public init(): void {
+    this.registerMongoHandlers();
+  }
+
   // Register logging handlers for Mongo events
   public registerMongoHandlers(): void {
     mongoose.connection.on('error', (err) => {  
