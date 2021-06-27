@@ -1,4 +1,7 @@
+import * as dotenv from 'dotenv';
 import { LogLevels } from "../util/logger.js";
+
+dotenv.config();
 
 // Default logging level
 export const DEFAULT_LOG_LEVEL = Number(process.env.LOG_LEVEL) || LogLevels.INFO3;
