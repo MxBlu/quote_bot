@@ -5,6 +5,7 @@ import { ScrollableModalManager } from "../util/scrollable.js";
 import { Store } from "../util/store.js";
 import { QuoteEventHandler } from "./command_handlers/quote_event.js";
 import { QuoteManagementHandler } from "./command_handlers/quote_management.js";
+import { TimerCommandsHandler } from "./command_handlers/timer_commands.js";
 
 const errStream: string = process.env.DISCORD_ERRSTREAM;
 
@@ -36,6 +37,7 @@ export class BotImpl {
   // Command handlers
   quoteEventHandler: QuoteEventHandler;
   quoteManagementHandler: QuoteManagementHandler;
+  timerCommandsHandler: TimerCommandsHandler;
 
   constructor() {
     this.errLogDisabled = false;
@@ -57,6 +59,7 @@ export class BotImpl {
   private initCommandHandlers(): void {
     this.quoteEventHandler =  new QuoteEventHandler();
     this.quoteManagementHandler = new QuoteManagementHandler(this.scrollableManager);
+    this.timerCommandsHandler = new TimerCommandsHandler(this.discord);
 
     this.commandHandlers.set("help", this.helpHandler);
     this.commandHandlers.set("h", this.helpHandler);
@@ -68,6 +71,10 @@ export class BotImpl {
     this.commandHandlers.set("dq", this.quoteManagementHandler.delquoteHandler);
     this.commandHandlers.set("reattrquote", this.quoteManagementHandler.reattrquoteHandler);
     this.commandHandlers.set("rq", this.quoteManagementHandler.reattrquoteHandler);
+
+    this.commandHandlers.set("tlist", this.timerCommandsHandler.getTimersHandler);
+    this.commandHandlers.set("tadd", this.timerCommandsHandler.addTimerHandler);
+    this.commandHandlers.set("tdel", this.timerCommandsHandler.delTimerHandler);
   }
 
   private initDiscordEventHandlers(): void {
