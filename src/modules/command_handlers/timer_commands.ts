@@ -74,7 +74,6 @@ export class TimerCommandsHandler {
     alertSpec.guildId = command.message.guild.id;
     alertSpec.channelId = command.message.channel.id;
     alertSpec.memberId = command.message.member.id;
-    alertSpec.start = new Date();
     this.alertSpecs.set(id, alertSpec);
 
     sendCmdMessage(command.message, `Timer '${id}' added for date ${targetDate.toISOString()}`, 2, this.logger);
