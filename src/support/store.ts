@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { Dependency } from '../framework/dependency.js';
 import { Logger } from '../framework/logger.js';
 import { QuoteDeleteQuery, QuoteDoc, QuoteModel, QuoteMultiQuery, QuoteSingleQuery } from '../models/Quote.js';
 import { User, UserModel, UserSingleQuery } from '../models/User.js';
@@ -16,8 +17,12 @@ class StoreImpl {
     this.logger = new Logger("Store");
   }
 
-  public init(): void {
+  public init(mongoUri: string): void {
     this.registerMongoHandlers();
+
+    mongoose.connect(mongoUri, 
+      { autoCreate: true, autoIndex: true, useNewUrlParser: true, 
+        useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true });
   }
 
   // Register logging handlers for Mongo events
@@ -28,6 +33,7 @@ class StoreImpl {
   
     mongoose.connection.once('open', () => {
       this.logger.info('MongoDB connected', 1);
+      StoreDependency.ready();
     });
   }
 
@@ -107,3 +113,5 @@ class StoreImpl {
 }
 
 export const Store = new StoreImpl();
+
+export const StoreDependency = new Dependency("Store");

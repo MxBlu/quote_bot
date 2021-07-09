@@ -3,7 +3,7 @@ import { sendMessage } from "../framework/bot_utils.js";
 import { NewErrorLogTopic } from "../framework/constants/topics.js";
 import { Logger } from "../framework/logger.js";
 import { ScrollableModalManager } from "../framework/scrollable.js";
-import { Store } from "../support/store.js";
+import { Store, StoreDependency } from "../support/store.js";
 import { QuoteEventHandler } from "../commands/quote_event.js";
 import { QuoteManagementHandler } from "../commands/quote_management.js";
 
@@ -44,15 +44,18 @@ export class BotImpl {
     this.commandHandlers = new Map<string, BotCommandHandlerFunction>();
   }
 
-  public init(discord: DiscordClient): void {
-    this.discord = discord;
-    this.scrollableManager = new ScrollableModalManager(discord);
+  public async init(discordToken: string): Promise<void> {
+    // Without partials, we would not get certain events
+    this.discord = new DiscordClient({ partials: [ 'GUILD_MEMBER', 'MESSAGE', 'REACTION' ] });
+    this.scrollableManager = new ScrollableModalManager(this.discord);
+
+    // Wait on Store to be ready
+    await StoreDependency.await();
 
     this.initCommandHandlers();
-    this.initDiscordEventHandlers();
+    this.initEventHandlers();
     
-    // Subscribe to error handler topic to post them to discord
-    NewErrorLogTopic.subscribe("errorLogHandler", this.errorLogHandler);
+    this.discord.login(discordToken);
   }
 
   private initCommandHandlers(): void {
@@ -71,12 +74,15 @@ export class BotImpl {
     this.commandHandlers.set("rq", this.quoteManagementHandler.reattrquoteHandler);
   }
 
-  private initDiscordEventHandlers(): void {
+  private initEventHandlers(): void {
     this.discord.once('ready', this.readyHandler);
     this.discord.on('message', this.messageHandler);
     this.discord.on('messageReactionAdd', this.reactionHandler);
     this.discord.on('guildMemberAdd', this.memberUpdateHandler);
     this.discord.on('guildMemberUpdate', (_, m) => this.memberUpdateHandler(m)); // ignore 'old member' param
+    
+    // Subscribe to error handler topic to post them to discord
+    NewErrorLogTopic.subscribe("errorLogHandler", this.errorLogHandler);
   }
 
   // Utility functions
