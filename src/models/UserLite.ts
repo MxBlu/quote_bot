@@ -1,5 +1,5 @@
 import { Guild, Constants as DiscordConstants, User as DiscordUser } from "discord.js";
-import { Store } from "../store.js";
+import { Store } from "../support/store.js";
 import { User } from "./User.js";
 
 const DISCORD_CDN = DiscordConstants.Endpoints.CDN(DiscordConstants.DefaultOptions.http.cdn);  

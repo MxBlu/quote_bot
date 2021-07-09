@@ -1,8 +1,8 @@
 import { MessageEmbed, MessageReaction, GuildMember, Message } from "discord.js";
-import { sendMessage } from "../../util/bot_utils.js";
-import { Logger } from "../../util/logger.js";
-import { getBestGuildMember, UserLite } from "../../util/models/UserLite.js";
-import { Store } from "../../util/store.js";
+import { getBestGuildMember, UserLite } from "../models/UserLite.js";
+import { Store } from "../support/store.js";
+import { Logger } from "../framework/logger.js";
+import { sendMessage } from "../framework/bot_utils.js";
 
 const IMG_RX = /https?:\/\/[^\s]+\.(?:jpg|png)/i;
 

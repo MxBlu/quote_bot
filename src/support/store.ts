@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import { Logger } from './logger.js';
-import { QuoteDeleteQuery, QuoteDoc, QuoteModel, QuoteMultiQuery, QuoteSingleQuery } from './models/Quote.js';
-import { User, UserModel, UserSingleQuery } from './models/User.js';
+import { Logger } from '../framework/logger.js';
+import { QuoteDeleteQuery, QuoteDoc, QuoteModel, QuoteMultiQuery, QuoteSingleQuery } from '../models/Quote.js';
+import { User, UserModel, UserSingleQuery } from '../models/User.js';
 
 /*
   API class to interact with underlying storage implementation

@@ -1,10 +1,11 @@
 import { Message, Client as DiscordClient, TextChannel, MessageReaction, User, PartialUser } from "discord.js";
-import { sendMessage } from "../util/bot_utils.js";
-import { Logger, NewErrorLogTopic } from "../util/logger.js";
-import { ScrollableModalManager } from "../util/scrollable.js";
-import { Store } from "../util/store.js";
-import { QuoteEventHandler } from "./command_handlers/quote_event.js";
-import { QuoteManagementHandler } from "./command_handlers/quote_management.js";
+import { sendMessage } from "../framework/bot_utils.js";
+import { NewErrorLogTopic } from "../framework/constants/topics.js";
+import { Logger } from "../framework/logger.js";
+import { ScrollableModalManager } from "../framework/scrollable.js";
+import { Store } from "../support/store.js";
+import { QuoteEventHandler } from "../commands/quote_event.js";
+import { QuoteManagementHandler } from "../commands/quote_management.js";
 
 const errStream: string = process.env.DISCORD_ERRSTREAM;
 

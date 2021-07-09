@@ -1,8 +1,5 @@
+import { TRIGGER_RESOLUTION } from "./constants/constants.js";
 import { Logger } from "./logger.js";
-
-// Time delta to trigger tasks on (in ms)
-// Any task with a delta under this 
-const TRIGGER_RESOLUTION = 500;
 
 export class TimerTask {
   // Unique (relatively) identifier

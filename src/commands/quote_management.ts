@@ -1,11 +1,11 @@
 import { Guild, GuildChannel, GuildMember, MessageEmbed, MessageReaction } from "discord.js";
-import { isAdmin, sendCmdMessage, stringEquivalence, stringSearch } from "../../util/bot_utils.js";
-import { Logger } from "../../util/logger.js";
-import { QuoteDoc, QuoteMultiQuery } from "../../util/models/Quote.js";
-import { getBestGuildMemberById } from "../../util/models/UserLite.js";
-import { ScrollableModal, ScrollableModalManager } from "../../util/scrollable.js";
-import { Store } from "../../util/store.js";
-import { BotCommand } from "../bot.js";
+import { QuoteDoc, QuoteMultiQuery } from "../models/Quote.js";
+import { getBestGuildMemberById } from "../models/UserLite.js";
+import { Store } from "../support/store.js";
+import { BotCommand } from "../modules/bot.js";
+import { Logger } from "../framework/logger.js";
+import { ScrollableModal, ScrollableModalManager } from "../framework/scrollable.js";
+import { isAdmin, sendCmdMessage, stringEquivalence, stringSearch } from "../framework/bot_utils.js";
 
 class ListQuoteModalProps {
   // List query

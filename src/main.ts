@@ -1,9 +1,9 @@
 import { Client as DiscordClient } from 'discord.js';
 import mongoose from 'mongoose';
 import * as dotenv from 'dotenv';
-import { Store } from './util/store.js';
-import { Logger } from './util/logger.js';
+import { Store } from './support/store.js';
 import { Bot } from './modules/bot.js';
+import { Logger } from './framework/logger.js';
 
 dotenv.config();
 

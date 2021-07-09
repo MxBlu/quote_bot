@@ -4,8 +4,8 @@ import mongoose from 'mongoose';
 
 dotenv.config();
 
-import { Quote } from './util/models/Quote.js';
-import { Store } from './util/store.js';
+import { Quote } from './models/Quote.js';
+import { Store } from './support/store.js';
 
 // MongoDB
 Store.registerMongoHandlers();
