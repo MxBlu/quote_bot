@@ -1,8 +1,8 @@
+import { Logger, sendMessage } from "bot-framework";
 import { MessageEmbed, MessageReaction, GuildMember, Message } from "discord.js";
+
 import { getBestGuildMember, UserLite } from "../models/UserLite.js";
 import { Store } from "../support/store.js";
-import { Logger } from "../framework/logger.js";
-import { sendMessage } from "../framework/bot_utils.js";
 
 const IMG_RX = /https?:\/\/[^\s]+\.(?:jpg|png)/i;
 
@@ -81,7 +81,7 @@ export class QuoteEventHandler {
     // Create message to send
     const embed = this.generateEmbed(message, author);
 
-    this.logger.info(`${quoter.user.username} quoted ${message.url}`, 2);
+    this.logger.info(`${quoter.user.username} quoted ${message.url}`);
     
     // Send message with embed
     const messagePreamble = `**${quoter.displayName}** quoted **${author.displayName}**:`;
@@ -91,7 +91,7 @@ export class QuoteEventHandler {
   private quoteSaveHandler = async (message: Message, quoter: GuildMember): Promise<void> => {
     // Make sure the quote doesn't exist first
     if (await Store.checkQuoteExists(message.url)) {
-      this.logger.info(`${quoter.user.username} - ${message.guild.name} - Error: Quote already exists`, 2);
+      this.logger.trace(`${quoter.user.username} - ${message.guild.name} - Error: Quote already exists`);
       sendMessage(message.channel, "Error: Quote already exists");
       return;
     }
@@ -106,7 +106,7 @@ export class QuoteEventHandler {
     const quote = await Store.addQuote(message.guild.id, message.channel.id, author.id, quoter.id,
       embed.description, embed.image?.url, message.url, message.createdAt);
 
-    this.logger.info(`${quoter.user.username} saved quote ${message.url}`, 2);
+    this.logger.info(`${quoter.user.username} saved quote ${message.url}`);
     
     // Send message with embed
     const messagePreamble = `${quote.seq}: **${quoter.displayName}** saved a quote by **${author.displayName}**:`;

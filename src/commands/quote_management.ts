@@ -1,11 +1,10 @@
+import { isAdmin, Logger, LogLevel, ScrollableModal, ScrollableModalManager, sendCmdMessage, stringEquivalence, stringSearch } from "bot-framework";
 import { Guild, GuildChannel, GuildMember, MessageEmbed, MessageReaction } from "discord.js";
+
 import { QuoteDoc, QuoteMultiQuery } from "../models/Quote.js";
 import { getBestGuildMemberById } from "../models/UserLite.js";
 import { Store } from "../support/store.js";
 import { BotCommand } from "../modules/bot.js";
-import { Logger } from "../framework/logger.js";
-import { ScrollableModal, ScrollableModalManager } from "../framework/scrollable.js";
-import { isAdmin, sendCmdMessage, stringEquivalence, stringSearch } from "../framework/bot_utils.js";
 
 class ListQuoteModalProps {
   // List query
@@ -90,13 +89,13 @@ export class QuoteManagementHandler {
       break;
     default:
       // If excessive arguments, send an error
-      sendCmdMessage(command.message, 'Error: too many arguments', 3, this.logger);
+      sendCmdMessage(command.message, 'Error: too many arguments', this.logger, LogLevel.TRACE);
       return;
     }
 
     // Couldn't match any criterias, so query is invalid
     if (query == null) {
-      sendCmdMessage(command.message, 'Invalid query', 2, this.logger);
+      sendCmdMessage(command.message, 'Invalid query', this.logger, LogLevel.DEBUG);
       return;
     }
 
@@ -105,7 +104,7 @@ export class QuoteManagementHandler {
 
     // If the result set is effectively empty, send a message indicating so
     if (quotes === null || quotes.length == 0) {
-      sendCmdMessage(command.message, 'No quotes found', 2, this.logger);
+      sendCmdMessage(command.message, 'No quotes found', this.logger, LogLevel.DEBUG);
       return;
     }
 
@@ -123,7 +122,7 @@ export class QuoteManagementHandler {
         .setDescription(quoteMsgs.join("\n"))
     
     // Send initial embed
-    this.logger.info(`${command.message.author.username} listed quotes - ${scope}`, 2);
+    this.logger.info(`${command.message.author.username} listed quotes - ${scope}`);
     const message = await command.message.channel.send(embed);
 
     // Create scrollable modal
@@ -178,14 +177,14 @@ export class QuoteManagementHandler {
       break;
     default:
       // If excessive arguments, send an error
-      sendCmdMessage(command.message, 'Error: too many arguments', 3, this.logger);
+      sendCmdMessage(command.message, 'Error: too many arguments', this.logger, LogLevel.TRACE);
       return;
     }
 
     // If the quote is not found (either due to id not existing or no quotes in the db)
     // send a message indicating so
     if (quote === null) {
-      sendCmdMessage(command.message, 'No quotes found', 2, this.logger);
+      sendCmdMessage(command.message, 'No quotes found', this.logger, LogLevel.DEBUG);
       return;
     }
 
@@ -202,7 +201,7 @@ export class QuoteManagementHandler {
         .setTimestamp(quote.timestamp)
         .setImage(quote.img);
 
-    this.logger.info(`${command.message.author.username} got quote { ${guildId} => ${quote.seq} }`, 2);
+    this.logger.info(`${command.message.author.username} got quote { ${guildId} => ${quote.seq} }`);
     command.message.channel.send(messagePreamble, embed);
   }
 
@@ -216,26 +215,26 @@ export class QuoteManagementHandler {
         const res = await Store.delQuote(guildId, 
             Number(command.arguments[0])).exec();
         if (res.deletedCount != null && res.deletedCount > 0) {
-          sendCmdMessage(command.message, `Quote ${command.arguments[0]} deleted.`, 2, this.logger);
+          sendCmdMessage(command.message, `Quote ${command.arguments[0]} deleted.`, this.logger, LogLevel.INFO);
           return;
         } else {
-          sendCmdMessage(command.message, `Error: quote ${command.arguments[0]} doesn't exist`, 2, this.logger);
+          sendCmdMessage(command.message, `Error: quote ${command.arguments[0]} doesn't exist`, this.logger, LogLevel.TRACE);
           return;
         }
       } catch (e) {
-        sendCmdMessage(command.message, 'Error: invalid argument', 3, this.logger);
+        sendCmdMessage(command.message, 'Error: invalid argument', this.logger, LogLevel.TRACE);
         return;
       }
       break;
     default:
-      sendCmdMessage(command.message, 'Error: incorrect argument count', 3, this.logger);
+      sendCmdMessage(command.message, 'Error: incorrect argument count', this.logger, LogLevel.TRACE);
       return;
     }
   }
 
   public reattrquoteHandler = async (command: BotCommand): Promise<void> => {
     if (! await isAdmin(command.message)) {
-      sendCmdMessage(command.message, 'Error: not admin', 2, this.logger);
+      sendCmdMessage(command.message, 'Error: not admin', this.logger, LogLevel.DEBUG);
       return;
     }
 
@@ -263,29 +262,29 @@ export class QuoteManagementHandler {
         }
 
         if (newAuthor == null) {
-          sendCmdMessage(command.message, `Error: user does not exist`, 2, this.logger);
+          sendCmdMessage(command.message, `Error: user does not exist`, this.logger, LogLevel.TRACE);
           return;
         }
 
         quote = await Store.getQuoteBySeq(guildId, quoteId);
         if (quote == null) {
-          sendCmdMessage(command.message, `Error: invalid quote ID`, 2, this.logger);
+          sendCmdMessage(command.message, `Error: invalid quote ID`, this.logger, LogLevel.TRACE);
           return;
         }
       } catch (e) {
-        sendCmdMessage(command.message, 'Error: invalid argument', 3, this.logger);
+        sendCmdMessage(command.message, 'Error: invalid argument', this.logger, LogLevel.TRACE);
         return;
       }
       break;
     default:
-      sendCmdMessage(command.message, 'Error: incorrect argument count', 3, this.logger);
+      sendCmdMessage(command.message, 'Error: incorrect argument count', this.logger, LogLevel.TRACE);
       return;
     }
 
     // Update the author field and save to db
     quote.author = newAuthor.id;
     quote.save();
-    sendCmdMessage(command.message, `Reattributed quote to ${newAuthor.displayName}`, 2, this.logger);
+    sendCmdMessage(command.message, `Reattributed quote to ${newAuthor.displayName}`, this.logger, LogLevel.INFO);
   }
 
   // Generate quote display lines
@@ -330,7 +329,7 @@ export class QuoteManagementHandler {
     const quoteMsgs = await this.generateQuoteMsgs(modal.message.guild, quotes);
     
     // Modify original message with new quotes
-    this.logger.info(`${user.user.username} navigated quote list - ${props.scope} skip ${props.skip}`, 2);
+    this.logger.debug(`${user.user.username} navigated quote list - ${props.scope} skip ${props.skip}`);
     modal.message.edit(new MessageEmbed()
         .setTitle(`Quotes - ${props.scope}`)
         .setDescription(quoteMsgs.join("\n"))
@@ -358,7 +357,7 @@ export class QuoteManagementHandler {
     const quoteMsgs = await this.generateQuoteMsgs(modal.message.guild, quotes);
     
     // Modify original message with new quotes
-    this.logger.info(`${user.user.username} navigated quote list - ${props.scope} skip ${props.skip}`, 2);
+    this.logger.debug(`${user.user.username} navigated quote list - ${props.scope} skip ${props.skip}`);
     modal.message.edit(new MessageEmbed()
         .setTitle(`Quotes - ${props.scope}`)
         .setDescription(quoteMsgs.join("\n"))

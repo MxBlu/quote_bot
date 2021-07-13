@@ -1,9 +1,11 @@
 import * as dotenv from 'dotenv';
+dotenv.config();
+
+import { Logger } from 'bot-framework';
+
 import { Store } from './support/store.js';
 import { Bot } from './modules/bot.js';
-import { Logger } from './framework/logger.js';
 
-dotenv.config();
 
 // Main level logger
 const logger = new Logger("Server");

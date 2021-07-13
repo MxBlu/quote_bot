@@ -1,11 +1,11 @@
+import { Logger, NewLogEmitter, ScrollableModalManager, sendMessage } from "bot-framework";
 import { Message, Client as DiscordClient, TextChannel, MessageReaction, User, PartialUser } from "discord.js";
-import { sendMessage } from "../framework/bot_utils.js";
-import { NewErrorLogTopic } from "../framework/constants/topics.js";
-import { Logger } from "../framework/logger.js";
-import { ScrollableModalManager } from "../framework/scrollable.js";
+
+
 import { Store, StoreDependency } from "../support/store.js";
 import { QuoteEventHandler } from "../commands/quote_event.js";
 import { QuoteManagementHandler } from "../commands/quote_management.js";
+import { LogLevels } from "@typegoose/typegoose";
 
 const errStream: string = process.env.DISCORD_ERRSTREAM;
 
@@ -82,7 +82,7 @@ export class BotImpl {
     this.discord.on('guildMemberUpdate', (_, m) => this.memberUpdateHandler(m)); // ignore 'old member' param
     
     // Subscribe to error handler topic to post them to discord
-    NewErrorLogTopic.subscribe("errorLogHandler", this.errorLogHandler);
+    NewLogEmitter.on(LogLevels[LogLevels.ERROR], this.errorLogHandler);
   }
 
   // Utility functions
@@ -111,19 +111,19 @@ export class BotImpl {
   // Discord event handlers
 
   private readyHandler = (): void => {
-    this.logger.info("Discord connected", 1);
+    this.logger.info("Discord connected");
 
     // Call fetch on every guild to make sure we have all the members cached
     this.discord.guilds.cache.map(
       g => g.members.fetch()
           .then(c => c.map(m => this.memberUpdateHandler(m)))
-          .then(() => this.logger.info(`Cached members for ${g.id}`, 3))
+          .then(() => this.logger.debug(`Cached members for ${g.id}`))
     );
   }
 
   private memberUpdateHandler = async (member) => {
     Store.upsertUser(member.id, member.guild.id, member.displayName, member.user.discriminator);
-    this.logger.info(`Updated member '${member.displayName}' for guild '${member.guild.name}`, 4);
+    this.logger.trace(`Updated member '${member.displayName}' for guild '${member.guild.name}'`);
   }
 
   private messageHandler = async (message: Message): Promise<void> => {
@@ -134,8 +134,8 @@ export class BotImpl {
 
     const command = this.parseCommand(message);
     if (command != null) {
-      this.logger.info(`Command received from '${message.author.username}' in '${message.guild.name}': ` +
-          `!${command.command} - '${command.arguments.join(' ')}'`, 2);
+      this.logger.debug(`Command received from '${message.author.username}' in '${message.guild.name}': ` +
+          `!${command.command} - '${command.arguments.join(' ')}'`);
       this.commandHandlers.get(command.command)(command);
     }
   }
@@ -145,7 +145,7 @@ export class BotImpl {
     reaction = await reaction.fetch();
     const guildMember = await reaction.message.guild.members.fetch(user.id);
 
-    this.logger.info(`Reaction with emoji ${reaction.emoji.name} detected`, 4);
+    this.logger.trace(`Reaction with emoji ${reaction.emoji.name} detected`);
 
     // Handlers
     this.quoteEventHandler.messageReactionHandler(reaction, guildMember);

@@ -13,7 +13,7 @@ export class User {
     guild: string // Guild where user is residing
   };
   
-  // Guild ID of user (duplicate of _id valu)
+  // Guild ID of user (duplicate of _id value)
   @prop()
   public guild: string;
   

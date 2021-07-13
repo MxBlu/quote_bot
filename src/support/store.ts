@@ -1,6 +1,6 @@
+import { Dependency, Logger } from 'bot-framework';
 import mongoose from 'mongoose';
-import { Dependency } from '../framework/dependency.js';
-import { Logger } from '../framework/logger.js';
+
 import { QuoteDeleteQuery, QuoteDoc, QuoteModel, QuoteMultiQuery, QuoteSingleQuery } from '../models/Quote.js';
 import { User, UserModel, UserSingleQuery } from '../models/User.js';
 
@@ -32,7 +32,7 @@ class StoreImpl {
     });
   
     mongoose.connection.once('open', () => {
-      this.logger.info('MongoDB connected', 1);
+      this.logger.info('MongoDB connected');
       StoreDependency.ready();
     });
   }
@@ -104,7 +104,7 @@ class StoreImpl {
       displayName: string, discriminator: string): Promise<User> {
     return UserModel.upsert(userId, guildId, displayName, discriminator);
   }
-
+wa
   // Get user from the db
   public getUser(userId: string, guildId: string): UserSingleQuery {
     return UserModel.getById(userId, guildId);

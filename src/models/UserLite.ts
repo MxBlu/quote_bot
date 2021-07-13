@@ -1,4 +1,5 @@
 import { Guild, Constants as DiscordConstants, User as DiscordUser } from "discord.js";
+
 import { Store } from "../support/store.js";
 import { User } from "./User.js";
 
