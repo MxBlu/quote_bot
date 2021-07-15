@@ -1,11 +1,11 @@
 {
   "name": "quote_bot",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Quote messages and store quotes",
   "main": "main.js",
   "type": "module",
   "scripts": {
-    "start": "nodemon built/main.js",
+    "start": "nodemon --watch src/** --ext ts,json --exec node --experimental-specifier-resolution=node --loader ts-node/esm src/main.ts",
     "fstart": "pm2 start --name quotebot built/main.js",
     "build": "tsc --build tsconfig.json",
     "clean": "tsc --build --clean",
@@ -20,7 +20,7 @@
     "dotenv": "8.0.0",
     "erlpack": "discord/erlpack",
     "mongoose": "5.10.18",
-    "ts-node": "10.0.0",
+    "ts-node": "^10.1.0",
     "utf-8-validate": "5.0.3",
     "zlib-sync": "0.1.7"
   },
