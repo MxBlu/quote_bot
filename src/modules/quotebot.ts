@@ -1,0 +1,92 @@
+import { BaseBot } from "bot-framework";
+import { MessageReaction, User, PartialUser, ClientOptions } from "discord.js";
+
+
+import { Store, StoreDependency } from "../support/store.js";
+import { QuoteEventHandler } from "../commands/quote_event.js";
+import { QuoteManagementHandler } from "../commands/quote_management.js";
+
+export class QuoteBotImpl extends BaseBot {
+
+  // Command handlers
+  quoteEventHandler: QuoteEventHandler;
+
+  constructor() {
+    super("QuoteBot");
+  }
+
+  public async init(discordToken: string): Promise<void> {
+    // Wait on Store to be ready
+    await StoreDependency.await();
+    
+    // Without partials, we would not get certain events
+    const clientOptions: ClientOptions = { 
+      partials: [ 'GUILD_MEMBER', 'MESSAGE', 'REACTION' ] 
+    };
+    
+    super.init(discordToken, clientOptions);
+  }
+
+  public loadInterfaces(): void {
+    this.interfaces.push(new QuoteManagementHandler(this.scrollableManager));
+  }
+  
+  public initCustomEventHandlers(): void {
+    this.quoteEventHandler =  new QuoteEventHandler();
+
+    this.discord.on('messageReactionAdd', this.reactionHandler);
+    this.discord.on('guildMemberAdd', this.memberUpdateHandler);
+    this.discord.on('guildMemberUpdate', (_, m) => this.memberUpdateHandler(m)); // ignore 'old member' param
+  }
+
+  // Discord event handlers
+
+  public async onReady(): Promise<void> {
+    this.logger.info("Discord connected");
+
+    // Call fetch on every guild to make sure we have all the members cached
+    this.discord.guilds.cache.map(
+      g => g.members.fetch()
+          .then(c => c.map(m => this.memberUpdateHandler(m)))
+          .then(() => this.logger.debug(`Cached members for ${g.id}`))
+    );
+  }
+
+  private memberUpdateHandler = async (member) => {
+    // Store member data in DB
+    Store.upsertUser(member.id, member.guild.id, member.displayName, member.user.discriminator);
+    this.logger.trace(`Updated member '${member.displayName}' for guild '${member.guild.name}'`);
+  }
+
+  private reactionHandler = async (reaction: MessageReaction, user: User | PartialUser): Promise<void> => {
+    // Dumb ass shit cause Discord.js doesn't resolve them
+    reaction = await reaction.fetch();
+    const guildMember = await reaction.message.guild.members.fetch(user.id);
+
+    this.logger.trace(`Reaction with emoji ${reaction.emoji.name} detected`);
+
+    // Things that act on reaction events
+    this.quoteEventHandler.messageReactionHandler(reaction, guildMember);
+    this.scrollableManager.messageReactionHandler(reaction, guildMember);
+  }
+
+  public getHelpMessage(): string {
+    const msg = 
+      "Quote Bot v2 - Quote and save messages\n" + 
+      "\n" + 
+      "Add a #️⃣ react to a message to quote the message\n" + 
+      "Add a ♿ or :omegaChair: emote to save a quote\n" + 
+      "\n" + 
+      "!listquotes [<id start>] - Get quotes from this guild, optionally starting from <id start>\n" + 
+      "!listquotes <filter> [<id start>] - Get quotes from a given channel or author, optionally starting from <id start>\n" + 
+      "!getquote - Get a random quote\n" + 
+      "!getquote <filter> - Get a random quote from a given author\n" + 
+      "!getquote <id> - Get a quote by given id\n" + 
+      "!delquote <id> - Delete a quote by given id\n" +
+      "!reattrquote <id> <user> - Reattribute a quote to a given user";
+
+    return msg;
+  }
+}
+
+export const QuoteBot = new QuoteBotImpl();

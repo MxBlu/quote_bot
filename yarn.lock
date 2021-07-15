@@ -93,7 +93,7 @@
   resolved "https://registry.yarnpkg.com/@tsconfig/node16/-/node16-1.0.1.tgz#a6ca6a9a0ff366af433f42f5f0e124794ff6b8f1"
   integrity sha512-FTgBI767POY/lKNDNbIzgAX6miIDBs6NTCbdlDb8TrWovHsSvaVIZDlTqym29C6UqhzwcJx4CYr+AlrMywA0cA==
 
-"@typegoose/auto-increment@MxBlu/auto-increment":
+"@typegoose/auto-increment@MxBlu/auto-increment#vbump":
   version "0.6.1"
   resolved "https://codeload.github.com/MxBlu/auto-increment/tar.gz/ad099b82dbdbc6507d453bfe61b9174a349182a7"
   dependencies:
@@ -453,9 +453,9 @@ bluebird@3.5.1:
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.5.1.tgz#d9551f9de98f1fcda1e683d17ee91a0602ee2eb9"
   integrity sha512-MKiLiV+I1AA596t9w1sQJ8jkiSr5+ZKi0WKrYGUn6d1Fx+Ij4tIj+m2WMQSGczs5jZVxV339chE8iwk6F64wjA==
 
-bot-framework@Mxblu/bot-framework#2.2.0:
-  version "2.2.0"
-  resolved "https://codeload.github.com/Mxblu/bot-framework/tar.gz/99b106e9164f7dc92d53a4de3bc6051fd8fc796e"
+bot-framework@Mxblu/bot-framework#2.3.0:
+  version "2.3.0"
+  resolved "https://codeload.github.com/Mxblu/bot-framework/tar.gz/24feb0e7cff4c3ebbee5fd26a994c1fd5401a306"
   dependencies:
     discord.js "12.5.3"
     dotenv "10.0.0"

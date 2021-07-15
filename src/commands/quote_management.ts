@@ -1,10 +1,9 @@
-import { isAdmin, Logger, LogLevel, ScrollableModal, ScrollableModalManager, sendCmdMessage, stringEquivalence, stringSearch } from "bot-framework";
+import { BotCommand, BotCommandHandlerFunction, CommandInterface, isAdmin, Logger, LogLevel, ScrollableModal, ScrollableModalManager, sendCmdMessage, stringEquivalence, stringSearch } from "bot-framework";
 import { Guild, GuildChannel, GuildMember, MessageEmbed, MessageReaction } from "discord.js";
 
 import { QuoteDoc, QuoteMultiQuery } from "../models/Quote.js";
 import { getBestGuildMemberById } from "../models/UserLite.js";
 import { Store } from "../support/store.js";
-import { BotCommand } from "../modules/bot.js";
 
 class ListQuoteModalProps {
   // List query
@@ -15,7 +14,7 @@ class ListQuoteModalProps {
   skip = 0;
 }
 
-export class QuoteManagementHandler {
+export class QuoteManagementHandler implements CommandInterface {
   logger: Logger;
 
   scrollableManager: ScrollableModalManager;
@@ -23,6 +22,21 @@ export class QuoteManagementHandler {
   constructor(scrollableManager: ScrollableModalManager) {
     this.scrollableManager = scrollableManager;
     this.logger = new Logger("QuoteManagementHandler");
+  }
+
+  commands(): Map<string, BotCommandHandlerFunction> {
+    const commands = new Map<string, BotCommandHandlerFunction>();
+
+    commands.set("listquotes", this.listquotesHandler);
+    commands.set("lq", this.listquotesHandler);
+    commands.set("getquote", this.getquoteHandler);
+    commands.set("gq", this.getquoteHandler);
+    commands.set("delquote", this.delquoteHandler);
+    commands.set("dq", this.delquoteHandler);
+    commands.set("reattrquote", this.reattrquoteHandler);
+    commands.set("rq", this.reattrquoteHandler);
+
+    return commands;
   }
 
   public listquotesHandler = async (command: BotCommand): Promise<void> => {

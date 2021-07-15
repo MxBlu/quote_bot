@@ -4,7 +4,7 @@ dotenv.config();
 import { Logger } from 'bot-framework';
 
 import { Store } from './support/store.js';
-import { Bot } from './modules/bot.js';
+import { QuoteBot } from './modules/quotebot.js';
 
 
 // Main level logger
@@ -16,6 +16,6 @@ Store.init(mongoUri);
 
 // Setup bot services
 const discordToken: string = process.env.DISCORD_TOKEN;
-Bot.init(discordToken);
+QuoteBot.init(discordToken);
 
 logger.info(`Server started`);
