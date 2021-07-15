@@ -14,7 +14,7 @@
   "dependencies": {
     "@typegoose/auto-increment": "MxBlu/auto-increment#vbump",
     "@typegoose/typegoose": "7.6.1",
-    "bot-framework": "Mxblu/bot-framework#2.3.0",
+    "bot-framework": "Mxblu/bot-framework#2.3.1",
     "bufferutil": "4.0.2",
     "discord.js": "12.5.3",
     "dotenv": "8.0.0",

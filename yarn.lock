@@ -453,9 +453,9 @@ bluebird@3.5.1:
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.5.1.tgz#d9551f9de98f1fcda1e683d17ee91a0602ee2eb9"
   integrity sha512-MKiLiV+I1AA596t9w1sQJ8jkiSr5+ZKi0WKrYGUn6d1Fx+Ij4tIj+m2WMQSGczs5jZVxV339chE8iwk6F64wjA==
 
-bot-framework@Mxblu/bot-framework#2.3.0:
-  version "2.3.0"
-  resolved "https://codeload.github.com/Mxblu/bot-framework/tar.gz/24feb0e7cff4c3ebbee5fd26a994c1fd5401a306"
+bot-framework@Mxblu/bot-framework#2.3.1:
+  version "2.3.1"
+  resolved "https://codeload.github.com/Mxblu/bot-framework/tar.gz/08974b25afd6c62596cf88a489c25f55eeff71b9"
   dependencies:
     discord.js "12.5.3"
     dotenv "10.0.0"
