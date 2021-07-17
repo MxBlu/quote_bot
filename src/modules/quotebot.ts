@@ -3,7 +3,7 @@ import { MessageReaction, User, PartialUser, ClientOptions } from "discord.js";
 
 
 import { Store, StoreDependency } from "../support/store.js";
-import { QuoteEventHandler } from "../commands/quote_event.js";
+import { QuoteEventHandler } from "../events/quote_event.js";
 import { QuoteManagementHandler } from "../commands/quote_management.js";
 
 export class QuoteBotImpl extends BaseBot {
@@ -28,7 +28,7 @@ export class QuoteBotImpl extends BaseBot {
   }
 
   public loadInterfaces(): void {
-    this.interfaces.push(new QuoteManagementHandler(this.scrollableManager));
+    this.interfaces.push(new QuoteManagementHandler());
   }
   
   public initCustomEventHandlers(): void {
@@ -42,8 +42,6 @@ export class QuoteBotImpl extends BaseBot {
   // Discord event handlers
 
   public async onReady(): Promise<void> {
-    this.logger.info("Discord connected");
-
     // Call fetch on every guild to make sure we have all the members cached
     this.discord.guilds.cache.map(
       g => g.members.fetch()
@@ -67,7 +65,6 @@ export class QuoteBotImpl extends BaseBot {
 
     // Things that act on reaction events
     this.quoteEventHandler.messageReactionHandler(reaction, guildMember);
-    this.scrollableManager.messageReactionHandler(reaction, guildMember);
   }
 
   public getHelpMessage(): string {

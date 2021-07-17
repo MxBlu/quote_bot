@@ -1,4 +1,4 @@
-import { BotCommand, BotCommandHandlerFunction, CommandInterface, isAdmin, Logger, LogLevel, ScrollableModal, ScrollableModalManager, sendCmdMessage, stringEquivalence, stringSearch } from "bot-framework";
+import { BotCommand, BotCommandHandlerFunction, CommandInterface, isAdmin, Logger, LogLevel, Reactable, sendCmdMessage, stringEquivalence, stringSearch } from "bot-framework";
 import { Guild, GuildChannel, GuildMember, MessageEmbed, MessageReaction } from "discord.js";
 
 import { QuoteDoc, QuoteMultiQuery } from "../models/Quote.js";
@@ -17,10 +17,7 @@ class ListQuoteModalProps {
 export class QuoteManagementHandler implements CommandInterface {
   logger: Logger;
 
-  scrollableManager: ScrollableModalManager;
-
-  constructor(scrollableManager: ScrollableModalManager) {
-    this.scrollableManager = scrollableManager;
+  constructor() {
     this.logger = new Logger("QuoteManagementHandler");
   }
 
@@ -140,16 +137,15 @@ export class QuoteManagementHandler implements CommandInterface {
     const message = await command.message.channel.send(embed);
 
     // Create scrollable modal
-    const scrollable = new ScrollableModal<ListQuoteModalProps>();
-    scrollable.scrollLeftHandler = this.listQuotesLeftHandler;
-    scrollable.scrollRightHandler =  this.listQuotesRightHandler;
-    scrollable.message = message;
-    scrollable.props = new ListQuoteModalProps();
-    scrollable.props.query = query;
-    scrollable.props.scope = scope;
+    const reactable = new Reactable<ListQuoteModalProps>(message);
+    reactable.registerHandler("⬅️", this.listQuotesLeftHandler);
+    reactable.registerHandler("➡️", this.listQuotesRightHandler);
+    reactable.props = new ListQuoteModalProps();
+    reactable.props.query = query;
+    reactable.props.scope = scope;
 
     // Activate and track the modal
-    this.scrollableManager.addModal(scrollable);
+    reactable.activate(true);
   }
 
   public getquoteHandler = async (command: BotCommand): Promise<void> => {
@@ -318,9 +314,9 @@ export class QuoteManagementHandler implements CommandInterface {
     return quoteMsgs;
   }
 
-  private listQuotesLeftHandler = async (modal: ScrollableModal<ListQuoteModalProps>, 
+  private listQuotesLeftHandler = async (reactable: Reactable<ListQuoteModalProps>, 
       reaction: MessageReaction, user: GuildMember): Promise<void> => {
-    const props: ListQuoteModalProps = modal.props;
+    const props: ListQuoteModalProps = reactable.props;
     if (props.skip == 0) {
       // Already left-most, loop around
 
@@ -340,19 +336,19 @@ export class QuoteManagementHandler implements CommandInterface {
         .skip(props.skip).limit(10).exec();
     
     // Convert new results into quote display lines
-    const quoteMsgs = await this.generateQuoteMsgs(modal.message.guild, quotes);
+    const quoteMsgs = await this.generateQuoteMsgs(reactable.message.guild, quotes);
     
     // Modify original message with new quotes
     this.logger.debug(`${user.user.username} navigated quote list - ${props.scope} skip ${props.skip}`);
-    modal.message.edit(new MessageEmbed()
+    reactable.message.edit(new MessageEmbed()
         .setTitle(`Quotes - ${props.scope}`)
         .setDescription(quoteMsgs.join("\n"))
         .setFooter(props.skip > 0 ? `+${props.skip}` : ''));
   }
 
-  private listQuotesRightHandler = async (modal: ScrollableModal<ListQuoteModalProps>, 
+  private listQuotesRightHandler = async (reactable: Reactable<ListQuoteModalProps>, 
       reaction: MessageReaction, user: GuildMember): Promise<void> => {
-    const props: ListQuoteModalProps = modal.props;
+    const props: ListQuoteModalProps = reactable.props;
     // Go forward 10 results
     props.skip += 10;
 
@@ -368,11 +364,11 @@ export class QuoteManagementHandler implements CommandInterface {
     }
     
     // Convert new results into quote display lines
-    const quoteMsgs = await this.generateQuoteMsgs(modal.message.guild, quotes);
+    const quoteMsgs = await this.generateQuoteMsgs(reactable.message.guild, quotes);
     
     // Modify original message with new quotes
     this.logger.debug(`${user.user.username} navigated quote list - ${props.scope} skip ${props.skip}`);
-    modal.message.edit(new MessageEmbed()
+    reactable.message.edit(new MessageEmbed()
         .setTitle(`Quotes - ${props.scope}`)
         .setDescription(quoteMsgs.join("\n"))
         .setFooter(props.skip > 0 ? `+${props.skip}` : ''));
