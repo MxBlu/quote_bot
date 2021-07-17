@@ -1,5 +1,5 @@
-import { BotCommand, BotCommandHandlerFunction, CommandInterface, isAdmin, Logger, LogLevel, Reactable, sendCmdMessage, stringEquivalence, stringSearch } from "bot-framework";
-import { Guild, GuildChannel, GuildMember, MessageEmbed, MessageReaction } from "discord.js";
+import { BotCommand, BotCommandHandlerFunction, CommandInterface, findGuildChannel, findGuildMember, isAdmin, Logger, LogLevel, Reactable, sendCmdMessage } from "bot-framework";
+import { Guild, GuildMember, MessageEmbed, MessageReaction } from "discord.js";
 
 import { QuoteDoc, QuoteMultiQuery } from "../models/Quote.js";
 import { getBestGuildMemberById } from "../models/UserLite.js";
@@ -37,7 +37,7 @@ export class QuoteManagementHandler implements CommandInterface {
   }
 
   public listquotesHandler = async (command: BotCommand): Promise<void> => {
-    const guildId = command.message.guild.id;
+    const guild = command.message.guild;
     let query: QuoteMultiQuery = null; // Array of quotes for given criteria
     let scope = ''; // Scope of list query
     let start = 0; // Starting seq id
@@ -45,7 +45,7 @@ export class QuoteManagementHandler implements CommandInterface {
     switch (command.arguments.length) {
     case 0:
       // List all quotes from the guild
-      query = Store.getQuotesByGuild(guildId);
+      query = Store.getQuotesByGuild(guild.id);
       scope = "Guild";
       break;
     case 1:
@@ -53,7 +53,7 @@ export class QuoteManagementHandler implements CommandInterface {
       // Handle as quotes seq number start if first arg is numerical
       if (command.arguments[0].match(/^\d+$/)) {
         start = Number(command.arguments[0]);
-        query = Store.getQuotesByGuild(guildId)
+        query = Store.getQuotesByGuild(guild.id)
             .where('seq').gte(start);
         scope = "Guild";
         break;
@@ -61,17 +61,8 @@ export class QuoteManagementHandler implements CommandInterface {
         start = Number(command.arguments[1]);
       }
 
-      // Handle if first arg may be a channel name or channel mention
-      const channelRx = command.arguments[0].match(/^<#(\d+)>$/);
-      let potentialChannel: GuildChannel = null;
-      if (channelRx != null) {
-        potentialChannel = command.message.guild.channels.cache.get(channelRx[1]);
-      } else {
-        potentialChannel = command.message.guild.channels
-            .cache.find(c => stringEquivalence(c.name, command.arguments[0]));
-      }
-
-      // If criteria passes, get all quotes for given channel
+      // If first arg is a channel, get all quotes for given channel
+      const potentialChannel = await findGuildChannel(command.arguments[0], guild);
       if (potentialChannel != null) {
         query = Store.getQuotesByChannel(potentialChannel.id)
             .where('seq').gte(start);
@@ -79,20 +70,10 @@ export class QuoteManagementHandler implements CommandInterface {
         break;
       }
 
-      // Handle if first arg may be a username or user nickname
-      const userRx = command.arguments[0].match(/^<@!(\d+)>$/);
-      let potentialUser: GuildMember = null;
-      if (userRx != null) {
-        potentialUser = command.message.guild.members.cache.get(userRx[1]);
-      } else {
-        potentialUser = command.message.guild.members
-          .cache.find(m => stringSearch(m.nickname, command.arguments[0]) || 
-                        stringSearch(m.user.username, command.arguments[0]));
-      }
-      
-      // If criteria passes, get all quotes for given user
+      // If first arg is a user, get all quotes for given user
+      const potentialUser = await findGuildMember(command.arguments[0], guild);
       if (potentialUser != null) {
-        query = Store.getQuotesByAuthor(potentialUser.id, guildId)
+        query = Store.getQuotesByAuthor(potentialUser.id, guild.id)
             .where('seq').gte(start);
         scope = `Author @${potentialUser.displayName}`;
         break;
@@ -149,39 +130,27 @@ export class QuoteManagementHandler implements CommandInterface {
   }
 
   public getquoteHandler = async (command: BotCommand): Promise<void> => {
-    const guildId = command.message.guild.id;
+    const guild = command.message.guild;
     let quote: QuoteDoc = null;
 
     switch (command.arguments.length) {
     case 0:
       // Get random quote
-      quote = await Store.getRandomQuote(guildId);
+      quote = await Store.getRandomQuote(guild.id);
       break;
     case 1:
       // If first arg is a number
       // Get quote with given seq ID
       if (command.arguments[0].match(/^\d+$/)) {
-        quote = await Store.getQuoteBySeq(guildId, 
+        quote = await Store.getQuoteBySeq(guild.id, 
             Number(command.arguments[0])).exec();
         break;
       }
 
-      // Handle if first arg may be a username or user nickname
-      let potentialUser = null;
-      const userRx = command.arguments[0].match(/^<@!(\d+)>$/);
-      if (userRx != null) {
-        potentialUser = command.message.guild.members.cache.get(userRx[1]);
-      } else {
-        // Ensure the member cache is populated
-        await command.message.guild.members.fetch();
-        potentialUser = command.message.guild.members
-          .cache.find(m => stringSearch(m.nickname, command.arguments[0]) || 
-                        stringSearch(m.user.username, command.arguments[0]));
-      }
-      
-      // If criteria passes, get all quotes for given user
+      // if first arg is a user, get all quotes for given user
+      const potentialUser = await findGuildMember(command.arguments[0], guild);
       if (potentialUser != null) {
-        quote = await Store.getRandomQuoteFromAuthor(guildId, potentialUser.id);
+        quote = await Store.getRandomQuoteFromAuthor(guild.id, potentialUser.id);
         break;
       }
       break;
@@ -211,7 +180,7 @@ export class QuoteManagementHandler implements CommandInterface {
         .setTimestamp(quote.timestamp)
         .setImage(quote.img);
 
-    this.logger.info(`${command.message.author.username} got quote { ${guildId} => ${quote.seq} }`);
+    this.logger.info(`${command.message.author.username} got quote { ${guild.id} => ${quote.seq} }`);
     command.message.channel.send(messagePreamble, embed);
   }
 
@@ -248,7 +217,7 @@ export class QuoteManagementHandler implements CommandInterface {
       return;
     }
 
-    const guildId = command.message.guild.id;
+    const guild = command.message.guild;
     let newAuthor: GuildMember = null;
     let quote: QuoteDoc = null;
 
@@ -260,23 +229,14 @@ export class QuoteManagementHandler implements CommandInterface {
         const quoteId = Number(command.arguments[0]);
         
         // Get the user to reattribute to
-        const userRx = command.arguments[1].match(/^<@!(\d+)>$/);
-        if (userRx != null) {
-          newAuthor = command.message.guild.members.cache.get(userRx[1]);
-        } else {
-          // Ensure the member cache is populated
-          await command.message.guild.members.fetch();
-          newAuthor = command.message.guild.members
-            .cache.find(m => stringSearch(m.nickname, command.arguments[1]) || 
-                          stringSearch(m.user.username, command.arguments[1]));
-        }
+        newAuthor = await findGuildMember(command.arguments[1], guild);
 
         if (newAuthor == null) {
           sendCmdMessage(command.message, `Error: user does not exist`, this.logger, LogLevel.TRACE);
           return;
         }
 
-        quote = await Store.getQuoteBySeq(guildId, quoteId);
+        quote = await Store.getQuoteBySeq(guild.id, quoteId);
         if (quote == null) {
           sendCmdMessage(command.message, `Error: invalid quote ID`, this.logger, LogLevel.TRACE);
           return;
