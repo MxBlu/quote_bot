@@ -12,12 +12,9 @@ Store.init(process.env.MONGO_URI);
 async function main() {
   try {
     await StoreDependency.await();
-    const quote: Quote = await Store.getQuoteBySeq("test2", 2);
+    await Store.addQuote("test2", "test", "test", "test", "test", "test", "test", new Date());
+    const quote: Quote = await Store.getRandomQuote("test2");
     const stats = quote.getStats();
-    await stats.toggleDislike("testUser");
-    await stats.toggleDislike("testUser2");
-    await stats.toggleLike("testUser3");
-    await stats.toggleLike("testUser4");
     console.log(quote);
   } catch(err) {
     console.error(err);
