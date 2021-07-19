@@ -100,10 +100,10 @@
     loglevel "^1.7.0"
     tslib "^2.0.3"
 
-"@typegoose/typegoose@7.6.1":
-  version "7.6.1"
-  resolved "https://registry.yarnpkg.com/@typegoose/typegoose/-/typegoose-7.6.1.tgz#ca2a1f3d069555f925ec58c22c5c4152c8bd3b3a"
-  integrity sha512-ZBm0ZVLm3VlQ+TvoWtAX2ZYTCzCOhlZd0OECwBrB7zWfYcv0v73mzVryPVN6chUsN1ExlL1EusKwYZ8mG7QK8A==
+"@typegoose/typegoose@7.6.3":
+  version "7.6.3"
+  resolved "https://registry.yarnpkg.com/@typegoose/typegoose/-/typegoose-7.6.3.tgz#1dbb54cb580129462e3460f5f94b2f929f83c89f"
+  integrity sha512-u12nUEmpMa0e+K8UuzAZvSnWZ7JZGo0yMs7HR4mG47gJJhVe/PIAzfXVPV+CJQBZrMSPyaEZ6HRKjmDxnjEgFg==
   dependencies:
     lodash "^4.17.20"
     loglevel "^1.7.0"
