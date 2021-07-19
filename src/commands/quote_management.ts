@@ -5,7 +5,7 @@ import { QuoteDoc, QuoteMultiQuery } from "../models/Quote.js";
 import { getBestGuildMemberById } from "../models/UserLite.js";
 import { Store } from "../support/store.js";
 
-class ListQuoteModalProps {
+class ListQuoteProps {
   // List query
   query: QuoteMultiQuery;
   // Query scope
@@ -118,10 +118,10 @@ export class QuoteManagementHandler implements CommandInterface {
     const message = await command.message.channel.send(embed);
 
     // Create scrollable modal
-    const reactable = new Reactable<ListQuoteModalProps>(message);
+    const reactable = new Reactable<ListQuoteProps>(message);
     reactable.registerHandler("⬅️", this.listQuotesLeftHandler);
     reactable.registerHandler("➡️", this.listQuotesRightHandler);
-    reactable.props = new ListQuoteModalProps();
+    reactable.props = new ListQuoteProps();
     reactable.props.query = query;
     reactable.props.scope = scope;
 
@@ -168,8 +168,8 @@ export class QuoteManagementHandler implements CommandInterface {
     }
 
     // Get GuildMember objects for author and quoter
-      const author = await getBestGuildMemberById(command.message.guild, quote.author);
-      const quoter = await getBestGuildMemberById(command.message.guild, quote.quoter);
+    const author = await getBestGuildMemberById(command.message.guild, quote.author);
+    const quoter = await getBestGuildMemberById(command.message.guild, quote.quoter);
 
     // Re-generate quote from stored data
     const messagePreamble = `**${quote.seq}**: **${quoter.displayName}** quoted **${author.displayName}**:`;
@@ -274,9 +274,9 @@ export class QuoteManagementHandler implements CommandInterface {
     return quoteMsgs;
   }
 
-  private listQuotesLeftHandler = async (reactable: Reactable<ListQuoteModalProps>, 
+  private listQuotesLeftHandler = async (reactable: Reactable<ListQuoteProps>, 
       reaction: MessageReaction, user: GuildMember): Promise<void> => {
-    const props: ListQuoteModalProps = reactable.props;
+    const props: ListQuoteProps = reactable.props;
     if (props.skip == 0) {
       // Already left-most, loop around
 
@@ -306,9 +306,9 @@ export class QuoteManagementHandler implements CommandInterface {
         .setFooter(props.skip > 0 ? `+${props.skip}` : ''));
   }
 
-  private listQuotesRightHandler = async (reactable: Reactable<ListQuoteModalProps>, 
+  private listQuotesRightHandler = async (reactable: Reactable<ListQuoteProps>, 
       reaction: MessageReaction, user: GuildMember): Promise<void> => {
-    const props: ListQuoteModalProps = reactable.props;
+    const props: ListQuoteProps = reactable.props;
     // Go forward 10 results
     props.skip += 10;
 
