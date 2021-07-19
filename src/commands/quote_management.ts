@@ -365,6 +365,8 @@ export class QuoteManagementHandler implements CommandInterface {
     const originalMessage = reactable.message;
     const newEmbed = new MessageEmbed(originalMessage.embeds[0])
         .setFooter(`${stats.views.length} 📺 ${stats.likes.length} 👍 ${stats.dislikes.length} 👎`);
+
+    this.logger.debug(`${user.user.username} toggled like - ${quote.guild} => ${quote.seq}`);
     originalMessage.edit({ content: originalMessage.content, embed: newEmbed });
   };
 
@@ -379,6 +381,8 @@ export class QuoteManagementHandler implements CommandInterface {
     const originalMessage = reactable.message;
     const newEmbed = new MessageEmbed(originalMessage.embeds[0])
         .setFooter(`${stats.views.length} 📺 ${stats.likes.length} 👍 ${stats.dislikes.length} 👎`);
+        
+    this.logger.debug(`${user.user.username} toggled dislike - ${quote.guild} => ${quote.seq}`);
     originalMessage.edit({ content: originalMessage.content, embed: newEmbed });
   };
   
