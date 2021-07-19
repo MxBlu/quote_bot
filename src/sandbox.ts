@@ -1,25 +1,31 @@
 
 import * as dotenv from 'dotenv';
-import mongoose from 'mongoose';
 
 dotenv.config();
 
 import { Quote } from './models/Quote.js';
-import { Store } from './support/store.js';
+import { QuoteStats, QuoteStatsDoc } from './models/QuoteStats.js';
+import { Store, StoreDependency } from './support/store.js';
 
 // MongoDB
-Store.registerMongoHandlers();
-mongoose.connect(process.env.MONGO_URI, { autoCreate: true, autoIndex: true, useNewUrlParser: true, 
-  useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true, });
+Store.init(process.env.MONGO_URI);
 
 async function main() {
   try {
-    console.log("Start");
-    const quote: Quote = await Store.addQuote("test2", "test", "test", "test", "test", "test", "test", new Date());
+    await StoreDependency.await();
+    const quote: Quote = await Store.getQuoteBySeq("test2", 2);
+    const stats = quote.getStats();
+    await stats.addView("testUser");
     console.log(quote);
   } catch(err) {
     console.error(err);
   }
 }
 
-main().then(() => console.log("done")).catch(err => console.error(err));
+main().then(() => {
+  console.log("done");
+  process.exit(0);
+}).catch(err => {
+  console.error(err);
+  process.exit(1);
+});

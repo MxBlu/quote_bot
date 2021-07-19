@@ -1,7 +1,7 @@
 import { Dependency, Logger } from 'bot-framework';
 import mongoose from 'mongoose';
 
-import { QuoteDeleteQuery, QuoteDoc, QuoteModel, QuoteMultiQuery, QuoteSingleQuery } from '../models/Quote.js';
+import { Quote, QuoteDeleteQuery, QuoteDoc, QuoteModel, QuoteMultiQuery, QuoteSingleQuery } from '../models/Quote.js';
 import { User, UserModel, UserSingleQuery } from '../models/User.js';
 
 /*
@@ -76,21 +76,21 @@ class StoreImpl {
   public async addQuote(guildId: string, channelId: string,
       authorId: string, quoterId: string, message: string, 
       img: string, link: string, timestamp: Date): Promise<QuoteDoc> {
-    const quote = await QuoteModel.create({
-      channel: channelId,
-      guild: guildId,
-      message,
-      author: authorId,
-      quoter: quoterId,
-      img,
-      link,
-      timestamp,
-    });
-    return quote.save();
+    const quote = new Quote();
+    quote.guild = guildId;
+    quote.channel = channelId;
+    quote.author = authorId;
+    quote.quoter = quoterId;
+    quote.message = message;
+    quote.img = img;
+    quote.link = link;
+    quote.timestamp = timestamp;
+    const quoteModel = await QuoteModel.createwithStats(quote);
+    return quoteModel.save();
   }
 
   // Check if a quote exists with given message link
-  public checkQuoteExists (link: string): Promise<boolean> {
+  public checkQuoteExists(link: string): Promise<boolean> {
     return QuoteModel.checkExists(link);
   }
 
@@ -104,7 +104,7 @@ class StoreImpl {
       displayName: string, discriminator: string): Promise<User> {
     return UserModel.upsert(userId, guildId, displayName, discriminator);
   }
-wa
+
   // Get user from the db
   public getUser(userId: string, guildId: string): UserSingleQuery {
     return UserModel.getById(userId, guildId);

@@ -1,13 +1,14 @@
-import { DocumentType, getModelForClass, plugin, prop, ReturnModelType } from '@typegoose/typegoose';
+import { DocumentType, getModelForClass, plugin, prop, Ref, ReturnModelType } from '@typegoose/typegoose';
 import { AutoIncrementID } from '@typegoose/auto-increment';
 import { DocumentQuery, Query } from 'mongoose';
+
+import { QuoteStats, QuoteStatsDoc, QuoteStatsModel } from './QuoteStats.js';
 
 export type QuoteDoc = DocumentType<Quote>;
 export type QuoteSingleQuery = DocumentQuery<QuoteDoc, QuoteDoc>;
 export type QuoteMultiQuery = DocumentQuery<QuoteDoc[], QuoteDoc>;
 export type QuoteDeleteQuery = Query<{ ok?: number; n?: number; deletedCount?: number;}>
 
-// TODO: Convert mongoose-auto-increment counter to new one 
 @plugin(AutoIncrementID, {trackerCollection: 'seq_counters', field: 'seq', startAt: 1, reference_fields: ['guild']})
 export class Quote {
   // Sequencing value, unique to the guild. For referencing quotes in a list
@@ -46,19 +47,33 @@ export class Quote {
   @prop()
   public timestamp: Date;
 
+  @prop({ ref: QuoteStats })
+  public stats?: Ref<QuoteStats>;
+
+  public getStats(): QuoteStatsDoc {
+    return this.stats as QuoteStatsDoc;
+  }
+
+  public static async createwithStats(this: ReturnModelType<typeof Quote>, quote: Quote): Promise<QuoteDoc> {
+    const quoteStats = await QuoteStatsModel.create({});
+    quote.stats = quoteStats;
+    const quoteDoc = await QuoteModel.create(quote);
+    return quoteDoc;
+  }
+
   public static getBySeq(this: ReturnModelType<typeof Quote>, guild: string, seq: number): QuoteSingleQuery {
-    return this.findOne({ guild, seq });
+    return this.findOne({ guild, seq }).populate('stats');
   }
 
   public static async getRandom(this: ReturnModelType<typeof Quote>, guild: string): Promise<QuoteDoc> {
-    const res = await this.aggregate([{ $match: { guild } }, { $sample: { size: 1 } }]).exec();
-    return res.length > 0 ? res[0] : null;
+    const res: QuoteDoc[] = await this.aggregate([{ $match: { guild } }, { $sample: { size: 1 } }]).exec();
+    return res.length > 0 ? res[0].populate('stats').execPopulate() : null;
   }
   
   public static async getRandomFromAuthor(this: ReturnModelType<typeof Quote>, 
       guild: string, author: string): Promise<QuoteDoc> {
-    const res = await this.aggregate([{ $match: { author, guild } }, { $sample: { size: 1 } }]).exec();
-    return res.length > 0 ? res[0] : null;
+    const res: QuoteDoc[] = await this.aggregate([{ $match: { author, guild } }, { $sample: { size: 1 } }]).exec();
+    return res.length > 0 ? res[0].populate('stats').execPopulate() : null;
   }
 
   public static deleteBySeq(this: ReturnModelType<typeof Quote>, guild: string, seq: number): QuoteDeleteQuery {
