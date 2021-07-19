@@ -14,6 +14,11 @@ class ListQuoteProps {
   skip = 0;
 }
 
+class LikeableProps {
+  // Quote in message
+  quote: QuoteDoc;
+}
+
 export class QuoteManagementHandler implements CommandInterface {
   logger: Logger;
 
@@ -167,6 +172,10 @@ export class QuoteManagementHandler implements CommandInterface {
       return;
     }
 
+    // Add view event to quote
+    const stats = quote.getStats();
+    await stats.addView(command.message.author.id);
+
     // Get GuildMember objects for author and quoter
     const author = await getBestGuildMemberById(command.message.guild, quote.author);
     const quoter = await getBestGuildMemberById(command.message.guild, quote.quoter);
@@ -178,10 +187,21 @@ export class QuoteManagementHandler implements CommandInterface {
         .setDescription(quote.message)
         .setColor('RANDOM')
         .setTimestamp(quote.timestamp)
-        .setImage(quote.img);
+        .setImage(quote.img)
+        .setFooter(`${stats.views.length} 📺 ${stats.likes.length} 👍 ${stats.dislikes.length} 👎`);
 
     this.logger.info(`${command.message.author.username} got quote { ${guild.id} => ${quote.seq} }`);
-    command.message.channel.send(messagePreamble, embed);
+    const message = await command.message.channel.send(messagePreamble, embed);
+
+    // Create reactable with like/dislike buttons
+    const reactable = new Reactable<LikeableProps>(message);
+    reactable.registerHandler("👍", this.likeableLikeHandler);
+    reactable.registerHandler("👎", this.likeableDislikeHandler);
+    reactable.props = new LikeableProps();
+    reactable.props.quote = quote;
+
+    // Activate and track the modal
+    reactable.activate(true);
   }
 
   public delquoteHandler = async (command: BotCommand): Promise<void> => {
@@ -333,5 +353,33 @@ export class QuoteManagementHandler implements CommandInterface {
         .setDescription(quoteMsgs.join("\n"))
         .setFooter(props.skip > 0 ? `+${props.skip}` : ''));
   }
+
+  private likeableLikeHandler = async (reactable: Reactable<LikeableProps>, 
+      reaction: MessageReaction, user: GuildMember): Promise<void> => {
+    // Toggle like on quote
+    const quote = reactable.props.quote;
+    const stats = quote.getStats();
+    stats.toggleLike(user.id);
+
+    // Re-generate quote, but with updated like count
+    const originalMessage = reactable.message;
+    const newEmbed = new MessageEmbed(originalMessage.embeds[0])
+        .setFooter(`${stats.views.length} 📺 ${stats.likes.length} 👍 ${stats.dislikes.length} 👎`);
+    originalMessage.edit({ content: originalMessage.content, embed: newEmbed });
+  };
+
+  private likeableDislikeHandler = async (reactable: Reactable<LikeableProps>, 
+      reaction: MessageReaction, user: GuildMember): Promise<void> => {
+    // Toggle like on quote
+    const quote = reactable.props.quote;
+    const stats = quote.getStats();
+    stats.toggleDislike(user.id);
+
+    // Re-generate quote, but with updated like count
+    const originalMessage = reactable.message;
+    const newEmbed = new MessageEmbed(originalMessage.embeds[0])
+        .setFooter(`${stats.views.length} 📺 ${stats.likes.length} 👍 ${stats.dislikes.length} 👎`);
+    originalMessage.edit({ content: originalMessage.content, embed: newEmbed });
+  };
   
 }
