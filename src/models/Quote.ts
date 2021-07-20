@@ -1,4 +1,4 @@
-import { DocumentType, getModelForClass, plugin, prop, Ref, ReturnModelType } from '@typegoose/typegoose';
+import { DocumentType, getModelForClass, isDocument, plugin, prop, Ref, ReturnModelType } from '@typegoose/typegoose';
 import { AutoIncrementID } from '@typegoose/auto-increment';
 import { DocumentQuery, Query } from 'mongoose';
 
@@ -53,7 +53,12 @@ export class Quote {
   public stats?: Ref<QuoteStats>;
 
   public getStats(): QuoteStatsDoc {
-    return this.stats as QuoteStatsDoc;
+    // Only return if this.stats has been populated
+    if (isDocument(this.stats)) {
+      return this.stats as QuoteStatsDoc;
+    } else {
+      return null;
+    }
   }
 
   public static async createwithStats(this: ReturnModelType<typeof Quote>, quote: Quote): Promise<QuoteDoc> {
