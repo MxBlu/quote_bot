@@ -1,4 +1,5 @@
 /.env
 node_modules
-memes.db*
 built
+
+src/sandbox.ts
