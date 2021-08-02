@@ -120,7 +120,7 @@ export class QuoteManagementHandler implements CommandInterface {
     
     // Send initial embed
     this.logger.info(`${command.message.author.username} listed quotes - ${scope}`);
-    const message = await command.message.channel.send(embed);
+    const message = await command.message.channel.send({ embeds: [embed] });
 
     // Create scrollable modal
     const reactable = new Reactable<ListQuoteProps>(message);
@@ -191,7 +191,7 @@ export class QuoteManagementHandler implements CommandInterface {
         .setFooter(`${stats.views.length} 📺 ${stats.likes.length} 👍 ${stats.dislikes.length} 👎`);
 
     this.logger.info(`${command.message.author.username} got quote { ${guild.id} => ${quote.seq} }`);
-    const message = await command.message.channel.send(messagePreamble, embed);
+    const message = await command.message.channel.send({ content: messagePreamble, embeds: [embed] });
 
     // Create reactable with like/dislike buttons
     const reactable = new Reactable<LikeableProps>(message);
@@ -320,10 +320,12 @@ export class QuoteManagementHandler implements CommandInterface {
     
     // Modify original message with new quotes
     this.logger.debug(`${user.user.username} navigated quote list - ${props.scope} skip ${props.skip}`);
-    reactable.message.edit(new MessageEmbed()
-        .setTitle(`Quotes - ${props.scope}`)
-        .setDescription(quoteMsgs.join("\n"))
-        .setFooter(props.skip > 0 ? `+${props.skip}` : ''));
+    reactable.message.edit({ embeds: [ 
+        new MessageEmbed()
+          .setTitle(`Quotes - ${props.scope}`)
+          .setDescription(quoteMsgs.join("\n"))
+          .setFooter(props.skip > 0 ? `+${props.skip}` : '')
+    ]});
   }
 
   private listQuotesRightHandler = async (reactable: Reactable<ListQuoteProps>, 
@@ -348,10 +350,12 @@ export class QuoteManagementHandler implements CommandInterface {
     
     // Modify original message with new quotes
     this.logger.debug(`${user.user.username} navigated quote list - ${props.scope} skip ${props.skip}`);
-    reactable.message.edit(new MessageEmbed()
-        .setTitle(`Quotes - ${props.scope}`)
-        .setDescription(quoteMsgs.join("\n"))
-        .setFooter(props.skip > 0 ? `+${props.skip}` : ''));
+    reactable.message.edit({ embeds: [ 
+        new MessageEmbed()
+          .setTitle(`Quotes - ${props.scope}`)
+          .setDescription(quoteMsgs.join("\n"))
+          .setFooter(props.skip > 0 ? `+${props.skip}` : '')
+    ]});
   }
 
   private likeableLikeHandler = async (reactable: Reactable<LikeableProps>, 
@@ -367,7 +371,7 @@ export class QuoteManagementHandler implements CommandInterface {
         .setFooter(`${stats.views.length} 📺 ${stats.likes.length} 👍 ${stats.dislikes.length} 👎`);
 
     this.logger.debug(`${user.user.username} toggled like - ${quote.guild} => ${quote.seq}`);
-    originalMessage.edit({ content: originalMessage.content, embed: newEmbed });
+    originalMessage.edit({ content: originalMessage.content, embeds: [newEmbed] });
   };
 
   private likeableDislikeHandler = async (reactable: Reactable<LikeableProps>, 
@@ -383,7 +387,7 @@ export class QuoteManagementHandler implements CommandInterface {
         .setFooter(`${stats.views.length} 📺 ${stats.likes.length} 👍 ${stats.dislikes.length} 👎`);
         
     this.logger.debug(`${user.user.username} toggled dislike - ${quote.guild} => ${quote.seq}`);
-    originalMessage.edit({ content: originalMessage.content, embed: newEmbed });
+    originalMessage.edit({ content: originalMessage.content, embeds: [newEmbed] });
   };
   
 }

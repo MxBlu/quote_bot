@@ -14,9 +14,9 @@
   "dependencies": {
     "@typegoose/auto-increment": "MxBlu/auto-increment#vbump",
     "@typegoose/typegoose": "7.6.3",
-    "bot-framework": "Mxblu/bot-framework#2.4.1",
+    "bot-framework": "Mxblu/bot-framework#discordjs-master",
     "bufferutil": "4.0.2",
-    "discord.js": "12.5.3",
+    "discord.js": "13.0.0-dev.d310e4f.1627560163",
     "dotenv": "8.0.0",
     "erlpack": "discord/erlpack",
     "mongoose": "5.10.18",

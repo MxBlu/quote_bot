@@ -1,5 +1,5 @@
 import { Logger, sendMessage } from "bot-framework";
-import { MessageEmbed, MessageReaction, GuildMember, Message } from "discord.js";
+import { MessageEmbed, MessageReaction, GuildMember, Message, PartialMessage } from "discord.js";
 
 import { getBestGuildMember, UserLite } from "../models/UserLite.js";
 import { Store } from "../support/store.js";
@@ -33,7 +33,7 @@ export class QuoteEventHandler {
   }
 
   // Create a quote embed
-  private generateEmbed(message: Message, author: UserLite): MessageEmbed {
+  private generateEmbed(message: Message | PartialMessage, author: UserLite): MessageEmbed {
     // Create embed content
     let content = `${message.content}\n`
                 + `[Link](${message.url})`;
@@ -74,7 +74,7 @@ export class QuoteEventHandler {
     return embed;
   }
 
-  private quoteHandler = async(message: Message, quoter: GuildMember): Promise<void> => {
+  private quoteHandler = async(message: Message | PartialMessage, quoter: GuildMember): Promise<void> => {
     // Get best guild member we can for the author
     const author = await getBestGuildMember(message.guild, message.author);
 
@@ -85,10 +85,10 @@ export class QuoteEventHandler {
     
     // Send message with embed
     const messagePreamble = `**${quoter.displayName}** quoted **${author.displayName}**:`;
-    message.channel.send(messagePreamble, embed);
+    message.channel.send({content: messagePreamble, embeds: [embed]});
   }
 
-  private quoteSaveHandler = async (message: Message, quoter: GuildMember): Promise<void> => {
+  private quoteSaveHandler = async (message: Message | PartialMessage, quoter: GuildMember): Promise<void> => {
     // Make sure the quote doesn't exist first
     if (await Store.checkQuoteExists(message.url)) {
       this.logger.trace(`${quoter.user.username} - ${message.guild.name} - Error: Quote already exists`);
@@ -110,6 +110,6 @@ export class QuoteEventHandler {
     
     // Send message with embed
     const messagePreamble = `${quote.seq}: **${quoter.displayName}** saved a quote by **${author.displayName}**:`;
-    message.channel.send(messagePreamble, embed);
+    message.channel.send({content: messagePreamble, embeds: [embed]});
   }
 }

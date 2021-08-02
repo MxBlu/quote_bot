@@ -1,9 +1,9 @@
-import { Guild, Constants as DiscordConstants, User as DiscordUser } from "discord.js";
+import { Guild, Constants as DiscordConstants, User as DiscordUser, Snowflake, Options } from "discord.js";
 
 import { Store } from "../support/store.js";
 import { User } from "./User.js";
 
-const DISCORD_CDN = DiscordConstants.Endpoints.CDN(DiscordConstants.DefaultOptions.http.cdn);  
+const DISCORD_CDN = DiscordConstants.Endpoints.CDN(Options.createDefaultOptions().http.cdn);  
 
 // As much of a GuildMember that we can get
 export class UserLite {
@@ -21,7 +21,7 @@ export const getBestGuildMemberById = async function(guild: Guild, userId: strin
   bestUser.id = userId;
   // First, try and get the user from the guild
   try {
-    const guildMember = await guild.members.fetch(userId);
+    const guildMember = await guild.members.fetch(userId as Snowflake);
     bestUser.displayName = guildMember.displayName;
     bestUser.displayAvatarURL = guildMember.user.displayAvatarURL();
     return bestUser;

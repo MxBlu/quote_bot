@@ -1,5 +1,5 @@
 import { BaseBot } from "bot-framework";
-import { MessageReaction, User, PartialUser, ClientOptions } from "discord.js";
+import { MessageReaction, User, PartialUser, IntentsString } from "discord.js";
 
 
 import { Store, StoreDependency } from "../support/store.js";
@@ -18,13 +18,19 @@ export class QuoteBotImpl extends BaseBot {
   public async init(discordToken: string): Promise<void> {
     // Wait on Store to be ready
     await StoreDependency.await();
+
+    // Choose what gateway intents we want to receive
+    const intents: IntentsString[] = [
+      "GUILDS",
+      "GUILD_MESSAGES",
+      "GUILD_MEMBERS",
+      "GUILD_MESSAGE_REACTIONS",
+    ];
     
     // Without partials, we would not get certain events
-    const clientOptions: ClientOptions = { 
+    super.init(discordToken, intents, { 
       partials: [ 'GUILD_MEMBER', 'MESSAGE', 'REACTION' ] 
-    };
-    
-    super.init(discordToken, clientOptions);
+    });
   }
 
   public loadInterfaces(): void {
