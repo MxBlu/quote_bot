@@ -37,6 +37,8 @@ export class QuoteManagementHandler implements CommandInterface {
     commands.set("dq", this.delquoteHandler);
     commands.set("reattrquote", this.reattrquoteHandler);
     commands.set("rq", this.reattrquoteHandler);
+    commands.set("spoilerquote", this.spoilerquoteHandler);
+    commands.set("sq", this.spoilerquoteHandler);
 
     return commands;
   }
@@ -273,8 +275,45 @@ export class QuoteManagementHandler implements CommandInterface {
 
     // Update the author field and save to db
     quote.author = newAuthor.id;
-    quote.save();
+    await quote.save();
     sendCmdMessage(command.message, `Reattributed quote to ${newAuthor.displayName}`, this.logger, LogLevel.INFO);
+  }
+
+  public spoilerquoteHandler = async (command: BotCommand): Promise<void> => {
+    const guild = command.message.guild;
+    let quote: QuoteDoc = null;
+
+    switch (command.arguments.length) {
+    case 1:
+      // Spoiler/Unspoiler a quote
+      try {
+        const quoteId = Number(command.arguments[0]);
+        
+        quote = await Store.getQuoteBySeq(guild.id, quoteId);
+        if (quote == null) {
+          sendCmdMessage(command.message, `Error: invalid quote ID`, this.logger, LogLevel.TRACE);
+          return;
+        }
+      } catch (e) {
+        sendCmdMessage(command.message, 'Error: invalid argument', this.logger, LogLevel.TRACE);
+        return;
+      }
+      break;
+    default:
+      sendCmdMessage(command.message, 'Error: incorrect argument count', this.logger, LogLevel.TRACE);
+      return;
+    }
+
+    if (quote.message.startsWith('||') && quote.message.endsWith('||')) {
+      // Remove '||' from start and end of message
+      quote.message = quote.message.substring(2, quote.message.length - 2);
+      await quote.save();
+      sendCmdMessage(command.message, `Unspoilered quote ${quote.seq}`, this.logger, LogLevel.INFO);
+    } else {
+      quote.message = `||${quote.message}||`;
+      await quote.save();
+      sendCmdMessage(command.message, `Spoilered quote ${quote.seq}`, this.logger, LogLevel.INFO);
+    }
   }
 
   // Generate quote display lines

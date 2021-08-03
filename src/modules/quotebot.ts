@@ -80,7 +80,8 @@ export class QuoteBotImpl extends BaseBot {
       "!getquote <filter> - Get a random quote from a given author\n" + 
       "!getquote <id> - Get a quote by given id\n" + 
       "!delquote <id> - Delete a quote by given id\n" +
-      "!reattrquote <id> <user> - Reattribute a quote to a given user";
+      "!reattrquote <id> <user> - Reattribute a quote to a given user\n" +
+      "!spoilerquote <id> - Spoiler/unspoiler the text of a quote";
 
     return msg;
   }
