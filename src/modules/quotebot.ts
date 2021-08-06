@@ -1,10 +1,13 @@
 import { BaseBot } from "bot-framework";
 import { MessageReaction, User, PartialUser, ClientOptions } from "discord.js";
 
-
 import { Store, StoreDependency } from "../support/store.js";
 import { QuoteEventHandler } from "../events/quote_event.js";
-import { QuoteManagementHandler } from "../commands/quote_management.js";
+import { ListQuotesCommand } from "../commands/list_quotes_command.js";
+import { GetQuoteCommand } from "../commands/get_quote_command.js";
+import { DelQuoteCommand } from "../commands/del_quote_command.js";
+import { ReattrQuoteCommand } from "../commands/reattr_quote_command.js";
+import { SpoilerQuoteCommand } from "../commands/spoiler_quote_command.js";
 
 export class QuoteBotImpl extends BaseBot {
 
@@ -15,7 +18,7 @@ export class QuoteBotImpl extends BaseBot {
     super("QuoteBot");
   }
 
-  public async init(discordToken: string): Promise<void> {
+  public override async init(discordToken: string): Promise<void> {
     // Wait on Store to be ready
     await StoreDependency.await();
     
@@ -27,21 +30,33 @@ export class QuoteBotImpl extends BaseBot {
     super.init(discordToken, clientOptions);
   }
 
-  public loadInterfaces(): void {
-    this.interfaces.push(new QuoteManagementHandler());
+  public loadProviders(): void {
+    this.providers.push(new ListQuotesCommand());
+    this.providers.push(new GetQuoteCommand());
+    this.providers.push(new DelQuoteCommand());
+    this.providers.push(new ReattrQuoteCommand());
+    this.providers.push(new SpoilerQuoteCommand());
   }
   
-  public initCustomEventHandlers(): void {
+  public override initCustomEventHandlers(): void {
     this.quoteEventHandler =  new QuoteEventHandler();
 
+    this.discord.once('ready', this.onreadyHandler);
     this.discord.on('messageReactionAdd', this.reactionHandler);
     this.discord.on('guildMemberAdd', this.memberUpdateHandler);
     this.discord.on('guildMemberUpdate', (_, m) => this.memberUpdateHandler(m)); // ignore 'old member' param
   }
 
+  public override getHelpMessage(): string {
+    return "Quote Bot v2 - Quote and save messages\n" + 
+      "\n" + 
+      "Add a #️⃣ react to a message to quote the message\n" + 
+      "Add a ♿ or :omegaChair: emote to save a quote";
+  }
+
   // Discord event handlers
 
-  public async onReady(): Promise<void> {
+  private onreadyHandler = async (): Promise<void> => {
     // Call fetch on every guild to make sure we have all the members cached
     this.discord.guilds.cache.map(
       g => g.members.fetch()
@@ -50,7 +65,7 @@ export class QuoteBotImpl extends BaseBot {
     );
   }
 
-  private memberUpdateHandler = async (member) => {
+  private memberUpdateHandler = async (member): Promise<void> => {
     // Store member data in DB
     Store.upsertUser(member.id, member.guild.id, member.displayName, member.user.discriminator);
     this.logger.trace(`Updated member '${member.displayName}' for guild '${member.guild.name}'`);
@@ -65,25 +80,6 @@ export class QuoteBotImpl extends BaseBot {
 
     // Things that act on reaction events
     this.quoteEventHandler.messageReactionHandler(reaction, guildMember);
-  }
-
-  public getHelpMessage(): string {
-    const msg = 
-      "Quote Bot v2 - Quote and save messages\n" + 
-      "\n" + 
-      "Add a #️⃣ react to a message to quote the message\n" + 
-      "Add a ♿ or :omegaChair: emote to save a quote\n" + 
-      "\n" + 
-      "!listquotes [<id start>] - Get quotes from this guild, optionally starting from <id start>\n" + 
-      "!listquotes <filter> [<id start>] - Get quotes from a given channel or author, optionally starting from <id start>\n" + 
-      "!getquote - Get a random quote\n" + 
-      "!getquote <filter> - Get a random quote from a given author\n" + 
-      "!getquote <id> - Get a quote by given id\n" + 
-      "!delquote <id> - Delete a quote by given id\n" +
-      "!reattrquote <id> <user> - Reattribute a quote to a given user\n" +
-      "!spoilerquote <id> - Spoiler/unspoiler the text of a quote";
-
-    return msg;
   }
 }
 
