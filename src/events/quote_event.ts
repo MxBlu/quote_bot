@@ -4,7 +4,7 @@ import { MessageEmbed, MessageReaction, GuildMember, Message } from "discord.js"
 import { getBestGuildMember, UserLite } from "../models/UserLite.js";
 import { Store } from "../support/store.js";
 
-const IMG_RX = /https?:\/\/[^\s]+\.(?:jpg|png)/i;
+const IMG_RX = /https?:\/\/[^\s]+\.(?:jpe?g|png|gif)/i;
 
 export class QuoteEventHandler {
 
