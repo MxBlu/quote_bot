@@ -6,7 +6,6 @@ import { Logger } from 'bot-framework';
 import { Store } from './support/store.js';
 import { QuoteBot } from './modules/quotebot.js';
 
-
 // Main level logger
 const logger = new Logger("Server");
 
@@ -18,4 +17,6 @@ Store.init(mongoUri);
 const discordToken: string = process.env.DISCORD_TOKEN;
 QuoteBot.init(discordToken);
 
+// Set logger to handle global rejections
+logger.registerAsGlobal();
 logger.info(`Server started`);
