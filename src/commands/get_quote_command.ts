@@ -84,7 +84,7 @@ export class GetQuoteCommand implements CommandProvider {
         .setFooter(`${stats.views.length} 📺 ${stats.likes.length} 👍 ${stats.dislikes.length} 👎`);
 
     this.logger.info(`${command.message.author.username} got quote { ${guild.id} => ${quote.seq} }`);
-    const message = await command.message.channel.send(messagePreamble, embed);
+    const message = await command.message.channel.send({ content: messagePreamble, embeds: [ embed ] });
 
     // Create reactable with like/dislike buttons
     const reactable = new Reactable<LikeableProps>(message);
@@ -110,7 +110,7 @@ export class GetQuoteCommand implements CommandProvider {
         .setFooter(`${stats.views.length} 📺 ${stats.likes.length} 👍 ${stats.dislikes.length} 👎`);
 
     this.logger.debug(`${user.user.username} toggled like - ${quote.guild} => ${quote.seq}`);
-    originalMessage.edit({ content: originalMessage.content, embed: newEmbed });
+    originalMessage.edit({ content: originalMessage.content, embeds: [ newEmbed ] });
   };
 
   private likeableDislikeHandler = async (reactable: Reactable<LikeableProps>, 
@@ -126,6 +126,6 @@ export class GetQuoteCommand implements CommandProvider {
         .setFooter(`${stats.views.length} 📺 ${stats.likes.length} 👍 ${stats.dislikes.length} 👎`);
         
     this.logger.debug(`${user.user.username} toggled dislike - ${quote.guild} => ${quote.seq}`);
-    originalMessage.edit({ content: originalMessage.content, embed: newEmbed });
+    originalMessage.edit({ content: originalMessage.content, embeds: [ newEmbed ] });
   };
 }

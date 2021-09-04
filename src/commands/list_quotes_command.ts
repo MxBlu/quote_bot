@@ -109,7 +109,7 @@ export class ListQuotesCommand implements CommandProvider {
     
     // Send initial embed
     this.logger.info(`${command.message.author.username} listed quotes - ${scope}`);
-    const message = await command.message.channel.send(embed);
+    const message = await command.message.channel.send({ embeds: [ embed ] });
 
     // Create scrollable modal
     const reactable = new Reactable<ListQuoteProps>(message);
@@ -146,13 +146,14 @@ export class ListQuotesCommand implements CommandProvider {
     
     // Convert new results into quote display lines
     const quoteMsgs = await generateQuoteMsgs(reactable.message.guild, quotes);
-    
-    // Modify original message with new quotes
-    this.logger.debug(`${user.user.username} navigated quote list - ${props.scope} skip ${props.skip}`);
-    reactable.message.edit(new MessageEmbed()
-        .setTitle(`Quotes - ${props.scope}`)
+
+    // Modify original embed with new quotes
+    const newEmbed = new MessageEmbed(reactable.message.embeds[0])
         .setDescription(quoteMsgs.join("\n"))
-        .setFooter(props.skip > 0 ? `+${props.skip}` : ''));
+        .setFooter(props.skip > 0 ? `+${props.skip}` : '');
+    
+    this.logger.debug(`${user.user.username} navigated quote list - ${props.scope} skip ${props.skip}`);
+    reactable.message.edit({ embeds: [ newEmbed ] });
   }
 
   private listQuotesRightHandler = async (reactable: Reactable<ListQuoteProps>, 
@@ -175,12 +176,13 @@ export class ListQuotesCommand implements CommandProvider {
     // Convert new results into quote display lines
     const quoteMsgs = await generateQuoteMsgs(reactable.message.guild, quotes);
     
-    // Modify original message with new quotes
-    this.logger.debug(`${user.user.username} navigated quote list - ${props.scope} skip ${props.skip}`);
-    reactable.message.edit(new MessageEmbed()
-        .setTitle(`Quotes - ${props.scope}`)
+    // Modify original embed with new quotes
+    const newEmbed = new MessageEmbed(reactable.message.embeds[0])
         .setDescription(quoteMsgs.join("\n"))
-        .setFooter(props.skip > 0 ? `+${props.skip}` : ''));
+        .setFooter(props.skip > 0 ? `+${props.skip}` : '');
+    
+    this.logger.debug(`${user.user.username} navigated quote list - ${props.scope} skip ${props.skip}`);
+    reactable.message.edit({ embeds: [ newEmbed ] });
   }
 
 }

@@ -1,5 +1,5 @@
-import { BaseBot } from "bot-framework";
-import { MessageReaction, User, PartialUser, ClientOptions } from "discord.js";
+import { BaseBot, ClientOptionsWithoutIntents } from "bot-framework";
+import { MessageReaction, User, PartialUser, Intents, GuildMember } from "discord.js";
 
 import { Store, StoreDependency } from "../support/store.js";
 import { QuoteEventHandler } from "../events/quote_event.js";
@@ -21,13 +21,23 @@ export class QuoteBotImpl extends BaseBot {
   public override async init(discordToken: string): Promise<void> {
     // Wait on Store to be ready
     await StoreDependency.await();
-    
-    // Without partials, we would not get certain events
-    const clientOptions: ClientOptions = { 
-      partials: [ 'GUILD_MEMBER', 'MESSAGE', 'REACTION' ] 
+
+    // Without the MESSAGE partial, reactions on messages before bot startup are ignored
+    // I don't recall why the REACTION partial is around, probably for good reason
+    // GUILD_MEMBER partial allows quoting of members who have left the server
+    const options: ClientOptionsWithoutIntents = {
+      partials: [ "MESSAGE", "REACTION", "GUILD_MEMBER" ]
     };
     
-    super.init(discordToken, clientOptions);
+    // Intents to match Discord events we want
+    const intents = [
+      Intents.FLAGS.GUILDS, // Without this, channels are never defined within Discord.js....
+      Intents.FLAGS.GUILD_MEMBERS,
+      Intents.FLAGS.GUILD_MESSAGES,
+      Intents.FLAGS.GUILD_MESSAGE_REACTIONS
+    ];
+    
+    super.init(discordToken, intents, options);
   }
 
   public loadProviders(): void {
@@ -65,10 +75,10 @@ export class QuoteBotImpl extends BaseBot {
     );
   }
 
-  private memberUpdateHandler = async (member): Promise<void> => {
+  private memberUpdateHandler = async (member: GuildMember): Promise<void> => {
     // Store member data in DB
-    Store.upsertUser(member.id, member.guild.id, member.displayName, member.user.discriminator);
-    this.logger.trace(`Updated member '${member.displayName}' for guild '${member.guild.name}'`);
+    await Store.upsertUser(member.id, member.guild.id, member.displayName, member.user.discriminator);
+    this.logger.trace(`Updated member '${member.displayName}' for guild '${member.guild.id}'`);
   }
 
   private reactionHandler = async (reaction: MessageReaction, user: User | PartialUser): Promise<void> => {

@@ -15,18 +15,21 @@ export class QuoteEventHandler {
   }
 
   public messageReactionHandler = async (reaction: MessageReaction, user: GuildMember): Promise<void> => {
+    // Make sure we get a full message instead of a partial
+    const message = await reaction.message.fetch();
+
     // Handle emojis we care about
     // Remove reaction if we're handling em
     switch (reaction.emoji.name) {
     case "#️⃣":
       // Quote on hash react
-      this.quoteHandler(reaction.message, user);
+      this.quoteHandler(message, user);
       reaction.remove();
       break;
     case "omegachair":
     case "♿":
       // Save on wheelchair react
-      this.quoteSaveHandler(reaction.message, user);
+      this.quoteSaveHandler(message, user);
       reaction.remove();
       break;
     }
@@ -85,7 +88,7 @@ export class QuoteEventHandler {
     
     // Send message with embed
     const messagePreamble = `**${quoter.displayName}** quoted **${author.displayName}**:`;
-    message.channel.send(messagePreamble, embed);
+    message.channel.send({ content: messagePreamble, embeds: [ embed ] });
   }
 
   private quoteSaveHandler = async (message: Message, quoter: GuildMember): Promise<void> => {
@@ -110,6 +113,6 @@ export class QuoteEventHandler {
     
     // Send message with embed
     const messagePreamble = `${quote.seq}: **${quoter.displayName}** saved a quote by **${author.displayName}**:`;
-    message.channel.send(messagePreamble, embed);
+    message.channel.send({ content: messagePreamble, embeds: [ embed ] });
   }
 }
