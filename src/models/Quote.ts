@@ -7,7 +7,7 @@ import { QuoteStats, QuoteStatsDoc, QuoteStatsModel } from './QuoteStats.js';
 export type QuoteDoc = DocumentType<Quote>;
 export type QuoteSingleQuery = DocumentQuery<QuoteDoc, QuoteDoc>;
 export type QuoteMultiQuery = DocumentQuery<QuoteDoc[], QuoteDoc>;
-export type QuoteDeleteQuery = Query<{ ok?: number; n?: number; deletedCount?: number;}>
+export type QuoteDeleteQuery = Query<{ ok?: number; n?: number; deletedCount?: number;}, QuoteDoc>
 
 export type IdOnly = { _id: string };
 

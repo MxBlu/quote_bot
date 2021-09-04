@@ -2,7 +2,7 @@ import { Dependency, Logger } from 'bot-framework';
 import mongoose from 'mongoose';
 
 import { Quote, QuoteDeleteQuery, QuoteDoc, QuoteModel, QuoteMultiQuery, QuoteSingleQuery } from '../models/Quote.js';
-import { User, UserModel, UserSingleQuery } from '../models/User.js';
+import { UserModel, UserSingleQuery } from '../models/User.js';
 
 /*
   API class to interact with underlying storage implementation
@@ -101,7 +101,7 @@ class StoreImpl {
 
   // Insert/update a user in the db
   public upsertUser(userId: string, guildId: string, 
-      displayName: string, discriminator: string): Promise<User> {
+      displayName: string, discriminator: string): Promise<boolean> {
     return UserModel.upsert(userId, guildId, displayName, discriminator);
   }
 

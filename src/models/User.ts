@@ -29,13 +29,14 @@ export class User {
     return this.findById({ user, guild });
   }
   
-  public static upsert(this: ReturnModelType<typeof User>, 
-      user: string, guild: string, displayName: string, discriminator: string): Promise<User> {
-    return this.updateOne(
+  public static async upsert(this: ReturnModelType<typeof User>, 
+      user: string, guild: string, displayName: string, discriminator: string): Promise<boolean> {
+    const result = await this.updateOne(
       { _id: { user, guild } },
       { $set: { displayName, discriminator } },
       { upsert: true }
     ).exec();
+    return result.ok == 1;
   }
 }
 
