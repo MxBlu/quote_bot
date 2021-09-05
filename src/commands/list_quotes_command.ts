@@ -1,7 +1,7 @@
 
-import { CommandProvider, GeneralSlashCommandBuilder, Logger, LogLevel, Reactable, sendCmdReply } from "bot-framework";
+import { CommandProvider, GeneralSlashCommandBuilder, Interactable, Logger, LogLevel, sendCmdReply } from "bot-framework";
 import { SlashCommandBuilder, SlashCommandChannelOption, SlashCommandIntegerOption, SlashCommandUserOption } from "@discordjs/builders";
-import { CommandInteraction, GuildMember, Message, MessageEmbed, MessageReaction } from "discord.js";
+import { ButtonInteraction, CommandInteraction, Message, MessageEmbed } from "discord.js";
 
 import { QuoteDoc, QuoteMultiQuery } from "../models/Quote.js";
 import { generateQuoteMsgs } from "../support/quote_utils.js";
@@ -14,6 +14,8 @@ class ListQuoteProps {
   scope: string;
   // Current index
   skip = 0;
+  // Number of quotes total
+  count = 0;
 }
 
 export class ListQuotesCommand implements CommandProvider {
@@ -125,39 +127,50 @@ export class ListQuotesCommand implements CommandProvider {
       scope += ` - From id ${start}`;
     }
 
+    // Count total results in cloned query
+    // The max number limit this is to bypass the limit value set prior
+    const count = await Store.cloneQuoteQuery(query)
+        .limit(Number.MAX_SAFE_INTEGER).countDocuments();
+
+    // Append count on to scope
+    scope += ` (${count})`;
+
     // Create embed to display quotes
     const embed = new MessageEmbed()
         .setTitle(`Quotes - ${scope}`)
         .setDescription(quoteMsgs.join("\n"))
+
+    // Setup interaction controls
+    const interactable = new Interactable<ListQuoteProps>();
+    interactable.registerHandler("⬅️", this.listQuotesLeftHandler);
+    interactable.registerHandler("➡️", this.listQuotesRightHandler);
+    interactable.props = new ListQuoteProps();
+    interactable.props.query = query;
+    interactable.props.scope = scope;
+    interactable.props.count = count;
     
+    // Get generated action row
+    const actionRow = interactable.getActionRow();
+
     // Send initial embed
     this.logger.info(`${interaction.user.username} listed quotes - ${scope}`);
-    const message = await interaction.reply({ embeds: [ embed ], fetchReply: true });
+    const message = await interaction.reply({ 
+      embeds: [ embed ], 
+      components: [ actionRow ], 
+      fetchReply: true 
+    });
 
-    // Create scrollable modal
-    const reactable = new Reactable<ListQuoteProps>(message as Message);
-    reactable.registerHandler("⬅️", this.listQuotesLeftHandler);
-    reactable.registerHandler("➡️", this.listQuotesRightHandler);
-    reactable.props = new ListQuoteProps();
-    reactable.props.query = query;
-    reactable.props.scope = scope;
-
-    // Activate and track the modal
-    reactable.activate(true);
+    // Activate interaction handling
+    interactable.activate(message as Message);
   }
 
-  private listQuotesLeftHandler = async (reactable: Reactable<ListQuoteProps>, 
-      reaction: MessageReaction, user: GuildMember): Promise<void> => {
-    const props: ListQuoteProps = reactable.props;
+  private listQuotesLeftHandler = async (interactable: Interactable<ListQuoteProps>, 
+      interaction: ButtonInteraction): Promise<void> => {
+    const props: ListQuoteProps = interactable.props;
     if (props.skip == 0) {
       // Already left-most, loop around
-
-      // Count total results in cloned query
-      // The max number limit this is to bypass the limit value set prior
-      const resCount = await Store.cloneQuoteQuery(props.query)
-          .limit(Number.MAX_SAFE_INTEGER).countDocuments();
       // Go to the next lowest value of 10 (ensuring we don't end up on the same value)
-      props.skip = (resCount - 1) - ((resCount - 1) % 10);
+      props.skip = (props.count - 1) - ((props.count - 1) % 10);
     } else {
       // Go back 10 results
       props.skip -= 10;
@@ -168,20 +181,20 @@ export class ListQuotesCommand implements CommandProvider {
         .skip(props.skip).limit(10).exec();
     
     // Convert new results into quote display lines
-    const quoteMsgs = await generateQuoteMsgs(reactable.message.guild, quotes);
+    const quoteMsgs = await generateQuoteMsgs(interaction.guild, quotes);
 
     // Modify original embed with new quotes
-    const newEmbed = new MessageEmbed(reactable.message.embeds[0])
+    const newEmbed = new MessageEmbed(interaction.message.embeds[0] as MessageEmbed)
         .setDescription(quoteMsgs.join("\n"))
         .setFooter(props.skip > 0 ? `+${props.skip}` : '');
     
-    this.logger.debug(`${user.user.username} navigated quote list - ${props.scope} skip ${props.skip}`);
-    reactable.message.edit({ embeds: [ newEmbed ] });
+    this.logger.debug(`${interaction.user.username} navigated quote list - ${props.scope} skip ${props.skip}`);
+    interaction.update({ embeds: [ newEmbed ] });
   }
 
-  private listQuotesRightHandler = async (reactable: Reactable<ListQuoteProps>, 
-      reaction: MessageReaction, user: GuildMember): Promise<void> => {
-    const props: ListQuoteProps = reactable.props;
+  private listQuotesRightHandler = async (interactable: Interactable<ListQuoteProps>, 
+    interaction: ButtonInteraction): Promise<void> => {
+    const props: ListQuoteProps = interactable.props;
     // Go forward 10 results
     props.skip += 10;
 
@@ -197,15 +210,15 @@ export class ListQuotesCommand implements CommandProvider {
     }
     
     // Convert new results into quote display lines
-    const quoteMsgs = await generateQuoteMsgs(reactable.message.guild, quotes);
+    const quoteMsgs = await generateQuoteMsgs(interaction.guild, quotes);
     
     // Modify original embed with new quotes
-    const newEmbed = new MessageEmbed(reactable.message.embeds[0])
+    const newEmbed = new MessageEmbed(interaction.message.embeds[0] as MessageEmbed)
         .setDescription(quoteMsgs.join("\n"))
         .setFooter(props.skip > 0 ? `+${props.skip}` : '');
     
-    this.logger.debug(`${user.user.username} navigated quote list - ${props.scope} skip ${props.skip}`);
-    reactable.message.edit({ embeds: [ newEmbed ] });
+    this.logger.debug(`${interaction.user.username} navigated quote list - ${props.scope} skip ${props.skip}`);
+    interaction.update({ embeds: [ newEmbed ] });
   }
 
 }

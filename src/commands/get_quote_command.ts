@@ -1,6 +1,6 @@
-import { CommandProvider, GeneralSlashCommandBuilder, Logger, LogLevel, Reactable, sendCmdReply } from "bot-framework";
+import { CommandProvider, GeneralSlashCommandBuilder, Interactable, Logger, LogLevel, sendCmdReply } from "bot-framework";
 import { SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandNumberOption, SlashCommandUserOption } from "@discordjs/builders";
-import { CommandInteraction, GuildMember, Message, MessageEmbed, MessageReaction } from "discord.js";
+import { ButtonInteraction, CommandInteraction, Message, MessageEmbed } from "discord.js";
 
 import { QuoteDoc } from "../models/Quote.js";
 import { getBestGuildMemberById } from "../models/UserLite.js";
@@ -105,49 +105,57 @@ export class GetQuoteCommand implements CommandProvider {
         .setImage(quote.img)
         .setFooter(`${stats.views.length} 📺 ${stats.likes.length} 👍 ${stats.dislikes.length} 👎`);
 
+    // Setup interaction controls
+    const interactable = new Interactable<LikeableProps>();
+    interactable.registerHandler("👍", this.likeableLikeHandler);
+    interactable.registerHandler("👎", this.likeableDislikeHandler);
+    interactable.props = new LikeableProps();
+    interactable.props.quote = quote;
+
+    // Get generated action row
+    const actionRow = interactable.getActionRow();
+
     this.logger.info(`${interaction.user.username} got quote { ${guild.id} => ${quote.seq} }`);
-    const message = await interaction.reply({ content: messagePreamble, embeds: [ embed ], fetchReply: true });
+    const message = await interaction.reply({ 
+      content: messagePreamble, 
+      embeds: [ embed ], 
+      components: [ actionRow ], 
+      fetchReply: true 
+    });
 
-    // Create reactable with like/dislike buttons
-    const reactable = new Reactable<LikeableProps>(message as Message);
-    reactable.registerHandler("👍", this.likeableLikeHandler);
-    reactable.registerHandler("👎", this.likeableDislikeHandler);
-    reactable.props = new LikeableProps();
-    reactable.props.quote = quote;
-
-    // Activate and track the modal
-    reactable.activate(true);
+    // Activate interaction handling
+    interactable.activate(message as Message);
   }
 
-  private likeableLikeHandler = async (reactable: Reactable<LikeableProps>, 
-      reaction: MessageReaction, user: GuildMember): Promise<void> => {
+  private likeableLikeHandler = async (interactable: Interactable<LikeableProps>, 
+      interaction: ButtonInteraction): Promise<void> => {
     // Toggle like on quote
-    const quote = reactable.props.quote;
+    const quote = interactable.props.quote;
     const stats = quote.getStats();
-    stats.toggleLike(user.id);
+    stats.toggleLike(interaction.user.id);
 
     // Re-generate quote, but with updated like count
-    const originalMessage = reactable.message;
+    const originalMessage = interactable.message;
     const newEmbed = new MessageEmbed(originalMessage.embeds[0])
         .setFooter(`${stats.views.length} 📺 ${stats.likes.length} 👍 ${stats.dislikes.length} 👎`);
 
-    this.logger.debug(`${user.user.username} toggled like - ${quote.guild} => ${quote.seq}`);
-    originalMessage.edit({ content: originalMessage.content, embeds: [ newEmbed ] });
+    this.logger.debug(`${interaction.user.username} toggled like - ${quote.guild} => ${quote.seq}`);
+    interaction.update({ content: originalMessage.content, embeds: [ newEmbed ] });
   };
 
-  private likeableDislikeHandler = async (reactable: Reactable<LikeableProps>, 
-      reaction: MessageReaction, user: GuildMember): Promise<void> => {
+  private likeableDislikeHandler = async (interactable: Interactable<LikeableProps>, 
+    interaction: ButtonInteraction): Promise<void> => {
     // Toggle like on quote
-    const quote = reactable.props.quote;
+    const quote = interactable.props.quote;
     const stats = quote.getStats();
-    stats.toggleDislike(user.id);
+    stats.toggleDislike(interaction.user.id);
 
     // Re-generate quote, but with updated like count
-    const originalMessage = reactable.message;
+    const originalMessage = interactable.message;
     const newEmbed = new MessageEmbed(originalMessage.embeds[0])
         .setFooter(`${stats.views.length} 📺 ${stats.likes.length} 👍 ${stats.dislikes.length} 👎`);
-        
-    this.logger.debug(`${user.user.username} toggled dislike - ${quote.guild} => ${quote.seq}`);
-    originalMessage.edit({ content: originalMessage.content, embeds: [ newEmbed ] });
+
+    this.logger.debug(`${interaction.user.username} toggled like - ${quote.guild} => ${quote.seq}`);
+    interaction.update({ content: originalMessage.content, embeds: [ newEmbed ] });
   };
 }
