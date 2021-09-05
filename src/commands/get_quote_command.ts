@@ -107,8 +107,8 @@ export class GetQuoteCommand implements CommandProvider {
 
     // Setup interaction controls
     const interactable = new Interactable<LikeableProps>();
-    interactable.registerHandler("👍", this.likeableLikeHandler);
-    interactable.registerHandler("👎", this.likeableDislikeHandler);
+    interactable.registerHandler(this.likeableLikeHandler, { emoji: "👍" });
+    interactable.registerHandler(this.likeableDislikeHandler, { emoji: "👎" });
     interactable.props = new LikeableProps();
     interactable.props.quote = quote;
 

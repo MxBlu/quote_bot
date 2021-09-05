@@ -142,8 +142,8 @@ export class ListQuotesCommand implements CommandProvider {
 
     // Setup interaction controls
     const interactable = new Interactable<ListQuoteProps>();
-    interactable.registerHandler("⬅️", this.listQuotesLeftHandler);
-    interactable.registerHandler("➡️", this.listQuotesRightHandler);
+    interactable.registerHandler(this.listQuotesLeftHandler, { emoji: "⬅️" });
+    interactable.registerHandler(this.listQuotesRightHandler, { emoji: "➡️" });
     interactable.props = new ListQuoteProps();
     interactable.props.query = query;
     interactable.props.scope = scope;
