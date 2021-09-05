@@ -77,7 +77,7 @@ export class QuoteEventHandler {
     return embed;
   }
 
-  private quoteHandler = async(message: Message, quoter: GuildMember): Promise<void> => {
+  public quoteHandler = async(message: Message, quoter: GuildMember): Promise<void> => {
     // Get best guild member we can for the author
     const author = await getBestGuildMember(message.guild, message.author);
 
@@ -91,7 +91,7 @@ export class QuoteEventHandler {
     message.channel.send({ content: messagePreamble, embeds: [ embed ] });
   }
 
-  private quoteSaveHandler = async (message: Message, quoter: GuildMember): Promise<void> => {
+  public quoteSaveHandler = async (message: Message, quoter: GuildMember): Promise<void> => {
     // Make sure the quote doesn't exist first
     if (await Store.checkQuoteExists(message.url)) {
       this.logger.trace(`${quoter.user.username} - ${message.guild.name} - Error: Quote already exists`);
