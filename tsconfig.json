@@ -2,6 +2,7 @@
     "compilerOptions": {
         "outDir": "./built",
         "module": "ESNext",
+        "target": "ES6",
         "moduleResolution": "node",
         "esModuleInterop": true,
         "experimentalDecorators": true,

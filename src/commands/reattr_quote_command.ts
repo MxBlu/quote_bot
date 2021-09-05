@@ -1,7 +1,7 @@
-import { BotCommand, CommandProvider, findGuildMember, isAdmin, Logger, LogLevel, sendCmdMessage } from "bot-framework";
-import { GuildMember } from "discord.js";
+import { CommandProvider, GeneralSlashCommandBuilder, isAdmin, Logger, LogLevel, sendCmdReply } from "bot-framework";
+import { SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandUserOption } from "@discordjs/builders";
+import { CommandInteraction } from "discord.js";
 
-import { QuoteDoc } from "../models/Quote.js";
 import { Store } from "../support/store.js";
 
 export class ReattrQuoteCommand implements CommandProvider {
@@ -11,58 +11,69 @@ export class ReattrQuoteCommand implements CommandProvider {
     this.logger = new Logger("ReattrQuoteCommand");
   }
   
-  public provideAliases(): string[] {
-    return [ "reattrquote", "rq" ];
+  public provideSlashCommands(): GeneralSlashCommandBuilder[] {
+    return [
+      new SlashCommandBuilder()
+        .setName('reattrquote')
+        .setDescription('Reattribute a quote to a given user')
+        .addIntegerOption(
+          new SlashCommandIntegerOption()
+            .setName('id')
+            .setDescription('Quote ID')
+            .setRequired(true)
+        )
+        .addUserOption(
+          new SlashCommandUserOption()
+            .setName('user')
+            .setDescription('New author')
+            .setRequired(true)
+        ),
+      new SlashCommandBuilder()
+        .setName('rq')
+        .setDescription('Reattribute a quote to a given user')
+        .addIntegerOption(
+          new SlashCommandIntegerOption()
+            .setName('id')
+            .setDescription('Quote ID')
+            .setRequired(true)
+        )
+        .addUserOption(
+          new SlashCommandUserOption()
+            .setName('user')
+            .setDescription('New author')
+            .setRequired(true)
+        )
+    ];
   }
 
   public provideHelpMessage(): string {
-    return "!reattrquote <id> <user> - Reattribute a quote to a given user";
+    return "/reattrquote <id> <user> - Reattribute a quote to a given user";
   }
 
-  public async handle(command: BotCommand): Promise<void> {
-    if (! await isAdmin(command.message)) {
-      sendCmdMessage(command.message, 'Error: not admin', this.logger, LogLevel.DEBUG);
+  public async handle(interaction: CommandInteraction): Promise<void> {
+    // Ensure the calling user is an admin
+    if (! await isAdmin(interaction.guild, interaction.user)) {
+      sendCmdReply(interaction, 'Error: not admin', this.logger, LogLevel.DEBUG);
       return;
     }
 
-    const guild = command.message.guild;
-    let newAuthor: GuildMember = null;
-    let quote: QuoteDoc = null;
+    // Get arguments from interaction
+    const guild = interaction.guild;
+    const quoteId = interaction.options.getInteger('id', true);
+    const newAuthor = interaction.options.getUser('user', true);
 
-    switch (command.arguments.length) {
-    case 2:
-      // Reattribute a quote to a given user
-      // Admin only
-      try {
-        const quoteId = Number(command.arguments[0]);
-        
-        // Get the user to reattribute to
-        newAuthor = await findGuildMember(command.arguments[1], guild);
-
-        if (newAuthor == null) {
-          sendCmdMessage(command.message, `Error: user does not exist`, this.logger, LogLevel.TRACE);
-          return;
-        }
-
-        quote = await Store.getQuoteBySeq(guild.id, quoteId);
-        if (quote == null) {
-          sendCmdMessage(command.message, `Error: invalid quote ID`, this.logger, LogLevel.TRACE);
-          return;
-        }
-      } catch (e) {
-        sendCmdMessage(command.message, 'Error: invalid argument', this.logger, LogLevel.TRACE);
-        return;
-      }
-      break;
-    default:
-      sendCmdMessage(command.message, 'Error: incorrect argument count', this.logger, LogLevel.TRACE);
+    // Get quote from Store
+    const quote = await Store.getQuoteBySeq(guild.id, quoteId);
+    if (quote == null) {
+      sendCmdReply(interaction, `Error: invalid quote ID`, this.logger, LogLevel.TRACE);
       return;
     }
 
     // Update the author field and save to db
     quote.author = newAuthor.id;
     await quote.save();
-    sendCmdMessage(command.message, `Reattributed quote to ${newAuthor.displayName}`, this.logger, LogLevel.INFO);
+
+    sendCmdReply(interaction, `Reattributed quote to ${newAuthor.username}`, this.logger, LogLevel.INFO);
   }
 
 }

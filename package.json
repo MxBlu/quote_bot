@@ -12,10 +12,13 @@
     "lint": "eslint . --ext .ts"
   },
   "dependencies": {
+    "@discordjs/builders": "0.6.0",
+    "@discordjs/rest": "0.1.0-canary.0",
     "@typegoose/auto-increment": "MxBlu/auto-increment#0.9.1",
     "@typegoose/typegoose": "8.2.0",
-    "bot-framework": "Mxblu/bot-framework#discordjs-v13",
+    "bot-framework": "Mxblu/bot-framework#4.0.4-indev",
     "bufferutil": "^4.0.3",
+    "discord-api-types": "0.22.0",
     "discord.js": "13.1.0",
     "dotenv": "8.0.0",
     "mongoose": "5.13.8",

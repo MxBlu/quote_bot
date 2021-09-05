@@ -1,5 +1,7 @@
-import { BotCommand, CommandProvider, findGuildChannel, findGuildMember, Logger, LogLevel, Reactable, sendCmdMessage } from "bot-framework";
-import { GuildMember, MessageEmbed, MessageReaction } from "discord.js";
+
+import { CommandProvider, GeneralSlashCommandBuilder, Logger, LogLevel, Reactable, sendCmdReply } from "bot-framework";
+import { SlashCommandBuilder, SlashCommandChannelOption, SlashCommandIntegerOption, SlashCommandUserOption } from "@discordjs/builders";
+import { CommandInteraction, GuildMember, Message, MessageEmbed, MessageReaction } from "discord.js";
 
 import { QuoteDoc, QuoteMultiQuery } from "../models/Quote.js";
 import { generateQuoteMsgs } from "../support/quote_utils.js";
@@ -20,69 +22,90 @@ export class ListQuotesCommand implements CommandProvider {
   constructor() {
     this.logger = new Logger("ListQuotesCommand");
   }
-  
-  public provideAliases(): string[] {
-    return [ "listquotes", "lq" ];
+
+  public provideSlashCommands(): GeneralSlashCommandBuilder[] {
+    return [
+      new SlashCommandBuilder()
+        .setName('listquotes')
+        .setDescription('List quotes for given filters')
+        .addIntegerOption(
+          new SlashCommandIntegerOption()
+            .setName('idstart')
+            .setDescription('Starting ID')
+        )
+        .addUserOption(
+          new SlashCommandUserOption()
+            .setName('user')
+            .setDescription('Quoted user')
+        )
+        .addChannelOption(
+          new SlashCommandChannelOption()
+            .setName('channel')
+            .setDescription('Quoted channel')
+        ),
+      new SlashCommandBuilder()
+        .setName('lq')
+        .setDescription('List quotes for given filters')
+        .addIntegerOption(
+          new SlashCommandIntegerOption()
+            .setName('idstart')
+            .setDescription('Starting ID')
+        )
+        .addUserOption(
+          new SlashCommandUserOption()
+            .setName('user')
+            .setDescription('Quoted user')
+        )
+        .addChannelOption(
+          new SlashCommandChannelOption()
+            .setName('channel')
+            .setDescription('Quoted channel')
+        )
+    ];
   }
 
   public provideHelpMessage(): string {
-    return "!listquotes [<id start>] - Get quotes from this guild, optionally starting from <id start>\n" + 
-      "!listquotes <filter> [<id start>] - Get quotes from a given channel or author, optionally starting from <id start>";
+    return "/listquotes [<id start>] - Get quotes from this guild, optionally starting from <id start>\n" + 
+      "/listquotes <filter> [<id start>] - Get quotes from a given channel or author, optionally starting from <id start>";
   }
 
-  public async handle(command: BotCommand): Promise<void> {
-    const guild = command.message.guild;
-    let query: QuoteMultiQuery = null; // Array of quotes for given criteria
-    let scope = ''; // Scope of list query
-    let start = 0; // Starting seq id
+  public async handle(interaction: CommandInteraction): Promise<void> {
+    // Get arguments from interaction
+    const guild = interaction.guild;
+    const quoteIdStart = interaction.options.getInteger('idstart');
+    const user = interaction.options.getUser('user');
+    const channel = interaction.options.getChannel('channel');
 
-    switch (command.arguments.length) {
-    case 0:
-      // List all quotes from the guild
-      query = Store.getQuotesByGuild(guild.id);
-      scope = "Guild";
-      break;
-    case 1:
-    case 2:
-      // Handle as quotes seq number start if first arg is numerical
-      if (command.arguments[0].match(/^\d+$/)) {
-        start = Number(command.arguments[0]);
-        query = Store.getQuotesByGuild(guild.id)
-            .where('seq').gte(start);
-        scope = "Guild";
-        break;
-      } else if (command.arguments[1]?.match(/^\d+$/)) {
-        start = Number(command.arguments[1]);
-      }
-
-      // If first arg is a channel, get all quotes for given channel
-      const potentialChannel = await findGuildChannel(command.arguments[0], guild);
-      if (potentialChannel != null) {
-        query = Store.getQuotesByChannel(potentialChannel.id)
-            .where('seq').gte(start);
-        scope = `Channel #${potentialChannel.name}`;
-        break;
-      }
-
-      // If first arg is a user, get all quotes for given user
-      const potentialUser = await findGuildMember(command.arguments[0], guild);
-      if (potentialUser != null) {
-        query = Store.getQuotesByAuthor(potentialUser.id, guild.id)
-            .where('seq').gte(start);
-        scope = `Author @${potentialUser.displayName}`;
-        break;
-      }
-      break;
-    default:
-      // If excessive arguments, send an error
-      sendCmdMessage(command.message, 'Error: too many arguments', this.logger, LogLevel.TRACE);
+    // If both arguments are present, abort
+    if (user != null && channel != null) {
+      sendCmdReply(interaction, 'Error: too many arguments', this.logger, LogLevel.TRACE);
       return;
     }
 
-    // Couldn't match any criterias, so query is invalid
-    if (query == null) {
-      sendCmdMessage(command.message, 'Invalid query', this.logger, LogLevel.DEBUG);
-      return;
+    let query: QuoteMultiQuery = null; // MongoDB query for requets
+    let scope = ''; // Scope of list query
+    let start = 0; // Starting seq id
+
+    // If we have a custom starting id, set it
+    if (quoteIdStart != null) {
+      start = quoteIdStart;
+    }
+
+    if (user != null) {
+      // List quotes for a given user
+      query = Store.getQuotesByAuthor(user.id, guild.id)
+          .where('seq').gte(start);
+      scope = `Author @${user.username}`;
+    } else if (channel != null) {
+      // List quotes in a given channel
+      query = Store.getQuotesByChannel(channel.id)
+          .where('seq').gte(start);
+      scope = `Channel #${channel.name}`;
+    } else {
+      // List quotes in the guild
+      query = Store.getQuotesByGuild(guild.id)
+          .where('seq').gte(start);
+      scope = "Guild";
     }
 
     // Execute the query and get 10 quotes
@@ -90,12 +113,12 @@ export class ListQuotesCommand implements CommandProvider {
 
     // If the result set is effectively empty, send a message indicating so
     if (quotes === null || quotes.length == 0) {
-      sendCmdMessage(command.message, 'No quotes found', this.logger, LogLevel.DEBUG);
+      sendCmdReply(interaction, 'No quotes found', this.logger, LogLevel.DEBUG);
       return;
     }
 
     // Generate a list of quote messages
-    const quoteMsgs = await generateQuoteMsgs(command.message.guild, quotes);
+    const quoteMsgs = await generateQuoteMsgs(guild, quotes);
 
     // Append ID if the start value is set
     if (start > 0) {
@@ -108,11 +131,11 @@ export class ListQuotesCommand implements CommandProvider {
         .setDescription(quoteMsgs.join("\n"))
     
     // Send initial embed
-    this.logger.info(`${command.message.author.username} listed quotes - ${scope}`);
-    const message = await command.message.channel.send({ embeds: [ embed ] });
+    this.logger.info(`${interaction.user.username} listed quotes - ${scope}`);
+    const message = await interaction.reply({ embeds: [ embed ], fetchReply: true });
 
     // Create scrollable modal
-    const reactable = new Reactable<ListQuoteProps>(message);
+    const reactable = new Reactable<ListQuoteProps>(message as Message);
     reactable.registerHandler("⬅️", this.listQuotesLeftHandler);
     reactable.registerHandler("➡️", this.listQuotesRightHandler);
     reactable.props = new ListQuoteProps();

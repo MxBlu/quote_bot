@@ -1,5 +1,6 @@
-import { BotCommand, CommandProvider, findGuildMember, Logger, LogLevel, Reactable, sendCmdMessage } from "bot-framework";
-import { GuildMember, MessageEmbed, MessageReaction } from "discord.js";
+import { CommandProvider, GeneralSlashCommandBuilder, Logger, LogLevel, Reactable, sendCmdReply } from "bot-framework";
+import { SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandNumberOption, SlashCommandUserOption } from "@discordjs/builders";
+import { CommandInteraction, GuildMember, Message, MessageEmbed, MessageReaction } from "discord.js";
 
 import { QuoteDoc } from "../models/Quote.js";
 import { getBestGuildMemberById } from "../models/UserLite.js";
@@ -17,61 +18,82 @@ export class GetQuoteCommand implements CommandProvider {
     this.logger = new Logger("GetQuoteCommand");
   }
 
-  public provideAliases(): string[] {
-    return [ "getquote", "gq" ];
+  public provideSlashCommands(): GeneralSlashCommandBuilder[] {
+    return [
+      new SlashCommandBuilder()
+        .setName('getquote')
+        .setDescription('Get a random quote')
+        .addNumberOption(
+          new SlashCommandNumberOption()
+            .setName('id')
+            .setDescription('Quote ID')
+        )
+        .addUserOption(
+          new SlashCommandUserOption()
+            .setName('user')
+            .setDescription('Quoted user')
+        ),
+      new SlashCommandBuilder()
+        .setName('gq')
+        .setDescription('Get a random quote')
+        .addIntegerOption(
+          new SlashCommandIntegerOption()
+            .setName('id')
+            .setDescription('Quote ID')
+        )
+        .addUserOption(
+          new SlashCommandUserOption()
+            .setName('user')
+            .setDescription('Quoted user')
+        )
+    ];
   }
 
   public provideHelpMessage(): string {
-    return "!getquote - Get a random quote\n" + 
-      "!getquote <filter> - Get a random quote from a given author\n" + 
-      "!getquote <id> - Get a quote by given id";
+    return "/getquote - Get a random quote\n" + 
+      "/getquote <user> - Get a random quote from a given author\n" + 
+      "/getquote <id> - Get a quote by given id";
   }
 
-  public async handle(command: BotCommand): Promise<void> {
-    const guild = command.message.guild;
-    let quote: QuoteDoc = null;
+  public async handle(interaction: CommandInteraction): Promise<void> {
+    // Get arguments from interaction
+    const guild = interaction.guild;
+    const quoteId = interaction.options.getInteger('id');
+    const user = interaction.options.getUser('user');
 
-    switch (command.arguments.length) {
-    case 0:
-      // Get random quote
-      quote = await Store.getRandomQuote(guild.id);
-      break;
-    case 1:
-      // If first arg is a number
-      // Get quote with given seq ID
-      if (command.arguments[0].match(/^\d+$/)) {
-        quote = await Store.getQuoteBySeq(guild.id, 
-            Number(command.arguments[0])).exec();
-        break;
-      }
-
-      // if first arg is a user, get all quotes for given user
-      const potentialUser = await findGuildMember(command.arguments[0], guild);
-      if (potentialUser != null) {
-        quote = await Store.getRandomQuoteFromAuthor(guild.id, potentialUser.id);
-        break;
-      }
-      break;
-    default:
-      // If excessive arguments, send an error
-      sendCmdMessage(command.message, 'Error: too many arguments', this.logger, LogLevel.TRACE);
+    // If both arguments are present, abort
+    if (quoteId != null && user != null) {
+      sendCmdReply(interaction, 'Error: too many arguments', this.logger, LogLevel.TRACE);
       return;
+    }
+
+    // Get a quote based on the arguments
+    let quote: QuoteDoc = null;
+    if (quoteId != null) {
+      // If 'id' is present, fetch quote by id
+      quote = await Store.getQuoteBySeq(guild.id, quoteId);
+    } else if (user != null) {
+      // If 'user' is present, fetch random quote by user
+      quote = await Store.getRandomQuoteFromAuthor(guild.id, user.id);
+    } else {
+      // If neither args present, fetch a random quote
+      quote = await Store.getRandomQuote(guild.id);
     }
 
     // If the quote is not found (either due to id not existing or no quotes in the db)
     // send a message indicating so
     if (quote === null) {
-      sendCmdMessage(command.message, 'No quotes found', this.logger, LogLevel.DEBUG);
+      sendCmdReply(interaction, 'No quotes found', this.logger, LogLevel.DEBUG);
       return;
     }
 
     // Add view event to quote
     const stats = quote.getStats();
-    await stats.addView(command.message.author.id);
+    await stats.addView(interaction.user.id);
 
     // Get GuildMember objects for author and quoter
-    const author = await getBestGuildMemberById(command.message.guild, quote.author);
-    const quoter = await getBestGuildMemberById(command.message.guild, quote.quoter);
+    const author = await getBestGuildMemberById(guild, quote.author);
+    const quoter = await getBestGuildMemberById(guild, quote.quoter);
 
     // Re-generate quote from stored data
     const messagePreamble = `**${quote.seq}**: **${quoter.displayName}** quoted **${author.displayName}**:`;
@@ -83,11 +105,11 @@ export class GetQuoteCommand implements CommandProvider {
         .setImage(quote.img)
         .setFooter(`${stats.views.length} 📺 ${stats.likes.length} 👍 ${stats.dislikes.length} 👎`);
 
-    this.logger.info(`${command.message.author.username} got quote { ${guild.id} => ${quote.seq} }`);
-    const message = await command.message.channel.send({ content: messagePreamble, embeds: [ embed ] });
+    this.logger.info(`${interaction.user.username} got quote { ${guild.id} => ${quote.seq} }`);
+    const message = await interaction.reply({ content: messagePreamble, embeds: [ embed ], fetchReply: true });
 
     // Create reactable with like/dislike buttons
-    const reactable = new Reactable<LikeableProps>(message);
+    const reactable = new Reactable<LikeableProps>(message as Message);
     reactable.registerHandler("👍", this.likeableLikeHandler);
     reactable.registerHandler("👎", this.likeableDislikeHandler);
     reactable.props = new LikeableProps();

@@ -1,4 +1,4 @@
-import { BaseBot, ClientOptionsWithoutIntents } from "bot-framework";
+import { BaseBot, ClientOptionsWithoutIntents, Dependency } from "bot-framework";
 import { MessageReaction, User, PartialUser, Intents, GuildMember } from "discord.js";
 
 import { Store, StoreDependency } from "../support/store.js";
@@ -73,6 +73,7 @@ export class QuoteBotImpl extends BaseBot {
           .then(c => c.map(m => this.memberUpdateHandler(m)))
           .then(() => this.logger.debug(`Cached members for ${g.id}`))
     );
+    QuoteBotDependency.ready();
   }
 
   private memberUpdateHandler = async (member: GuildMember): Promise<void> => {
@@ -94,3 +95,5 @@ export class QuoteBotImpl extends BaseBot {
 }
 
 export const QuoteBot = new QuoteBotImpl();
+
+export const QuoteBotDependency = new Dependency("QuoteBot");

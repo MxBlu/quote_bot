@@ -1,4 +1,6 @@
-import { BotCommand, CommandProvider, Logger, LogLevel, sendCmdMessage } from "bot-framework";
+import { CommandProvider, GeneralSlashCommandBuilder, Logger, LogLevel, sendCmdReply } from "bot-framework";
+import { SlashCommandBuilder, SlashCommandIntegerOption } from "@discordjs/builders";
+import { CommandInteraction } from "discord.js";
 
 import { Store } from "../support/store.js";
 
@@ -8,38 +10,45 @@ export class DelQuoteCommand implements CommandProvider {
   constructor() {
     this.logger = new Logger("DelQuoteCommand");
   }
-  
-  public provideAliases(): string[] {
-    return [ "delquote", "dq" ];
+
+  public provideSlashCommands(): GeneralSlashCommandBuilder[] {
+    return [
+      new SlashCommandBuilder()
+        .setName('delquote')
+        .setDescription('Delete a quote by given id')
+        .addIntegerOption(
+          new SlashCommandIntegerOption()
+            .setName('id')
+            .setDescription('Quote ID')
+            .setRequired(true)
+        ),
+      new SlashCommandBuilder()
+        .setName('dq')
+        .setDescription('Delete a quote by given id')
+        .addIntegerOption(
+          new SlashCommandIntegerOption()
+            .setName('id')
+            .setDescription('Quote ID')
+            .setRequired(true)
+        )
+    ];
   }
 
   public provideHelpMessage(): string {
-    return "!delquote <id> - Delete a quote by given id";
+    return "/delquote <id> - Delete a quote by given id";
   }
 
-  public async handle(command: BotCommand): Promise<void> {
-    const guildId = command.message.guild.id;
-    switch (command.arguments.length) {
-    case 1:
-      // Delete quote with given seq ID
-      try {
-        // Attempt to delete quote with given id
-        const res = await Store.delQuote(guildId, 
-            Number(command.arguments[0])).exec();
-        if (res.deletedCount != null && res.deletedCount > 0) {
-          sendCmdMessage(command.message, `Quote ${command.arguments[0]} deleted.`, this.logger, LogLevel.INFO);
-          return;
-        } else {
-          sendCmdMessage(command.message, `Error: quote ${command.arguments[0]} doesn't exist`, this.logger, LogLevel.TRACE);
-          return;
-        }
-      } catch (e) {
-        sendCmdMessage(command.message, 'Error: invalid argument', this.logger, LogLevel.TRACE);
-        return;
-      }
-      break;
-    default:
-      sendCmdMessage(command.message, 'Error: incorrect argument count', this.logger, LogLevel.TRACE);
+  public async handle(interaction: CommandInteraction): Promise<void> {
+    const guildId = interaction.guild.id;
+    const quoteId = interaction.options.getInteger('id', true);
+
+    // Attempt to delete quote with given id
+    const res = await Store.delQuote(guildId, quoteId).exec();
+    if (res.deletedCount != null && res.deletedCount > 0) {
+      sendCmdReply(interaction, `Quote ${quoteId} deleted.`, this.logger, LogLevel.INFO);
+      return;
+    } else {
+      sendCmdReply(interaction, `Error: quote ${quoteId} doesn't exist`, this.logger, LogLevel.TRACE);
       return;
     }
   }
