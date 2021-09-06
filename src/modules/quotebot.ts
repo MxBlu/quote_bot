@@ -1,5 +1,5 @@
-import { ApplicationCommandType, BaseBot, ClientOptionsWithoutIntents, Dependency, DISCORD_REGISTER_COMMANDS_AS_GLOBAL, ModernApplicationCommandJSONBody } from "bot-framework";
-import { MessageReaction, User, PartialUser, Intents, GuildMember, Interaction, ContextMenuInteraction } from "discord.js";
+import { BaseBot, ClientOptionsWithoutIntents, Dependency } from "bot-framework";
+import { MessageReaction, User, PartialUser, Intents, GuildMember } from "discord.js";
 
 import { Store, StoreDependency } from "../support/store.js";
 import { QuoteEventHandler } from "../events/quote_event.js";
@@ -16,6 +16,7 @@ export class QuoteBotImpl extends BaseBot {
 
   constructor() {
     super("QuoteBot");
+    this.quoteEventHandler = new QuoteEventHandler();
   }
 
   public override async init(discordToken: string): Promise<void> {
@@ -41,28 +42,27 @@ export class QuoteBotImpl extends BaseBot {
   }
 
   public loadProviders(): void {
+    // Register slash commands
     this.providers.push(new ListQuotesCommand());
     this.providers.push(new GetQuoteCommand());
     this.providers.push(new DelQuoteCommand());
     this.providers.push(new ReattrQuoteCommand());
     this.providers.push(new SpoilerQuoteCommand());
+
+    // Register context commands
+    this.providers.push(this.quoteEventHandler.quoteCommand);
+    this.providers.push(this.quoteEventHandler.quoteSaveCommand);
   }
   
   public override initCustomEventHandlers(): void {
-    this.quoteEventHandler =  new QuoteEventHandler();
-
     this.discord.once('ready', this.onreadyHandler);
-    this.discord.on('interactionCreate', this.contextInteractionHandler);
     this.discord.on('messageReactionAdd', this.reactionHandler);
     this.discord.on('guildMemberAdd', this.memberUpdateHandler);
     this.discord.on('guildMemberUpdate', (_, m) => this.memberUpdateHandler(m)); // ignore 'old member' param
   }
 
   public override getHelpMessage(): string {
-    return "Quote Bot v2 - Quote and save messages\n" + 
-      "\n" + 
-      "Add a #️⃣ react to a message to quote the message\n" + 
-      "Add a ♿ or :omegaChair: emote to save a quote";
+    return "Quote Bot v2 - Quote and save messages";
   }
 
   // Discord event handlers
@@ -74,7 +74,7 @@ export class QuoteBotImpl extends BaseBot {
           .then(c => c.map(m => this.memberUpdateHandler(m)))
           .then(() => this.logger.debug(`Cached members for ${g.id}`))
     );
-    await this.addContextMenuCommands();
+
     QuoteBotDependency.ready();
   }
 
@@ -94,61 +94,7 @@ export class QuoteBotImpl extends BaseBot {
     // Things that act on reaction events
     this.quoteEventHandler.messageReactionHandler(reaction, guildMember);
   }
-
-  private contextInteractionHandler = async (interaction: Interaction): Promise<void> => {
-    // Ignore bot interactiosn to avoid messy situations
-    if (interaction.user.bot) {
-      return;
-    }
-
-    // Handle context menu interactions
-    if (interaction.isContextMenu()) {
-      const contextInteraction = interaction as ContextMenuInteraction;
-
-      // Has to be a message
-      if (interaction.targetType != "MESSAGE") {
-        return;
-      }
-
-      const message = await interaction.channel.messages.fetch(interaction.targetId);
-      const member = await interaction.member as GuildMember;
-
-      switch (contextInteraction.commandName) {
-      case "Quote":
-        await this.quoteEventHandler.quoteHandler(message, member);
-        break;
-      case "Save Quote":
-        await this.quoteEventHandler.quoteSaveHandler(message, member);
-        break;
-      }
-      
-      contextInteraction.reply({ content: "eh" });
-    }
-  }
-
-  private async addContextMenuCommands(): Promise<void> {
-    const quoteSaveCommand: ModernApplicationCommandJSONBody = {
-      name: "Save Quote",
-      description: "",
-      type: ApplicationCommandType.MESSAGE
-    };
-    const quoteCommand: ModernApplicationCommandJSONBody = {
-      name: "Quote",
-      description: "",
-      type: ApplicationCommandType.MESSAGE
-    };
-    
-    if (DISCORD_REGISTER_COMMANDS_AS_GLOBAL) {
-      await this.registerApplicationCommand(quoteSaveCommand, null);
-      await this.registerApplicationCommand(quoteCommand, null);
-    } else {
-      await Promise.all(this.discord.guilds.cache.map(async guild => {
-        await this.registerApplicationCommand(quoteSaveCommand, guild.id);
-        await this.registerApplicationCommand(quoteCommand, guild.id);
-      }));
-    }
-    this.logger.debug('Registered context menu commands');
-  } 
+  
 }
 
 export const QuoteBot = new QuoteBotImpl();
