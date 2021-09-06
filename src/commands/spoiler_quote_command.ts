@@ -1,17 +1,17 @@
-import { CommandProvider, GeneralSlashCommandBuilder, isAdmin, Logger, LogLevel, sendCmdReply } from "bot-framework";
+import { CommandProvider, isAdmin, Logger, LogLevel, ModernApplicationCommandJSONBody, sendCmdReply } from "bot-framework";
 import { SlashCommandBuilder, SlashCommandIntegerOption } from "@discordjs/builders";
 import { CommandInteraction } from "discord.js";
 
 import { Store } from "../support/store.js";
 
-export class SpoilerQuoteCommand implements CommandProvider {
+export class SpoilerQuoteCommand implements CommandProvider<CommandInteraction> {
   logger: Logger;
   
   constructor() {
     this.logger = new Logger("SpoilerQuoteCommand");
   }
 
-  provideSlashCommands(): GeneralSlashCommandBuilder[] {
+  provideSlashCommands(): ModernApplicationCommandJSONBody[] {
     return [
       new SlashCommandBuilder()
         .setName('spoilerquote')
@@ -21,7 +21,7 @@ export class SpoilerQuoteCommand implements CommandProvider {
             .setName('id')
             .setDescription('Quote ID')
             .setRequired(true)
-        ),
+        ).toJSON(),
       new SlashCommandBuilder()
         .setName('sq')
         .setDescription('Spoiler/unspoiler the text of a quote')
@@ -30,7 +30,7 @@ export class SpoilerQuoteCommand implements CommandProvider {
             .setName('id')
             .setDescription('Quote ID')
             .setRequired(true)
-        )
+        ).toJSON()
     ];
   }
 

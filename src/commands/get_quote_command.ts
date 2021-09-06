@@ -1,4 +1,4 @@
-import { CommandProvider, GeneralSlashCommandBuilder, Interactable, Logger, LogLevel, sendCmdReply } from "bot-framework";
+import { CommandProvider, Interactable, Logger, LogLevel, ModernApplicationCommandJSONBody, sendCmdReply } from "bot-framework";
 import { SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandNumberOption, SlashCommandUserOption } from "@discordjs/builders";
 import { ButtonInteraction, CommandInteraction, Message, MessageEmbed } from "discord.js";
 
@@ -11,14 +11,14 @@ class LikeableProps {
   quote: QuoteDoc;
 }
 
-export class GetQuoteCommand implements CommandProvider {
+export class GetQuoteCommand implements CommandProvider<CommandInteraction> {
   logger: Logger;
 
   constructor() {
     this.logger = new Logger("GetQuoteCommand");
   }
 
-  public provideSlashCommands(): GeneralSlashCommandBuilder[] {
+  public provideSlashCommands(): ModernApplicationCommandJSONBody[] {
     return [
       new SlashCommandBuilder()
         .setName('getquote')
@@ -32,7 +32,7 @@ export class GetQuoteCommand implements CommandProvider {
           new SlashCommandUserOption()
             .setName('user')
             .setDescription('Quoted user')
-        ),
+        ).toJSON(),
       new SlashCommandBuilder()
         .setName('gq')
         .setDescription('Get a random quote')
@@ -45,7 +45,7 @@ export class GetQuoteCommand implements CommandProvider {
           new SlashCommandUserOption()
             .setName('user')
             .setDescription('Quoted user')
-        )
+        ).toJSON()
     ];
   }
 

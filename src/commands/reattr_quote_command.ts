@@ -1,17 +1,17 @@
-import { CommandProvider, GeneralSlashCommandBuilder, isAdmin, Logger, LogLevel, sendCmdReply } from "bot-framework";
+import { CommandProvider, isAdmin, Logger, LogLevel, ModernApplicationCommandJSONBody, sendCmdReply } from "bot-framework";
 import { SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandUserOption } from "@discordjs/builders";
 import { CommandInteraction } from "discord.js";
 
 import { Store } from "../support/store.js";
 
-export class ReattrQuoteCommand implements CommandProvider {
+export class ReattrQuoteCommand implements CommandProvider<CommandInteraction> {
   logger: Logger;
   
   constructor() {
     this.logger = new Logger("ReattrQuoteCommand");
   }
   
-  public provideSlashCommands(): GeneralSlashCommandBuilder[] {
+  public provideSlashCommands(): ModernApplicationCommandJSONBody[] {
     return [
       new SlashCommandBuilder()
         .setName('reattrquote')
@@ -27,7 +27,7 @@ export class ReattrQuoteCommand implements CommandProvider {
             .setName('user')
             .setDescription('New author')
             .setRequired(true)
-        ),
+        ).toJSON(),
       new SlashCommandBuilder()
         .setName('rq')
         .setDescription('Reattribute a quote to a given user')
@@ -42,7 +42,7 @@ export class ReattrQuoteCommand implements CommandProvider {
             .setName('user')
             .setDescription('New author')
             .setRequired(true)
-        )
+        ).toJSON()
     ];
   }
 

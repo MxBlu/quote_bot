@@ -1,5 +1,5 @@
 
-import { CommandProvider, GeneralSlashCommandBuilder, Interactable, Logger, LogLevel, sendCmdReply } from "bot-framework";
+import { CommandProvider, Interactable, Logger, LogLevel, ModernApplicationCommandJSONBody, sendCmdReply } from "bot-framework";
 import { SlashCommandBuilder, SlashCommandChannelOption, SlashCommandIntegerOption, SlashCommandUserOption } from "@discordjs/builders";
 import { ButtonInteraction, CommandInteraction, Message, MessageEmbed } from "discord.js";
 
@@ -18,14 +18,14 @@ class ListQuoteProps {
   count = 0;
 }
 
-export class ListQuotesCommand implements CommandProvider {
+export class ListQuotesCommand implements CommandProvider<CommandInteraction> {
   logger: Logger;
 
   constructor() {
     this.logger = new Logger("ListQuotesCommand");
   }
 
-  public provideSlashCommands(): GeneralSlashCommandBuilder[] {
+  public provideSlashCommands(): ModernApplicationCommandJSONBody[] {
     return [
       new SlashCommandBuilder()
         .setName('listquotes')
@@ -44,7 +44,7 @@ export class ListQuotesCommand implements CommandProvider {
           new SlashCommandChannelOption()
             .setName('channel')
             .setDescription('Quoted channel')
-        ),
+        ).toJSON(),
       new SlashCommandBuilder()
         .setName('lq')
         .setDescription('List quotes for given filters')
@@ -62,7 +62,7 @@ export class ListQuotesCommand implements CommandProvider {
           new SlashCommandChannelOption()
             .setName('channel')
             .setDescription('Quoted channel')
-        )
+        ).toJSON()
     ];
   }
 
