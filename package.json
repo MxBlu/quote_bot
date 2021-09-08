@@ -16,7 +16,7 @@
     "@discordjs/rest": "0.1.0-canary.0",
     "@typegoose/auto-increment": "MxBlu/auto-increment#0.9.1",
     "@typegoose/typegoose": "8.2.0",
-    "bot-framework": "Mxblu/bot-framework#4.3.1",
+    "bot-framework": "Mxblu/bot-framework#4.3.2",
     "bufferutil": "^4.0.3",
     "discord-api-types": "0.22.0",
     "discord.js": "13.1.0",
