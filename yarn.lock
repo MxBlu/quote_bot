@@ -537,9 +537,9 @@ bluebird@3.5.1:
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.5.1.tgz#d9551f9de98f1fcda1e683d17ee91a0602ee2eb9"
   integrity sha512-MKiLiV+I1AA596t9w1sQJ8jkiSr5+ZKi0WKrYGUn6d1Fx+Ij4tIj+m2WMQSGczs5jZVxV339chE8iwk6F64wjA==
 
-bot-framework@Mxblu/bot-framework#4.3.1:
-  version "4.3.1"
-  resolved "https://codeload.github.com/Mxblu/bot-framework/tar.gz/a636b75a210ea0dca95b9448ec8db3ce88954a6b"
+bot-framework@Mxblu/bot-framework#4.3.3:
+  version "4.3.3"
+  resolved "https://codeload.github.com/Mxblu/bot-framework/tar.gz/889d33fc0ebc2fb993806dace6b15cd7cb03ff28"
   dependencies:
     "@discordjs/builders" "0.6.0"
     "@discordjs/rest" "0.1.0-canary.0"
