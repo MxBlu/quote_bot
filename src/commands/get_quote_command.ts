@@ -1,6 +1,6 @@
 import { CommandProvider, Interactable, Logger, LogLevel, ModernApplicationCommandJSONBody, sendCmdReply } from "bot-framework";
 import { SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandNumberOption, SlashCommandUserOption } from "@discordjs/builders";
-import { ButtonInteraction, CommandInteraction, Message, MessageEmbed, User } from "discord.js";
+import { ButtonInteraction, CommandInteraction, GuildMember, Message, MessageEmbed, User } from "discord.js";
 
 import { QuoteDoc } from "../models/Quote.js";
 import { getBestGuildMemberById } from "../models/UserLite.js";
@@ -65,11 +65,14 @@ export class GetQuoteCommand implements CommandProvider<CommandInteraction> {
     await this.doGetQuote(interaction, null);
   }
 
-  public async doGetQuote(interaction: CommandInteraction | ButtonInteraction, altArguments: GetQuoteAlternativeArguments ): Promise<void> {
+  public async doGetQuote(interaction: CommandInteraction | ButtonInteraction, altArguments: GetQuoteAlternativeArguments): Promise<void> {
     // Get arguments from interaction
     const guild = interaction.guild;
     let quoteId: number = null;
     let user: User = null;
+
+    // String to tell us who pressed the encore button if we came from an encore
+    let encoreText: string = null;
 
     // If the interaction is a ButtonInteraction, the arguments are in altArguments
     if (interaction instanceof CommandInteraction) {
@@ -78,6 +81,7 @@ export class GetQuoteCommand implements CommandProvider<CommandInteraction> {
     } else {
       quoteId = altArguments.quoteId;
       user = altArguments.user;
+      encoreText = `Encore by ${(interaction.member as GuildMember).nickname}!`;
     }
 
     // If both arguments are present, abort
@@ -115,7 +119,12 @@ export class GetQuoteCommand implements CommandProvider<CommandInteraction> {
     const quoter = await getBestGuildMemberById(guild, quote.quoter);
 
     // Re-generate quote from stored data
-    const messagePreamble = `**${quote.seq}**: **${quoter.displayName}** quoted **${author.displayName}**:`;
+    let messagePreamble = `**${quote.seq}**: **${quoter.displayName}** quoted **${author.displayName}**:`;
+    if (encoreText != null) {
+      // Prepend the encoreText if present
+      messagePreamble = encoreText + "\n" + messagePreamble;
+    }
+
     const embed = new MessageEmbed()
         .setAuthor(author.displayName, author.displayAvatarURL)
         .setDescription(quote.message)
