@@ -210,6 +210,7 @@ export class GetQuoteCommand implements CommandProvider<CommandInteraction> {
       return;
     }
 
+    // Call get quote again, but internally by passing the argument as GetQuoteProps
     this.doGetQuote(interaction, interactable.props);
     this.logger.debug(`${interaction.user.username} encored for '${interactable.props.scope}'`);
 
