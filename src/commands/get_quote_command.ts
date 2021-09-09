@@ -1,6 +1,6 @@
 import { CommandProvider, Interactable, Logger, LogLevel, ModernApplicationCommandJSONBody, sendCmdReply } from "bot-framework";
 import { SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandNumberOption, SlashCommandUserOption } from "@discordjs/builders";
-import { ButtonInteraction, CommandInteraction, GuildMember, Message, MessageEmbed, User } from "discord.js";
+import { ButtonInteraction, CommandInteraction, Message, MessageEmbed, User } from "discord.js";
 
 import { QuoteDoc } from "../models/Quote.js";
 import { getBestGuildMemberById } from "../models/UserLite.js";
@@ -81,7 +81,7 @@ export class GetQuoteCommand implements CommandProvider<CommandInteraction> {
     } else {
       quoteId = altArguments.quoteId;
       user = altArguments.user;
-      encoreText = `Encore by ${(interaction.member as GuildMember).nickname}!`;
+      encoreText = `Encore by ${interaction.user.username}!`;
     }
 
     // If both arguments are present, abort
