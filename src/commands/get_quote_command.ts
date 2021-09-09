@@ -1,10 +1,15 @@
 import { CommandProvider, Interactable, Logger, LogLevel, ModernApplicationCommandJSONBody, sendCmdReply } from "bot-framework";
 import { SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandNumberOption, SlashCommandUserOption } from "@discordjs/builders";
-import { ButtonInteraction, CommandInteraction, Message, MessageEmbed } from "discord.js";
+import { ButtonInteraction, CommandInteraction, Message, MessageEmbed, User } from "discord.js";
 
 import { QuoteDoc } from "../models/Quote.js";
 import { getBestGuildMemberById } from "../models/UserLite.js";
 import { Store } from "../support/store.js";
+
+interface GetQuoteAlternativeArguments {
+  quoteId?: number;
+  user?: User;
+}
 
 class LikeableProps {
   // Quote in message
@@ -55,11 +60,25 @@ export class GetQuoteCommand implements CommandProvider<CommandInteraction> {
       "/getquote <id> - Get a quote by given id";
   }
 
+  // Wrap the actual handling up, so we can allow an alternative call to the handler with a ButtonInteraction
   public async handle(interaction: CommandInteraction): Promise<void> {
+    await this.doGetQuote(interaction, null);
+  }
+
+  public async doGetQuote(interaction: CommandInteraction | ButtonInteraction, altArguments: GetQuoteAlternativeArguments ): Promise<void> {
     // Get arguments from interaction
     const guild = interaction.guild;
-    const quoteId = interaction.options.getInteger('id');
-    const user = interaction.options.getUser('user');
+    let quoteId: number = null;
+    let user: User = null;
+
+    // If the interaction is a ButtonInteraction, the arguments are in altArguments
+    if (interaction instanceof CommandInteraction) {
+      quoteId = interaction.options.getInteger('id');
+      user = interaction.options.getUser('user');
+    } else {
+      quoteId = altArguments.quoteId;
+      user = altArguments.user;
+    }
 
     // If both arguments are present, abort
     if (quoteId != null && user != null) {
