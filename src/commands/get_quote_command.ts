@@ -5,21 +5,26 @@ import { ButtonInteraction, CommandInteraction, Message, MessageEmbed, User } fr
 import { QuoteDoc } from "../models/Quote.js";
 import { getBestGuildMemberById } from "../models/UserLite.js";
 import { Store } from "../support/store.js";
+import { ENCORE_QUOTE_RATELIMIT } from "../constants/constants.js";
 
-interface GetQuoteAlternativeArguments {
-  quoteId?: number;
-  user?: User;
-}
 
-class LikeableProps {
+class GetQuoteProps {
   // Quote in message
   quote: QuoteDoc;
+  // User query
+  user?: User;
+  // Scope of query
+  scope: string;
 }
 
 export class GetQuoteCommand implements CommandProvider<CommandInteraction> {
+  // Whether to allow another encore yet - used for rate limiting
+  rateLimited: boolean;
+
   logger: Logger;
 
   constructor() {
+    this.rateLimited = false;
     this.logger = new Logger("GetQuoteCommand");
   }
 
@@ -65,7 +70,7 @@ export class GetQuoteCommand implements CommandProvider<CommandInteraction> {
     await this.doGetQuote(interaction, null);
   }
 
-  public async doGetQuote(interaction: CommandInteraction | ButtonInteraction, altArguments: GetQuoteAlternativeArguments): Promise<void> {
+  public async doGetQuote(interaction: CommandInteraction | ButtonInteraction, encoreProps: GetQuoteProps): Promise<void> {
     // Get arguments from interaction
     const guild = interaction.guild;
     let quoteId: number = null;
@@ -79,8 +84,7 @@ export class GetQuoteCommand implements CommandProvider<CommandInteraction> {
       quoteId = interaction.options.getInteger('id');
       user = interaction.options.getUser('user');
     } else {
-      quoteId = altArguments.quoteId;
-      user = altArguments.user;
+      user = encoreProps.user;
       encoreText = `Encore by ${interaction.user.username}!`;
     }
 
@@ -134,11 +138,20 @@ export class GetQuoteCommand implements CommandProvider<CommandInteraction> {
         .setFooter(`${stats.views.length} 📺 ${stats.likes.length} 👍 ${stats.dislikes.length} 👎`);
 
     // Setup interaction controls
-    const interactable = new Interactable<LikeableProps>();
+    const interactable = new Interactable<GetQuoteProps>();
     interactable.registerHandler(this.likeableLikeHandler, { emoji: "👍" });
     interactable.registerHandler(this.likeableDislikeHandler, { emoji: "👎" });
-    interactable.props = new LikeableProps();
+    interactable.registerHandler(this.encoreHandler, { emoji: "👏" });
+    interactable.props = new GetQuoteProps();
     interactable.props.quote = quote;
+    interactable.props.user = user;
+    // Query scope - just for logging
+    if (user != null) {
+      interactable.props.scope = `@${user.username}`;
+    } else {
+      interactable.props.scope = 'Guild';
+    }
+    
 
     // Get generated action row
     const actionRow = interactable.getActionRow();
@@ -155,7 +168,7 @@ export class GetQuoteCommand implements CommandProvider<CommandInteraction> {
     interactable.activate(message as Message);
   }
 
-  private likeableLikeHandler = async (interactable: Interactable<LikeableProps>, 
+  private likeableLikeHandler = async (interactable: Interactable<GetQuoteProps>, 
       interaction: ButtonInteraction): Promise<void> => {
     // Toggle like on quote
     const quote = interactable.props.quote;
@@ -171,7 +184,7 @@ export class GetQuoteCommand implements CommandProvider<CommandInteraction> {
     interaction.update({ content: originalMessage.content, embeds: [ newEmbed ] });
   };
 
-  private likeableDislikeHandler = async (interactable: Interactable<LikeableProps>, 
+  private likeableDislikeHandler = async (interactable: Interactable<GetQuoteProps>, 
     interaction: ButtonInteraction): Promise<void> => {
     // Toggle like on quote
     const quote = interactable.props.quote;
@@ -186,4 +199,27 @@ export class GetQuoteCommand implements CommandProvider<CommandInteraction> {
     this.logger.debug(`${interaction.user.username} toggled like - ${quote.guild} => ${quote.seq}`);
     interaction.update({ content: originalMessage.content, embeds: [ newEmbed ] });
   };
+
+  private encoreHandler = async (interactable: Interactable<GetQuoteProps>, 
+      interaction: ButtonInteraction): Promise<void> => {
+    if (this.rateLimited) {
+      // Rate limited - do not perform encore
+      // Send a null update so the user isn't kept waiting
+      this.logger.debug(`${interaction.user.username} ratelimited for encore`);
+      await interaction.update({});
+      return;
+    }
+
+    this.doGetQuote(interaction, interactable.props);
+    this.logger.debug(`${interaction.user.username} encored for '${interactable.props.scope}'`);
+
+    // Prevent new encore events for ENCORE_QUOTE_RATELIMIT ms
+    this.rateLimited = true;
+    setTimeout(this.rateLimitTimerTask, ENCORE_QUOTE_RATELIMIT);
+  };
+
+  private rateLimitTimerTask = (): void => {
+    // Allow another encore event
+    this.rateLimited = false;
+  }
 }

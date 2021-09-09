@@ -8,7 +8,6 @@ import { GetQuoteCommand } from "../commands/get_quote_command.js";
 import { DelQuoteCommand } from "../commands/del_quote_command.js";
 import { ReattrQuoteCommand } from "../commands/reattr_quote_command.js";
 import { SpoilerQuoteCommand } from "../commands/spoiler_quote_command.js";
-import { EncoreQuoteCommand } from "../commands/encore_quote_command.js";
 
 export class QuoteBotImpl extends BaseBot {
 
@@ -46,7 +45,6 @@ export class QuoteBotImpl extends BaseBot {
     // Register slash commands
     this.providers.push(new ListQuotesCommand());
     this.providers.push(new GetQuoteCommand());
-    this.providers.push(new EncoreQuoteCommand());
     this.providers.push(new DelQuoteCommand());
     this.providers.push(new ReattrQuoteCommand());
     this.providers.push(new SpoilerQuoteCommand());
