@@ -33,8 +33,8 @@ export class GetQuoteCommand implements CommandProvider<CommandInteraction> {
       new SlashCommandBuilder()
         .setName('getquote')
         .setDescription('Get a random quote')
-        .addNumberOption(
-          new SlashCommandNumberOption()
+        .addIntegerOption(
+          new SlashCommandIntegerOption()
             .setName('id')
             .setDescription('Quote ID')
         )
