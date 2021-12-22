@@ -4,8 +4,15 @@ import { Field, ObjectType } from 'type-graphql';
 
 export type QuoteStatsDoc = DocumentType<QuoteStats>;
 
+// Interface for external use
+export interface IQuoteStats {
+  views?: string[];
+  likes?: string[];
+  dislikes?: string[];
+}
+
 @ObjectType()
-export class QuoteStats {
+export class QuoteStats implements IQuoteStats {
 
   // User IDs representing view events, non-unique
   @prop({ type: String, default: [] })

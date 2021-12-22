@@ -12,7 +12,7 @@ interface UserID {
 }
 
 @ObjectType()
-export class UserIDClass implements UserID {
+class UserIDClass implements UserID {
   @Field()
   user: string;
 
@@ -20,10 +20,18 @@ export class UserIDClass implements UserID {
   guild: string;
 }
 
+// Interface for external use
+export interface IUser {
+  _id: UserID;
+  guild: string;
+  displayName: string;
+  discriminator: string;
+}
+
 // For persisting user information in case they leave the guild or such
 @modelOptions({ options: { allowMixed: Severity.ALLOW } })
 @ObjectType()
-export class User {
+export class User implements IUser {
   // Primary key
   @prop()
   @Field(type => UserIDClass)

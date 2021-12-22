@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { FieldResolver, Query, Resolver, Root } from "type-graphql";
 
-import { Quote, QuoteModel } from "../models/Quote.js";
+import { IQuote, Quote, QuoteModel } from "../models/Quote.js";
 import { QuoteStats, QuoteStatsModel } from "../models/QuoteStats.js";
 
 @Resolver(of => Quote)
@@ -13,7 +13,7 @@ export class QuoteResolver {
     }
 
     @FieldResolver()
-    public async stats(@Root() quote: Quote): Promise<QuoteStats> {
+    public async stats(@Root() quote: IQuote): Promise<QuoteStats> {
         return await QuoteStatsModel.findById(quote.stats);
     }
 

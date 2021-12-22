@@ -13,9 +13,23 @@ export type QuoteDeleteQuery = Query<{ ok?: number; n?: number; deletedCount?: n
 
 export type IdOnly = { _id: string };
 
+// Interface for external use
+export interface IQuote {
+  seq?: number;
+  channel: string;
+  guild: string;
+  message: string;
+  author: string;
+  quoter: string;
+  img: string;
+  link: string;
+  timestamp: Date;
+  stats?: Ref<QuoteStats>;
+}
+
 @plugin(AutoIncrementID, {trackerCollection: 'seq_counters', field: 'seq', startAt: 1, reference_fields: ['guild']})
 @ObjectType()
-export class Quote {
+export class Quote implements IQuote {
 
   // Sequencing value, unique to the guild. For referencing quotes in a list
   @prop({index: true})
