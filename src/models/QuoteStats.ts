@@ -7,7 +7,7 @@ export type QuoteStatsDoc = DocumentType<QuoteStats>;
 @ObjectType()
 export class QuoteStats {
 
-  // User IDs represent view events, non-unique
+  // User IDs representing view events, non-unique
   @prop({ type: String, default: [] })
   @Field(type => [String])
   public views?: string[];
