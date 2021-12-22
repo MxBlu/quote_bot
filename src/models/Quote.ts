@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { DocumentType, getModelForClass, isDocument, plugin, prop, Ref, ReturnModelType } from '@typegoose/typegoose';
 import { AutoIncrementID } from '@typegoose/auto-increment';
+import { Field, ObjectType } from 'type-graphql';
 import { DocumentQuery, Query } from 'mongoose';
 
 import { QuoteStats, QuoteStatsDoc, QuoteStatsModel } from './QuoteStats.js';
@@ -12,44 +14,56 @@ export type QuoteDeleteQuery = Query<{ ok?: number; n?: number; deletedCount?: n
 export type IdOnly = { _id: string };
 
 @plugin(AutoIncrementID, {trackerCollection: 'seq_counters', field: 'seq', startAt: 1, reference_fields: ['guild']})
+@ObjectType()
 export class Quote {
+
   // Sequencing value, unique to the guild. For referencing quotes in a list
   @prop({index: true})
+  @Field()
   public seq?: number;
 
   // Channel ID of quoted message
   @prop({index: true})
+  @Field()
   public channel: string;
 
   // Guild ID of quoted message
   @prop({index: true})
+  @Field()
   public guild: string;
 
   // Message contents, in form of embed description
   @prop()
+  @Field()
   public message: string;
 
   // User ID of quoted message author
   @prop({index: true})
+  @Field()
   public author: string;
 
   // User ID of quote saver
   @prop()
+  @Field()
   public quoter: string;
 
   // Image link if present in message
   @prop()
+  @Field()
   public img: string;
 
   // URL of quoted message
   @prop({index: true})
+  @Field()
   public link: string;
 
   // Date of quoted message
   @prop()
+  @Field()
   public timestamp: Date;
 
   @prop({ ref: QuoteStats })
+  @Field(type => QuoteStats, { nullable: true })
   public stats?: Ref<QuoteStats>;
 
   public getStats(): QuoteStatsDoc {

@@ -1,18 +1,25 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { DocumentType, getModelForClass, prop } from '@typegoose/typegoose';
+import { Field, ObjectType } from 'type-graphql';
 
 export type QuoteStatsDoc = DocumentType<QuoteStats>;
 
+@ObjectType()
 export class QuoteStats {
+
   // User IDs represent view events, non-unique
   @prop({ type: String, default: [] })
+  @Field(type => [String])
   public views?: string[];
 
   // User IDs representing likes, unique
   @prop({ type: String, default: [] })
+  @Field(type => [String])
   public likes?: string[];
 
   // User IDs representing likes, unique
   @prop({ type: String, default: [] })
+  @Field(type => [String])
   public dislikes?: string[];
 
   public async addView(this: QuoteStatsDoc, user: string): Promise<QuoteStatsDoc> {
