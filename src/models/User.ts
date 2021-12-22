@@ -66,7 +66,7 @@ export class User implements IUser {
       user: string, guild: string, displayName: string, discriminator: string): Promise<boolean> {
     const result = await this.updateOne(
       { _id: { user, guild } },
-      { $set: { displayName, discriminator } },
+      { $set: { displayName, discriminator, guild } },
       { upsert: true }
     ).exec();
     return result.ok == 1;
