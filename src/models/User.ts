@@ -3,7 +3,9 @@ import { DocumentType, getModelForClass, modelOptions, prop, ReturnModelType, Se
 import { DocumentQuery } from "mongoose";
 import { Field, ObjectType } from "type-graphql";
 
-export type UserSingleQuery = DocumentQuery<DocumentType<User>, DocumentType<User>>;
+export type UserDoc = DocumentType<User>;
+export type UserSingleQuery = DocumentQuery<UserDoc, UserDoc>;
+export type UserMultiQuery = DocumentQuery<UserDoc[], UserDoc>;
 
 // Composite primary key for User
 interface UserID {
@@ -54,6 +56,10 @@ export class User implements IUser {
   
   public static getById(this: ReturnModelType<typeof User>, user: string, guild: string): UserSingleQuery {
     return this.findById({ user, guild });
+  }
+
+  public static getByGuild(this: ReturnModelType<typeof User>, guild: string): UserMultiQuery {
+    return this.find({ guild });
   }
   
   public static async upsert(this: ReturnModelType<typeof User>, 
