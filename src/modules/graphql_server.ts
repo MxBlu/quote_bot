@@ -4,6 +4,8 @@ import { buildSchema } from "type-graphql";
 
 import { QuoteResolver } from "../resolvers/Quote_resolver.js";
 import { UserResolver } from "../resolvers/User_resolver.js";
+import { QuoteResolver } from "../graphql/Quote_resolver.js";
+import { UserResolver } from "../graphql/User_resolver.js";
 
 export class GraphQLServerImpl {
 

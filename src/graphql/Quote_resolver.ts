@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Arg, FieldResolver, Query, Resolver, Root } from "type-graphql";
+import { Arg, Authorized, FieldResolver, Query, Resolver, Root } from "type-graphql";
 
 import { IQuote, Quote, QuoteModel } from "../models/Quote.js";
 import { QuoteStats, QuoteStatsModel } from "../models/QuoteStats.js";
@@ -7,6 +7,7 @@ import { QuoteStats, QuoteStatsModel } from "../models/QuoteStats.js";
 @Resolver(of => Quote)
 export class QuoteResolver {
     
+    // @Authorized()
     @Query(returns => Quote)
     public async quoteBySeq(@Arg("guildId") guildId: string, @Arg("seq") seq: number): Promise<Quote> {
         return QuoteModel.getBySeq(guildId, seq);
