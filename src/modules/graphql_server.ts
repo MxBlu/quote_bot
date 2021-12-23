@@ -2,8 +2,7 @@ import { ApolloServer } from "apollo-server";
 import { Dependency, Logger } from "bot-framework";
 import { buildSchema } from "type-graphql";
 
-import { QuoteResolver } from "../resolvers/Quote_resolver.js";
-import { UserResolver } from "../resolvers/User_resolver.js";
+import { GraphQLLogging } from "../graphql/logging_middleware.js";
 import { QuoteResolver } from "../graphql/Quote_resolver.js";
 import { UserResolver } from "../graphql/User_resolver.js";
 
@@ -20,6 +19,7 @@ export class GraphQLServerImpl {
   public async init(port: number): Promise<void> {
     const schema = await buildSchema({
       resolvers: [ QuoteResolver, UserResolver ],
+      globalMiddlewares: [ GraphQLLogging ]
     });
 
     this.server = new ApolloServer({ schema });
