@@ -26,13 +26,16 @@ class RESTServerImpl {
     this.server.use(cookieParser());
     // Create routes 
     this.addRoutes();
+    // Add error handler
+    this.server.use(this.onError);
 
     this.server.listen(port);
     this.logger.debug(`Server running on port ${port}`);
   }
 
   private addRoutes(): void {
-    this.server.get('/identify', this.onIdentify)
+    this.server.get('/identify', this.onIdentify);
+    this.server.get('/guilds', this.onGuilds);
     this.server.get('/login', this.onLogin);
     this.server.get('/oauth/callback', this.onOauthCallback);
   }
@@ -69,6 +72,12 @@ class RESTServerImpl {
     next();
   };
 
+  public onError = (err: Error, req: Request, res: Response) => {
+    // Log the error and return a 500
+    this.logger.error(`Error processing request: ${req.path} - ${err}`);
+    res.sendStatus(500);
+  }
+
   // Route handlers
   // TODO: Send error responses as redirects to frontend with error messsages
 
@@ -97,6 +106,25 @@ class RESTServerImpl {
       loggedIn: true,
       userData: userData
     });
+  }
+
+  public onGuilds = async (req: Request, res: Response): Promise<void> => {
+    const sessionId = req.cookies.sessionId as string;
+    // No session means not logged in
+    if (sessionId == null || Object.keys(sessionId).length === 0) {
+      res.sendStatus(403);
+      return;
+    }
+
+    const token = await DiscordTokenStore.validateSession(sessionId);
+    // No token also means not logged in
+    if (token == null) {
+      res.sendStatus(403);
+      return;
+    }
+
+    // Get guilds for user from Discord, return them as JSON
+    res.json(await DiscordRESTHelper.guilds(token));
   }
 
   public onLogin = (req: Request, res: Response): void => {
@@ -130,7 +158,7 @@ class RESTServerImpl {
       this.logger.error(`OAuth Token request failed: ${e}`);
       res.sendStatus(500);
     }
-  };
+  }
   
 }
 

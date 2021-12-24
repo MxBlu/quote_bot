@@ -1,6 +1,6 @@
 import { Logger } from "bot-framework";
 import * as crypto from "crypto";
-import { OAuth2Routes, RESTPostOAuth2AccessTokenResult, Routes } from "discord-api-types/v9";
+import { OAuth2Routes, RESTPostOAuth2AccessTokenResult } from "discord-api-types/v9";
 import fetch from "node-fetch";
 
 import { DISCORD_REST_OAUTH_SECRET, REST_SERVER_BASE_URL } from "../constants/constants.js";
