@@ -23,15 +23,16 @@ export class GraphQLAuthorization {
       guildId = args.guildId;
 
     } else if ('channelId' in args) {
-      // Try to get the Channel object for the given channel
-      const channel = await QuoteBot.discord.channels.fetch(args.channelId);
-      // If we can't get it, it means that the bot can't see it,
-      //  and therefore is unauthorized
-      if (channel == null || !(channel instanceof GuildChannel)) {
+      try {
+        // Try to get the Channel object for the given channel
+        const channel = await QuoteBot.discord.channels.fetch(args.channelId);
+        // Get guild that the channel belongs to
+        guildId = (channel as GuildChannel).guild.id;
+      } catch (e) {
+        // If we can't get it, it means that the bot can't see it,
+        //  and therefore is unauthorized
         return false;
       }
-      // Get guild that the channel belongs to
-      guildId = channel.guild.id;
 
     } else {
       // We don't know how to authorize this request...
