@@ -13,8 +13,6 @@ export class GraphQLAuthorization {
   }
 
   public async check(resolverData: ResolverData<GraphQLContext>): Promise<boolean> {
-    const startTime = performance.now()
-
     const args = resolverData.args;
     const context = resolverData.context;
 
@@ -47,9 +45,6 @@ export class GraphQLAuthorization {
     // If true, request is authorized
     const authorized = context.guilds.some(g => g.id == guildId) &&
         QuoteBot.discord.guilds.cache.some(g => g.id == guildId);
-        
-    const endTime = performance.now();
-    this.logger.trace(`Authorization: ${endTime - startTime}ms`);
 
     return authorized;
   }
