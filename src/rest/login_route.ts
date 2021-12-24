@@ -33,5 +33,4 @@ export class LoginRoute {
 
     return url.toString();
   }
-
 }

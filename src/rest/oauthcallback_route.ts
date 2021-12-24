@@ -38,5 +38,4 @@ export class OAuthCallbackRoute {
       res.sendStatus(500);
     }
   }
-
 }

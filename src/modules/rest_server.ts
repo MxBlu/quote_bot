@@ -10,7 +10,6 @@ import { QuoteBotDependency } from "./quotebot.js";
 
 // TODO: Send error responses as redirects to frontend with error messsages
 class RESTServerImpl {
-
   server: Application;
 
   logger: Logger;
@@ -68,7 +67,6 @@ class RESTServerImpl {
     this.logger.error(`Error processing request: ${req.path} - ${err}`);
     res.sendStatus(500);
   }
-  
 }
 
 export const RESTServer = new RESTServerImpl();

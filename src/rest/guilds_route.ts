@@ -45,5 +45,4 @@ export class GuildsRoute {
     // Return as JSON
     res.json(guildsResponse);
   }
-
 }
