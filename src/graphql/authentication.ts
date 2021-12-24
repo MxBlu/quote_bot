@@ -1,9 +1,11 @@
 import { AuthenticationError, ExpressContext } from "apollo-server-express";
 import { Logger } from "bot-framework";
-import { QuoteBot } from "../modules/quotebot";
-import { DiscordRESTHelper } from "../support/discord_rest";
-import { DiscordTokenStore } from "../support/discord_token_store";
-import { GraphQLContext } from "./context";
+import { parse } from "cookie";
+
+import { QuoteBot } from "../modules/quotebot.js";
+import { DiscordRESTHelper } from "../support/discord_rest.js";
+import { DiscordTokenStore } from "../support/discord_token_store.js";
+import { GraphQLContext } from "./context.js";
 
 export class GraphQLAuthentication {
   logger: Logger;
@@ -13,7 +15,13 @@ export class GraphQLAuthentication {
   }
 
   public async generateContext(expressContext: ExpressContext): Promise<GraphQLContext> {
-    const sessionId = expressContext.req.cookies.sessionId as string;
+    // Parse cookies on HTTP request
+    if (!expressContext.req.headers.cookie) {
+      expressContext.req.headers.cookie = "";
+    }
+    const cookies = parse(expressContext.req.headers.cookie);
+    // Pull out session cookie
+    const sessionId = cookies.sessionId as string;
     // No session means not logged in
     if (sessionId == null || Object.keys(sessionId).length === 0) {
       throw new AuthenticationError("Not logged in");
