@@ -7,32 +7,37 @@ import { QuoteStats, QuoteStatsModel } from "../models/QuoteStats.js";
 @Resolver(of => Quote)
 export class QuoteResolver {
     
-    // @Authorized()
+    @Authorized()
     @Query(returns => Quote)
     public async quoteBySeq(@Arg("guildId") guildId: string, @Arg("seq") seq: number): Promise<Quote> {
         return QuoteModel.getBySeq(guildId, seq);
     }
 
+    @Authorized()
     @Query(returns => Quote)
     public async randomQuote(@Arg("guildId") guildId: string): Promise<Quote> {
         return QuoteModel.getRandom(guildId);
     }
 
+    @Authorized()
     @Query(returns => Quote)
     public async randomQuoteByAuthor(@Arg("guildId") guildId: string, @Arg("userId") userId: string): Promise<Quote> {
         return QuoteModel.getRandomFromAuthor(guildId, userId);
     }
 
+    @Authorized()
     @Query(returns => [Quote])
     public async quotesByGuild(@Arg("guildId") guildId: string): Promise<Quote[]> {
         return QuoteModel.findByGuild(guildId);
     }
 
+    @Authorized()
     @Query(returns => [Quote])
     public async quotesByAuthor(@Arg("guildId") guildId: string, @Arg("userId") userId: string): Promise<Quote[]> {
         return QuoteModel.findByAuthor(userId, guildId);
     }
 
+    @Authorized()
     @Query(returns => [Quote])
     public async quotesByChannel(@Arg("channelId") channelId: string): Promise<Quote[]> {
         return QuoteModel.findByChannel(channelId);

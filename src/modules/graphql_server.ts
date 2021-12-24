@@ -4,6 +4,7 @@ import { buildSchema } from "type-graphql";
 
 import { GRAPHQL_DEBUG } from "../constants/constants.js";
 import { GraphQLAuthentication } from "../graphql/authentication.js";
+import { GraphQLAuthorization } from "../graphql/authorization.js";
 import { GraphQLLogging } from "../graphql/logging_middleware.js";
 import { QuoteResolver } from "../graphql/Quote_resolver.js";
 import { UserResolver } from "../graphql/User_resolver.js";
@@ -18,12 +19,14 @@ class GraphQLServerImpl {
   }
 
   public async init(port: number): Promise<void> {
+    const authentication = new GraphQLAuthentication();
+    const authorization = new GraphQLAuthorization();
+    
     const schema = await buildSchema({
       resolvers: [ QuoteResolver, UserResolver ],
-      globalMiddlewares: [ GraphQLLogging ]
+      globalMiddlewares: [ GraphQLLogging ],
+      authChecker: authorization.check.bind(authorization)
     });
-
-    const authentication = new GraphQLAuthentication();
 
     this.server = new ApolloServer({ 
       schema: schema, 
