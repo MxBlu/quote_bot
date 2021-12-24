@@ -19,6 +19,9 @@ class RESTServerImpl {
   }
 
   public async init(port: number): Promise<void> {
+    // We need QuoteBot for the Discord session
+    await QuoteBotDependency.await();
+
     this.server = express();
 
     // Add middleware - logging and server state
@@ -48,14 +51,6 @@ class RESTServerImpl {
   // Middleware
 
   private onRequest = (req: Request, res: Response, next: NextFunction): void => {
-    // If QuoteBot isn't loaded yet, return a 500
-    if (!QuoteBotDependency.isReady()) {
-      res.status(500).json({
-        error: "Server is not ready"
-      });
-      return;
-    }
-
     // Log request paths with IPs
     // TODO: Adjust for reverse proxy
     this.logger.info(`Request: ${req.path} - ${req.ip}`);

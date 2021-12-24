@@ -1,5 +1,5 @@
 import { ApolloServer } from "apollo-server";
-import { Logger } from "bot-framework";
+import { Dependency, Logger } from "bot-framework";
 import { buildSchema } from "type-graphql";
 
 import { GRAPHQL_DEBUG } from "../constants/constants.js";
@@ -8,6 +8,8 @@ import { GraphQLAuthorization } from "../graphql/authorization.js";
 import { GraphQLLogging } from "../graphql/logging_middleware.js";
 import { QuoteResolver } from "../graphql/Quote_resolver.js";
 import { UserResolver } from "../graphql/User_resolver.js";
+import { StoreDependency } from "../support/store.js";
+import { QuoteBotDependency } from "./quotebot.js";
 
 class GraphQLServerImpl {
   server: ApolloServer;
@@ -19,6 +21,9 @@ class GraphQLServerImpl {
   }
 
   public async init(port: number): Promise<void> {
+    // We need QuoteBot for the Discord session, and Store for data
+    await Dependency.awaitMultiple(QuoteBotDependency, StoreDependency);
+
     const authentication = new GraphQLAuthentication();
     const authorization = new GraphQLAuthorization();
     
@@ -32,7 +37,7 @@ class GraphQLServerImpl {
       schema: schema, 
       context: authentication.generateContext.bind(authentication),
       cors: {
-        origin: "https://studio.apollographql.com",
+        origin: true,
         credentials: true
       },
       debug: GRAPHQL_DEBUG
