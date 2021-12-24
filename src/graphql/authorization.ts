@@ -42,11 +42,16 @@ export class GraphQLAuthorization {
     }
 
     // Check if the user is part of the requested guild
-    // Also check if the bot is in the requested server
-    // If true, request is authorized
-    const authorized = context.guilds.some(g => g.id == guildId) &&
-        QuoteBot.discord.guilds.cache.some(g => g.id == guildId);
+    // We do this by fetching the guild, and attempting to fetch the user
+    try {
+      const guild = await QuoteBot.discord.guilds.fetch(guildId);
+      const guildMember = await guild.members.fetch(context.user.id);
 
-    return authorized;
+      return guildMember != null;
+    } catch (e) {
+      // If an exception is thrown (DiscordAPIError in particular)
+      //  the bot isn't in the guild or the user isn't in the guild
+      return false;
+    }
   }
 }
