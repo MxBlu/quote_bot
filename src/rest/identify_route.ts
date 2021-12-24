@@ -1,8 +1,7 @@
 import { Logger } from "bot-framework";
 import { Request, Response } from "express";
 
-import { DiscordRESTHelper } from "../support/discord_rest.js";
-import { DiscordTokenStore } from "../support/discord_token_store.js";
+import { SessionStore } from "../support/session_store.js";
 
 // Identify whether the requestor is logged in
 // Also returns user data if logged in
@@ -23,17 +22,17 @@ export class IdentifyRoute {
       return;
     }
 
-    const token = await DiscordTokenStore.validateSession(sessionId);
+    const session = await SessionStore.validateSession(sessionId);
     // No token also means not logged in
-    if (token == null) {
+    if (session == null) {
       res.json({
         loggedIn: false
       });
       return;
     }
 
-    // Get user data from Discord
-    const userData = await DiscordRESTHelper.user(token);
+    // Get user data from the session
+    const userData = session.user;
     // Trim down to only necessary data
     const userDataResponse = {
       id: userData.id,

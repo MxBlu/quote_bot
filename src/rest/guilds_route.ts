@@ -3,8 +3,7 @@ import { Permissions, PermissionString } from "discord.js";
 import { Request, Response } from "express";
 
 import { QuoteBot } from "../modules/quotebot.js";
-import { DiscordRESTHelper } from "../support/discord_rest.js";
-import { DiscordTokenStore } from "../support/discord_token_store.js";
+import { SessionStore } from "../support/session_store.js";
 
 // Get guilds that the user is in that have QuoteBot present
 export class GuildsRoute {
@@ -22,15 +21,15 @@ export class GuildsRoute {
       return;
     }
 
-    const token = await DiscordTokenStore.validateSession(sessionId);
+    const session = await SessionStore.validateSession(sessionId);
     // No token also means not logged in
-    if (token == null) {
+    if (session == null) {
       res.sendStatus(403);
       return;
     }
 
-    // Get guilds for user from Discord
-    const userGuilds = await DiscordRESTHelper.guilds(token);
+    // Get guilds from the session
+    const userGuilds = session.guilds;
     // Get guilds that QuoteBot is in
     const quoteBotGuilds = QuoteBot.discord.guilds.cache;
     // Filter to only guilds that are shared with QuoteBot

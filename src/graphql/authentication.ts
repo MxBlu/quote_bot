@@ -2,9 +2,7 @@ import { AuthenticationError, ExpressContext } from "apollo-server-express";
 import { Logger } from "bot-framework";
 import { parse } from "cookie";
 
-import { QuoteBot } from "../modules/quotebot.js";
-import { DiscordRESTHelper } from "../support/discord_rest.js";
-import { DiscordTokenStore } from "../support/discord_token_store.js";
+import { SessionStore } from "../support/session_store.js";
 import { GraphQLContext } from "./context.js";
 
 export class GraphQLAuthentication {
@@ -27,17 +25,17 @@ export class GraphQLAuthentication {
       throw new AuthenticationError("Not logged in");
     }
 
-    const token = await DiscordTokenStore.validateSession(sessionId);
-    // No token also means not logged in
-    if (token == null) {
+    const session = await SessionStore.validateSession(sessionId, false);
+    // No session also means not logged in
+    if (session == null) {
       throw new AuthenticationError("Not logged in");
     }
 
-    // Get user data from Discord REST API
-    const userData = await DiscordRESTHelper.user(token);
-    // Then fetch the rich User and return it as part of the context
+    // Get user data and guild list from Discord REST API
+    // Return them as part of the context
     return {
-      user: await QuoteBot.discord.users.fetch(userData.id)
+      user: session.user,
+      guilds: session.guilds
     };
   }
 }

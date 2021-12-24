@@ -1,37 +1,57 @@
 import { Logger } from "bot-framework";
 import * as crypto from "crypto";
-import { OAuth2Routes, RESTPostOAuth2AccessTokenResult } from "discord-api-types/v9";
+import { APIGuild, APIUser, OAuth2Routes, RESTPostOAuth2AccessTokenResult } from "discord-api-types/v9";
 import fetch from "node-fetch";
 
 import { DISCORD_REST_OAUTH_SECRET, REST_SERVER_BASE_URL } from "../constants/constants.js";
 import { QuoteBot } from "../modules/quotebot.js";
 import { DiscordRESTHelper } from "./discord_rest.js";
 
-export class StoredToken {
+// Stored OAuth credentials 
+class StoredToken {
+  // OAuth access token
   token: string;
-
+  // OAuth refresh token
   refreshToken: string;
-
+  // Expiry date for the token
   expiry: Date;
 
   constructor(accessTokenResponse: RESTPostOAuth2AccessTokenResult) {
     this.token = accessTokenResponse.access_token;
     this.refreshToken = accessTokenResponse.refresh_token;
-    // Compute expiry
+    // Compute expiry from token duration
     this.expiry = new Date();
     this.expiry.setSeconds(this.expiry.getSeconds() + accessTokenResponse.expires_in);
   }
 }
 
-// An in-memory access token store. Does what it needs to...
-class DiscordTokenStoreImpl {
+export class Session {
+  // Storen OAuth token
+  storedToken: StoredToken;
+  // Discord API user object
+  user?: APIUser;
+  // Discord API guild objects
+  guilds?: APIGuild[];
 
-  tokenMap: Map<string, StoredToken>;
+  // Generate a Session and populate the user and guild data
+  public static async fromToken(storedToken: StoredToken): Promise<Session> {
+    return {
+      storedToken: storedToken,
+      user: await DiscordRESTHelper.user(storedToken.token),
+      guilds: await DiscordRESTHelper.guilds(storedToken.token)
+    };
+  }
+}
+
+// An in-memory access token store. Does what it needs to...
+class SessionStoreImpl {
+
+  sessionMap: Map<string, Session>;
 
   logger: Logger;
 
   constructor() {
-    this.tokenMap = new Map();
+    this.sessionMap = new Map();
     this.logger = new Logger("DiscordTokenStore");
   }
 
@@ -50,9 +70,11 @@ class DiscordTokenStoreImpl {
       // Generate a session ID
       const sessionId = crypto.randomUUID();
       this.logger.trace(`Successfully retreived token: ${sessionId} ${token.access_token}`)
-      // Store the token
-      this.tokenMap.set(sessionId, new StoredToken(token));
-      // Return session ID
+      // Create a StoredToken and generate a Session
+      const storedToken = new StoredToken(token);
+      const session = await Session.fromToken(storedToken);
+      this.sessionMap.set(sessionId, session);
+      // Return new session ID
       return sessionId;
     } else {
       // If the response wasn't ok, something's wrong...
@@ -62,30 +84,38 @@ class DiscordTokenStoreImpl {
   }
 
   // Checks whether a session is logged in
+  // By default, it will also refresh user and guild data as well
   // Returns whether the session has a valid token or not
-  public async validateSession(sessionId: string): Promise<string> {
+  public async validateSession(sessionId: string, refreshData = true): Promise<Session> {
     // If the session ID isn't in the token map, it's been invalidated
-    if (!this.tokenMap.has(sessionId)) {
+    if (!this.sessionMap.has(sessionId)) {
       return null;
     }
 
-    let storedToken = this.get(sessionId);
+    const session = this.sessionMap.get(sessionId);
     // If the token is expired, let's try to refresh it first
-    if (storedToken.expiry < new Date()) {
-      storedToken = await this.refreshToken(sessionId);
+    if (session.storedToken.expiry < new Date()) {
+      const storedToken = await this.refreshToken(session.storedToken);
 
       // If we didn't get a new token from it, session is invalid
       if (storedToken == null) {
+        this.invalidate(sessionId);
         return null;
       }
+
+      session.storedToken = storedToken;
+      this.logger.trace(`Successfully refreshed token: ${sessionId} ${storedToken.token}`);
     }
 
-    // Finally, do a test request to make sure it's valid
+    // Finally, request fresh user info from Discord
     try {
-      // Will throw on Discord API exception
-      await DiscordRESTHelper.user(storedToken.token);
-      // Success, return this token
-      return storedToken.token;
+      if (refreshData) {
+        // Will throw on Discord API exception
+        session.user = await DiscordRESTHelper.user(session.storedToken.token);
+        session.guilds = await DiscordRESTHelper.guilds(session.storedToken.token);
+      }
+      // Return the updated session
+      return session;
     } catch (e) {
       // If the response wasn't ok, something's wrong...
       this.logger.error(`Discord OAuth token test failed: ${e}`);
@@ -95,36 +125,26 @@ class DiscordTokenStoreImpl {
     }
   }
 
-  public get(sessionId: string): StoredToken {
-    return this.tokenMap.get(sessionId);
-  }
-
   public invalidate(sessionId: string): void {
-    this.tokenMap.delete(sessionId);
+    this.sessionMap.delete(sessionId);
   }
 
-  private async refreshToken(sessionId: string): Promise<StoredToken> {
-    const token = this.tokenMap.get(sessionId);
-
+  private async refreshToken(storedToken: StoredToken): Promise<StoredToken> {
     // Try and get the a new token
     const tokenResponse = await fetch(OAuth2Routes.tokenURL, {
       method: "POST",
-      body: this.generateRefreshParams(token.refreshToken)
+      body: this.generateRefreshParams(storedToken.refreshToken)
     });
     
     if (tokenResponse.ok) {
       // Parse token from response
       const token = (await tokenResponse.json()) as RESTPostOAuth2AccessTokenResult;
-      this.logger.trace(`Successfully refreshed token: ${sessionId} ${token.access_token}`)
       // Store the token
       const storedToken = new StoredToken(token);
-      this.tokenMap.set(sessionId, storedToken);
       return storedToken;
     } else {
       // If the response wasn't ok, something's wrong...
       this.logger.error(`Discord OAuth token refresh failed: Status ${tokenResponse.status} - ${await tokenResponse.text()}`);
-      // Invalidate the session ID while we're at it
-      this.invalidate(sessionId);
       return null;
     }
   }
@@ -159,4 +179,4 @@ class DiscordTokenStoreImpl {
   }
 }
 
-export const DiscordTokenStore = new DiscordTokenStoreImpl();
+export const SessionStore = new SessionStoreImpl();

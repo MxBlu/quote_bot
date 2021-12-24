@@ -2,7 +2,7 @@ import { Logger } from "bot-framework";
 import { Request, Response } from "express";
 
 import { FRONTEND_BASE_URL } from "../constants/constants.js";
-import { DiscordTokenStore } from "../support/discord_token_store.js";
+import { SessionStore } from "../support/session_store.js";
 
 // Handle OAuth callback from Discord
 export class OAuthCallbackRoute {
@@ -22,7 +22,7 @@ export class OAuthCallbackRoute {
 
     try {
       // Try and get the a token with this code
-      const sessionId = await DiscordTokenStore.handleTokenAuth(authorizationCode);
+      const sessionId = await SessionStore.handleTokenAuth(authorizationCode);
       // We get a sessionId back if we succeed
       if (sessionId != null) {
         // Set the session cookie on the response and redirect to the frontend
