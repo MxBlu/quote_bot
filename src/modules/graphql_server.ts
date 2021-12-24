@@ -1,13 +1,13 @@
 import { ApolloServer } from "apollo-server";
 import { Logger } from "bot-framework";
 import { buildSchema } from "type-graphql";
+import { GraphQLAuthentication } from "../graphql/authentication.js";
 
 import { GraphQLLogging } from "../graphql/logging_middleware.js";
 import { QuoteResolver } from "../graphql/Quote_resolver.js";
 import { UserResolver } from "../graphql/User_resolver.js";
 
 class GraphQLServerImpl {
-
   server: ApolloServer;
 
   logger: Logger;
@@ -22,12 +22,16 @@ class GraphQLServerImpl {
       globalMiddlewares: [ GraphQLLogging ]
     });
 
-    this.server = new ApolloServer({ schema });
+    const authentication = new GraphQLAuthentication();
+
+    this.server = new ApolloServer({ 
+      schema: schema, 
+      context: authentication.generateContext.bind(authentication)
+    });
 
     await this.server.listen(port);
     this.logger.debug(`Server running on port ${port}`);
   }
-
 }
 
 export const GraphQLServer = new GraphQLServerImpl();
