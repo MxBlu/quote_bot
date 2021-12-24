@@ -1,3 +1,4 @@
+import { envFlagOrDefault } from 'bot-framework';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
@@ -15,3 +16,6 @@ export const REST_SERVER_BASE_URL = process.env.REST_SERVER_BASE_URL;
 
 // Base URL for the frontend - where OAuth redirects to finally
 export const FRONTEND_BASE_URL = process.env.FRONTEND_BASE_URL;
+
+// Enable debug mode on GraphQL server
+export const GRAPHQL_DEBUG = envFlagOrDefault("GRAPHQL_DEBUG", false);

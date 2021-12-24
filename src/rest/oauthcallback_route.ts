@@ -26,7 +26,7 @@ export class OAuthCallbackRoute {
       // We get a sessionId back if we succeed
       if (sessionId != null) {
         // Set the session cookie on the response and redirect to the frontend
-        res.cookie('sessionId', sessionId);
+        res.cookie('sessionId', sessionId, { secure: true, sameSite: "none" });
         res.redirect(FRONTEND_BASE_URL);
       } else {
         // If we didn't get a session ID, something went wrong...
