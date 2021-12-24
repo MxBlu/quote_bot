@@ -1,6 +1,7 @@
 import { Logger } from "bot-framework";
 import cookieParser from "cookie-parser";
 import { OAuth2Routes } from "discord-api-types/v9";
+import { Permissions, PermissionString } from "discord.js";
 import express, { Application, NextFunction, Request, Response } from "express";
 
 import { DISCORD_REST_OAUTH_SCOPE, FRONTEND_BASE_URL, REST_SERVER_BASE_URL } from "../constants/constants.js";
@@ -81,6 +82,8 @@ class RESTServerImpl {
   // Route handlers
   // TODO: Send error responses as redirects to frontend with error messsages
 
+  // Identify whether the requestor is logged in
+  // Also returns user data if logged in
   private onIdentify = async (req: Request, res: Response): Promise<void> => {
     const sessionId = req.cookies.sessionId as string;
     // No session means not logged in
@@ -100,14 +103,23 @@ class RESTServerImpl {
       return;
     }
 
-    // If the user is indeed logged in, send that back along with user data
+    // Get user data from Discord
     const userData = await DiscordRESTHelper.user(token);
+    // Trim down to only necessary data
+    const userDataResponse = {
+      id: userData.id,
+      username: userData.username,
+      avatar: userData.avatar,
+      discriminator: userData.discriminator
+    };
+    // Return login status and user data as JSON
     res.json({
       loggedIn: true,
-      userData: userData
+      userData: userDataResponse
     });
   }
 
+  // Get guilds that the user is in that have QuoteBot present
   private onGuilds = async (req: Request, res: Response): Promise<void> => {
     const sessionId = req.cookies.sessionId as string;
     // No session means not logged in
@@ -123,16 +135,31 @@ class RESTServerImpl {
       return;
     }
 
-    // Get guilds for user from Discord, return them as JSON
-    res.json(await DiscordRESTHelper.guilds(token));
+    // Get guilds for user from Discord
+    const userGuilds = await DiscordRESTHelper.guilds(token);
+    // Get guilds that QuoteBot is in
+    const quoteBotGuilds = QuoteBot.discord.guilds.cache;
+    // Filter to only guilds that are shared with QuoteBot
+    // Trim it down to just the necessary fields
+    const guildsResponse = userGuilds
+      .filter(g => quoteBotGuilds.has(g.id))
+      .map(g => ({
+        id: g.id,
+        name: g.name,
+        admin: new Permissions(g.permissions as PermissionString).has("ADMINISTRATOR")
+      }));
+    // Return as JSON
+    res.json(guildsResponse);
   }
 
+  // Redirect to a Discord OAuth authorization URL
   private onLogin = (req: Request, res: Response): void => {
     // Redirect to authorization URL
     const url = this.generateAuthorizationUrl();
     res.redirect(url);
   };
 
+  // Handle OAuth callback from Discord
   private onOauthCallback = async (req: Request, res: Response): Promise<void> => {
     const authorizationCode = req.query.code as string;
     // If no "code" is present, response is malformed
