@@ -57,7 +57,7 @@ class RESTServerImpl {
   
   // Middleware
 
-  public onRequest = (req: Request, res: Response, next: NextFunction): void => {
+  private onRequest = (req: Request, res: Response, next: NextFunction): void => {
     // If QuoteBot isn't loaded yet, return a 500
     if (!QuoteBotDependency.isReady()) {
       res.status(500).json({
@@ -72,7 +72,7 @@ class RESTServerImpl {
     next();
   };
 
-  public onError = (err: Error, req: Request, res: Response) => {
+  private onError = (err: Error, req: Request, res: Response) => {
     // Log the error and return a 500
     this.logger.error(`Error processing request: ${req.path} - ${err}`);
     res.sendStatus(500);
@@ -81,7 +81,7 @@ class RESTServerImpl {
   // Route handlers
   // TODO: Send error responses as redirects to frontend with error messsages
 
-  public onIdentify = async (req: Request, res: Response): Promise<void> => {
+  private onIdentify = async (req: Request, res: Response): Promise<void> => {
     const sessionId = req.cookies.sessionId as string;
     // No session means not logged in
     if (sessionId == null || Object.keys(sessionId).length === 0) {
@@ -108,7 +108,7 @@ class RESTServerImpl {
     });
   }
 
-  public onGuilds = async (req: Request, res: Response): Promise<void> => {
+  private onGuilds = async (req: Request, res: Response): Promise<void> => {
     const sessionId = req.cookies.sessionId as string;
     // No session means not logged in
     if (sessionId == null || Object.keys(sessionId).length === 0) {
@@ -127,13 +127,13 @@ class RESTServerImpl {
     res.json(await DiscordRESTHelper.guilds(token));
   }
 
-  public onLogin = (req: Request, res: Response): void => {
+  private onLogin = (req: Request, res: Response): void => {
     // Redirect to authorization URL
     const url = this.generateAuthorizationUrl();
     res.redirect(url);
   };
 
-  public onOauthCallback = async (req: Request, res: Response): Promise<void> => {
+  private onOauthCallback = async (req: Request, res: Response): Promise<void> => {
     const authorizationCode = req.query.code as string;
     // If no "code" is present, response is malformed
     if (authorizationCode == null) {

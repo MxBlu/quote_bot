@@ -9,7 +9,7 @@ export class DiscordRESTHelper {
     }
 
     public static async guilds(token: string): Promise<APIGuild[]> {
-        return await this.get(token, Routes.guilds()) as APIGuild[];
+        return await this.get(token, Routes.userGuilds()) as APIGuild[];
     }
 
     private static async get(token: string, route: `/${string}`): Promise<unknown> {
