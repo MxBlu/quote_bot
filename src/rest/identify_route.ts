@@ -3,6 +3,17 @@ import { Request, Response } from "express";
 
 import { SessionStore } from "../support/session_store.js";
 
+// Interface for response from IdentifyRoute
+export interface IdentifyResponse {
+  loggedIn: boolean;
+  userData?: {
+    id: string;
+    username: string;
+    avatar: string;
+    discriminator: string;
+  }
+}
+
 // Identify whether the requestor is logged in
 // Also returns user data if logged in
 export class IdentifyRoute {

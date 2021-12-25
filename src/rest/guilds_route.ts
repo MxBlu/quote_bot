@@ -5,6 +5,13 @@ import { Request, Response } from "express";
 import { QuoteBot } from "../modules/quotebot.js";
 import { SessionStore } from "../support/session_store.js";
 
+// Interface for response from GuildsRoute
+export interface GuildsResponse {
+  id: string;
+  name: string;
+  admin: boolean;
+}
+
 // Get guilds that the user is in that have QuoteBot present
 export class GuildsRoute {
   logger: Logger;
