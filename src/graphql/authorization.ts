@@ -5,6 +5,9 @@ import { ResolverData } from "type-graphql";
 import { QuoteBot } from "../modules/quotebot.js";
 import { GraphQLContext } from "./context.js";
 
+// Authorization built around a few concepts:
+// 1.   Users can only request content for guilds that they are in
+// 2.   The bot must also be in the requested guild
 export class GraphQLAuthorization {
   logger: Logger;
 
@@ -29,8 +32,8 @@ export class GraphQLAuthorization {
         // Get guild that the channel belongs to
         guildId = (channel as GuildChannel).guild.id;
       } catch (e) {
-        // If we can't get it, it means that the bot can't see it,
-        //  and therefore is unauthorized
+        // If we can't get the channel, it means that the bot can't see it,
+        //  and therefore is in a guild the bot is not
         return false;
       }
 
