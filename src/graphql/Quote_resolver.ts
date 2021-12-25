@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { isDocument } from "@typegoose/typegoose";
 import { Arg, Authorized, FieldResolver, Query, Resolver, Root } from "type-graphql";
 
 import { IQuote, Quote, QuoteModel } from "../models/Quote.js";
@@ -52,7 +53,11 @@ export class QuoteResolver {
 
   @FieldResolver()
   public async stats(@Root() quote: IQuote): Promise<QuoteStats> {
-    return QuoteStatsModel.findById(quote.stats);
+    // If stats is already resolved, just return the resolved value
+    //  otherwise, fetch it from the DB
+    return isDocument(quote.stats) 
+        ? quote.stats 
+        : QuoteStatsModel.findById(quote.stats);
   }
 
 }
