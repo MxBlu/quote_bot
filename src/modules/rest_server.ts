@@ -38,7 +38,7 @@ class RESTServerImpl {
     this.server.use(this.onError);
 
     this.server.listen(port);
-    this.logger.debug(`Server running on port ${port}`);
+    this.logger.info(`Server running on port ${port}`);
   }
 
   private addRoutes(): void {
