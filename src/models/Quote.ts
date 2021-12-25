@@ -123,6 +123,7 @@ export class Quote implements IQuote {
     return id.length > 0 ? this.findById(id[0]).populate('stats').exec() : null;
   }
   
+  /* Deprecated */
   public static async getRandomFromAuthor(this: ReturnModelType<typeof Quote>, 
       guild: string, author: string): Promise<QuoteDoc> {
     const id: IdOnly[] = await this.aggregate([

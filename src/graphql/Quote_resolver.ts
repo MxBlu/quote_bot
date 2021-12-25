@@ -36,18 +36,21 @@ export class QuoteResolver {
     }
   }
   
+  /* Deprecated */
   @Authorized()
   @Query(returns => Quote, { nullable: true })
   public async quoteBySeq(@Arg("guildId") guildId: string, @Arg("seq") seq: number): Promise<Quote> {
     return QuoteModel.getBySeq(guildId, seq);
   }
 
+  /* Deprecated */
   @Authorized()
   @Query(returns => Quote, { nullable: true })
   public async randomQuote(@Arg("guildId") guildId: string): Promise<Quote> {
     return QuoteModel.getRandom(guildId);
   }
 
+  /* Deprecated */
   @Authorized()
   @Query(returns => Quote, { nullable: true })
   public async randomQuoteByAuthor(@Arg("guildId") guildId: string, @Arg("userId") userId: string): Promise<Quote> {
