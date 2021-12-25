@@ -1,11 +1,12 @@
 import { Logger } from "bot-framework";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 import express, { Application, NextFunction, Request, Response } from "express";
+
 import { GuildsRoute } from "../rest/guilds_route.js";
 import { IdentifyRoute } from "../rest/identify_route.js";
 import { LoginRoute } from "../rest/login_route.js";
 import { OAuthCallbackRoute } from "../rest/oauthcallback_route.js";
-
 import { QuoteBotDependency } from "./quotebot.js";
 
 // TODO: Send error responses as redirects to frontend with error messsages
@@ -25,6 +26,10 @@ class RESTServerImpl {
     this.server = express();
 
     // Add middleware - logging and server state
+    this.server.use(cors({
+      origin: true, // TODO: Make origin strict in production
+      credentials: true
+    }));
     this.server.use(this.onRequest);
     this.server.use(cookieParser());
     // Create routes 

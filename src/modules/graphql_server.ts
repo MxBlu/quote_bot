@@ -37,7 +37,7 @@ class GraphQLServerImpl {
       schema: schema, 
       context: authentication.generateContext.bind(authentication),
       cors: {
-        origin: true,
+        origin: true, // TODO: Make origin strict in production
         credentials: true
       },
       debug: GRAPHQL_DEBUG
