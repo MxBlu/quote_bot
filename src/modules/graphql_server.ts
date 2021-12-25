@@ -42,6 +42,7 @@ class GraphQLServerImpl {
         credentials: true
       },
       debug: GRAPHQL_DEBUG,
+      introspection: GRAPHQL_DEBUG,
       plugins: [
         GRAPHQL_DEBUG 
           ? ApolloServerPluginLandingPageLocalDefault()
