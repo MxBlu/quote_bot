@@ -43,7 +43,8 @@ class GraphQLServerImpl {
       debug: GRAPHQL_DEBUG
     });
 
-    await this.server.listen(port);
+    // Start server, handling only IPv4
+    await this.server.listen({ port, host: "0.0.0.0" });
     this.logger.info(`Server running on port ${port}`);
   }
 }

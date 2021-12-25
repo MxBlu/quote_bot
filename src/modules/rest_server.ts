@@ -40,7 +40,8 @@ class RESTServerImpl {
     // TODO: Fix, not working
     this.server.use(this.onError);
 
-    this.server.listen(port);
+    // Start server, handling only IPv4
+    this.server.listen(port, "0.0.0.0");
     this.logger.info(`Server running on port ${port}`);
   }
 
