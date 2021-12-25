@@ -5,6 +5,8 @@ import { parse } from "cookie";
 import { SessionStore } from "../support/session_store.js";
 import { GraphQLContext } from "./context.js";
 
+// Session cookie should be mapped to a stored session which
+//  should contain Discord data to authenticate the user
 export class GraphQLAuthentication {
   logger: Logger;
 
@@ -25,6 +27,7 @@ export class GraphQLAuthentication {
       throw new AuthenticationError("Not logged in");
     }
 
+    // Make sure the session is still valid
     const session = await SessionStore.validateSession(sessionId, false);
     // No session also means not logged in
     if (session == null) {

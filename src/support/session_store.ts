@@ -107,7 +107,7 @@ class SessionStoreImpl {
       this.logger.trace(`Successfully refreshed token: ${sessionId} ${storedToken.token}`);
     }
 
-    // Finally, request fresh user info from Discord
+    // Finally, request fresh user info from Discord if refreshData is specified
     try {
       if (refreshData) {
         // Will throw on Discord API exception
