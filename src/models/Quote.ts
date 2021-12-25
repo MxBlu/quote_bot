@@ -11,7 +11,14 @@ export type QuoteSingleQuery = DocumentQuery<QuoteDoc, QuoteDoc>;
 export type QuoteMultiQuery = DocumentQuery<QuoteDoc[], QuoteDoc>;
 export type QuoteDeleteQuery = Query<{ ok?: number; n?: number; deletedCount?: number;}, QuoteDoc>
 
-export type IdOnly = { _id: string };
+interface IdOnly { 
+  _id: string 
+}
+
+interface RandomQueryFilter {
+  guild: string;
+  author?: string;
+}
 
 // Interface for external use
 export interface IQuote {
@@ -26,6 +33,7 @@ export interface IQuote {
   timestamp: Date;
   stats?: Ref<QuoteStats>;
 }
+
 
 @plugin(AutoIncrementID, {trackerCollection: 'seq_counters', field: 'seq', startAt: 1, reference_fields: ['guild']})
 @ObjectType()
@@ -100,9 +108,15 @@ export class Quote implements IQuote {
     return this.findOne({ guild, seq }).populate('stats');
   }
 
-  public static async getRandom(this: ReturnModelType<typeof Quote>, guild: string): Promise<QuoteDoc> {
+  public static async getRandom(this: ReturnModelType<typeof Quote>, guild: string, author?: string): Promise<QuoteDoc> {
+    // Generate match filter from args
+    const matchFilter: RandomQueryFilter = { guild: guild };
+    if (author != null) {
+      matchFilter.author = author;
+    }
+
     const id: IdOnly[] = await this.aggregate([
-      { $match: { guild } }, 
+      { $match: matchFilter }, 
       { $sample: { size: 1 } }, 
       { $project: { _id: 1 } }
     ]).exec();

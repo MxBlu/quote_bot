@@ -1,13 +1,40 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { isDocument } from "@typegoose/typegoose";
-import { Arg, Authorized, FieldResolver, Query, Resolver, Root } from "type-graphql";
+import { IsNotEmpty, ValidateIf } from "class-validator";
+import { Arg, Authorized, Field, FieldResolver, InputType, Int, Query, Resolver, Root } from "type-graphql";
 
 import { IQuote, Quote, QuoteModel } from "../models/Quote.js";
 import { QuoteStats, QuoteStatsModel } from "../models/QuoteStats.js";
 import { PaginationArgs } from "./pagination.js";
 
+// Argument for 'quote' queries
+@InputType()
+class QuoteArgs {
+  // If 'random' is not true, 'seq' must be present
+  @ValidateIf(q => q.random !== true)
+  @IsNotEmpty()
+  @Field(type => Int, { nullable: true })
+  seq?: number;
+
+  @Field({ nullable: true })
+  random?: boolean;
+
+  @Field({ nullable: true })
+  author?: string;
+}
+
 @Resolver(of => Quote)
 export class QuoteResolver {
+
+  @Authorized()
+  @Query(returns => Quote, { nullable: true })
+  public async quote(@Arg("guildId") guildId: string, @Arg("args") args: QuoteArgs): Promise<Quote> {
+    if (args.seq) {
+      return QuoteModel.getBySeq(guildId, args.seq);
+    } else {
+      return QuoteModel.getRandom(guildId, args.author);
+    }
+  }
   
   @Authorized()
   @Query(returns => Quote, { nullable: true })
