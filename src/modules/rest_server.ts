@@ -37,6 +37,7 @@ class RESTServerImpl {
     // Add unknown route handler
     this.server.use(this.onUnknownRoute);
     // Add error handler
+    // TODO: Fix, not working
     this.server.use(this.onError);
 
     this.server.listen(port);
