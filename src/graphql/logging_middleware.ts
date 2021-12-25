@@ -15,7 +15,7 @@ export class GraphQLLogging implements MiddlewareInterface<GraphQLContext> {
   public async use({ context, info }: ResolverData<GraphQLContext>, next: NextFn): Promise<any> {
     const caller = context.user?.username ?? '<unauthenticated>';
     if (info.parentType.name == 'Query') {
-      this.logger.info(`${caller} calling ${info.fieldName} - Parameters: ${JSON.stringify(info.variableValues)}`);
+      this.logger.debug(`${caller} calling ${info.fieldName} - Parameters: ${JSON.stringify(info.variableValues)}`);
     }
     return next();
   }
