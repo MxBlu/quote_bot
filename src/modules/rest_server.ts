@@ -64,7 +64,7 @@ class RESTServerImpl {
 
   private onError = (err: Error, req: Request, res: Response) => {
     // Log the error and return a 500
-    this.logger.error(`Error processing request: ${req.path} - ${err}`);
+    this.logger.error(`Error processing request: ${req.path} - ${err.name}: ${err.message}`);
     res.sendStatus(500);
   }
 }
