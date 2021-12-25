@@ -34,6 +34,8 @@ class RESTServerImpl {
     this.server.use(cookieParser());
     // Create routes 
     this.addRoutes();
+    // Add unknown route handler
+    this.server.use(this.onUnknownRoute);
     // Add error handler
     this.server.use(this.onError);
 
@@ -67,6 +69,11 @@ class RESTServerImpl {
     this.logger.error(`Error processing request: ${req.path} - ${err.name}: ${err.message}`);
     res.sendStatus(500);
   }
+
+  private onUnknownRoute = (req: Request, res: Response): void => {
+    // If we don't have a specific handler for the route, send a 404
+    res.sendStatus(404);
+  };
 }
 
 export const RESTServer = new RESTServerImpl();
