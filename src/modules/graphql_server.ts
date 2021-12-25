@@ -1,4 +1,5 @@
 import { ApolloServer } from "apollo-server";
+import { ApolloServerPluginLandingPageDisabled, ApolloServerPluginLandingPageLocalDefault } from "apollo-server-core";
 import { Dependency, Logger } from "bot-framework";
 import { buildSchema } from "type-graphql";
 
@@ -30,7 +31,7 @@ class GraphQLServerImpl {
     const schema = await buildSchema({
       resolvers: [ QuoteResolver, UserResolver ],
       globalMiddlewares: [ GraphQLLogging ],
-      authChecker: authorization.check.bind(authorization)
+      authChecker: authorization.check.bind(authorization),
     });
 
     this.server = new ApolloServer({ 
@@ -40,7 +41,12 @@ class GraphQLServerImpl {
         origin: true, // TODO: Make origin strict in production
         credentials: true
       },
-      debug: GRAPHQL_DEBUG
+      debug: GRAPHQL_DEBUG,
+      plugins: [
+        GRAPHQL_DEBUG 
+          ? ApolloServerPluginLandingPageLocalDefault()
+          : ApolloServerPluginLandingPageDisabled()
+      ]
     });
 
     // Start server, handling only IPv4

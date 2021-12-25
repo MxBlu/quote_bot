@@ -17,6 +17,7 @@
     "@typegoose/auto-increment": "MxBlu/auto-increment#0.9.1",
     "@typegoose/typegoose": "8.2.0",
     "apollo-server": "3.5.0",
+    "apollo-server-core": "^3.5.0",
     "apollo-server-express": "3.5.0",
     "bot-framework": "Mxblu/bot-framework#4.3.8",
     "bufferutil": "4.0.3",
