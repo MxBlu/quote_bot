@@ -8,37 +8,37 @@ import { QuoteStats, QuoteStatsModel } from "../models/QuoteStats.js";
 export class QuoteResolver {
     
     @Authorized()
-    @Query(returns => Quote)
+    @Query(returns => Quote, { nullable: true })
     public async quoteBySeq(@Arg("guildId") guildId: string, @Arg("seq") seq: number): Promise<Quote> {
         return QuoteModel.getBySeq(guildId, seq);
     }
 
     @Authorized()
-    @Query(returns => Quote)
+    @Query(returns => Quote, { nullable: true })
     public async randomQuote(@Arg("guildId") guildId: string): Promise<Quote> {
         return QuoteModel.getRandom(guildId);
     }
 
     @Authorized()
-    @Query(returns => Quote)
+    @Query(returns => Quote, { nullable: true })
     public async randomQuoteByAuthor(@Arg("guildId") guildId: string, @Arg("userId") userId: string): Promise<Quote> {
         return QuoteModel.getRandomFromAuthor(guildId, userId);
     }
 
     @Authorized()
-    @Query(returns => [Quote])
+    @Query(returns => [Quote], { nullable: true })
     public async quotesByGuild(@Arg("guildId") guildId: string): Promise<Quote[]> {
         return QuoteModel.findByGuild(guildId);
     }
 
     @Authorized()
-    @Query(returns => [Quote])
+    @Query(returns => [Quote], { nullable: true })
     public async quotesByAuthor(@Arg("guildId") guildId: string, @Arg("userId") userId: string): Promise<Quote[]> {
         return QuoteModel.findByAuthor(userId, guildId);
     }
 
     @Authorized()
-    @Query(returns => [Quote])
+    @Query(returns => [Quote], { nullable: true })
     public async quotesByChannel(@Arg("channelId") channelId: string): Promise<Quote[]> {
         return QuoteModel.findByChannel(channelId);
     }

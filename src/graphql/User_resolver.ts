@@ -7,7 +7,7 @@ import { User, UserModel, UserMultiQuery, UserSingleQuery } from "../models/User
 export class UserResolver {
 
     @Authorized()
-    @Query(returns => [User])
+    @Query(returns => [User], { nullable: true })
     public users(@Arg("guildId") guildId: string): UserMultiQuery {
         return UserModel.getByGuild(guildId);
     }
