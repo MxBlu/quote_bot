@@ -20,4 +20,5 @@ export const FRONTEND_BASE_URL = process.env.FRONTEND_BASE_URL;
 // Enable debug mode on GraphQL server
 export const GRAPHQL_DEBUG = envFlagOrDefault("GRAPHQL_DEBUG", false);
 
+// If token is present, bypasses authentication on GraphQL
 export const GRAPHQL_AUTH_BYPASS_TOKEN = process.env.GRAPHQL_AUTH_BYPASS_TOKEN;

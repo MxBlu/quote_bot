@@ -19,6 +19,11 @@ export class GraphQLAuthorization {
     const args = resolverData.args;
     const context = resolverData.context;
 
+    // If the authorization bypass is active, always allow actions
+    if (context.bypassAuthorization) {
+      return true;
+    }
+
     // Get the referenced guild in the request
     let guildId: string = null;
     if ('guildId' in args) {

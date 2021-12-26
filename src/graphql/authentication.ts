@@ -19,7 +19,7 @@ export class GraphQLAuthentication {
     // Authorization header can be set to a fixed token to bypass all auth checks
     const authorizationHeader = expressContext.req.headers.authorization;
     if (authorizationHeader != null && GRAPHQL_AUTH_BYPASS_TOKEN != null) {
-      if (authorizationHeader == GRAPHQL_AUTH_BYPASS_TOKEN) {
+      if (authorizationHeader == `Bearer ${GRAPHQL_AUTH_BYPASS_TOKEN}`) {
         // If matching, set bypassAuthorization in context
         return { bypassAuthorization: true };
       } else {
