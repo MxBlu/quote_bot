@@ -61,7 +61,6 @@ class RESTServerImpl {
 
   private onRequest = (req: Request, res: Response, next: NextFunction): void => {
     // Log request paths with IPs
-    // TODO: Adjust for reverse proxy
     this.logger.info(`Request: ${req.path} - ${req.ip}`);
     next();
   };
