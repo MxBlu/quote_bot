@@ -20,6 +20,15 @@ interface RandomQueryFilter {
   author?: string;
 }
 
+interface QuotesFilter {
+  guild: string;
+  channel?: string;
+  author?: string;
+  quoter?: string;
+  img?: { $ne: null } | null; // If 'img' exists, make it a null check
+  timestamp?: { $gte?: Date, $lt?: Date };
+}
+
 // Interface for external use
 export interface IQuote {
   seq?: number;
@@ -28,7 +37,7 @@ export interface IQuote {
   message: string;
   author: string;
   quoter: string;
-  img: string;
+  img?: string;
   link: string;
   timestamp: Date;
   stats?: Ref<QuoteStats>;
@@ -71,8 +80,8 @@ export class Quote implements IQuote {
 
   // Image link if present in message
   @prop()
-  @Field()
-  public img: string;
+  @Field({ nullable: true })
+  public img?: string;
 
   // URL of quoted message
   @prop({index: true})
@@ -136,6 +145,43 @@ export class Quote implements IQuote {
 
   public static deleteBySeq(this: ReturnModelType<typeof Quote>, guild: string, seq: number): QuoteDeleteQuery {
     return this.deleteOne({ guild, seq });
+  }
+
+  /*
+    channel?: string;
+    author?: string;
+    quoter?: string;
+    img?: { $ne: null } | null; // If 'img' exists, make it a null check
+    timestamp?: { $gte?: Date, $lt?: Date };
+  */
+  public static filterFind(this: ReturnModelType<typeof Quote>, guild: string, 
+      channel?: string, author?: string, quoter?: string, hasImg?: boolean,
+      before?: Date, after?: Date): QuoteMultiQuery {
+    // Generate filter from args
+    const filter: QuotesFilter = { guild: guild };
+    if (channel != null) {
+      filter.channel = channel;
+    }
+    if (author != null) {
+      filter.author = author;
+    }
+    if (quoter != null) {
+      filter.quoter = quoter;
+    }
+    if (hasImg != null) {
+      filter.img = hasImg ? { $ne: null } : null;
+    }
+    if (before != null || after != null) {
+      filter.timestamp = {};
+      if (before != null) {
+        filter.timestamp.$lt = before;
+      }
+      if (after != null) {
+        filter.timestamp.$gte = after;
+      }
+    }
+
+    return this.find(filter);
   }
 
   public static findByGuild(this: ReturnModelType<typeof Quote>, guild: string): QuoteMultiQuery {
