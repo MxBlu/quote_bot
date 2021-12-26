@@ -1,6 +1,7 @@
 import { AuthenticationError, ExpressContext } from "apollo-server-express";
 import { Logger } from "bot-framework";
 import { parse } from "cookie";
+import { GRAPHQL_AUTH_BYPASS_TOKEN } from "../constants/constants.js";
 
 import { SessionStore } from "../support/session_store.js";
 import { GraphQLContext } from "./context.js";
@@ -15,6 +16,17 @@ export class GraphQLAuthentication {
   }
 
   public async generateContext(expressContext: ExpressContext): Promise<GraphQLContext> {
+    // Authorization header can be set to a fixed token to bypass all auth checks
+    const authorizationHeader = expressContext.req.headers.authorization;
+    if (authorizationHeader != null && GRAPHQL_AUTH_BYPASS_TOKEN != null) {
+      if (authorizationHeader == GRAPHQL_AUTH_BYPASS_TOKEN) {
+        // If matching, set bypassAuthorization in context
+        return { bypassAuthorization: true };
+      } else {
+        // Otherwise, fail authentication early
+        throw new AuthenticationError("Not logged in");
+      }
+    }
     // Parse cookies on HTTP request
     if (!expressContext.req.headers.cookie) {
       expressContext.req.headers.cookie = "";
