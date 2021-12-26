@@ -53,6 +53,10 @@ export class User implements IUser {
   @prop()
   @Field()
   public discriminator: string;
+
+  // Discord avatar - the best we can get for the individual
+  @Field()
+  public avatarUrl?: string;
   
   public static getById(this: ReturnModelType<typeof User>, user: string, guild: string): UserSingleQuery {
     return this.findById({ user, guild });
