@@ -15,17 +15,17 @@ export interface IQuoteStats {
 export class QuoteStats implements IQuoteStats {
 
   // User IDs representing view events, non-unique
-  @prop({ type: String, default: [] })
+  @prop({ type: String })
   @Field(type => [String])
   public views?: string[];
 
   // User IDs representing likes, unique
-  @prop({ type: String, default: [] })
+  @prop({ type: String })
   @Field(type => [String])
   public likes?: string[];
 
   // User IDs representing likes, unique
-  @prop({ type: String, default: [] })
+  @prop({ type: String })
   @Field(type => [String])
   public dislikes?: string[];
 
