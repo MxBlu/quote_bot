@@ -139,11 +139,13 @@ export class Quote implements IQuote {
       matchFilter.author = author;
     }
 
+    // Fetch the ID for a random quote matching the filter
     const id: IdOnly[] = await this.aggregate([
       { $match: matchFilter }, 
       { $sample: { size: 1 } }, 
       { $project: { _id: 1 } }
     ]).exec();
+    // Fetch the full quote document and populate the stats field
     return id.length > 0 ? this.findById(id[0]).populate('stats').exec() : null;
   }
   
