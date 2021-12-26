@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { DocumentType, getModelForClass, isDocument, plugin, prop, Ref, ReturnModelType } from '@typegoose/typegoose';
 import { AutoIncrementID } from '@typegoose/auto-increment';
-import { Field, ObjectType } from 'type-graphql';
-import { DocumentQuery, Query } from 'mongoose';
+import { Field, ObjectType, registerEnumType } from 'type-graphql';
+import { Aggregate, DocumentQuery, Query } from 'mongoose';
 
 import { QuoteStats, QuoteStatsDoc, QuoteStatsModel } from './QuoteStats.js';
 
 export type QuoteDoc = DocumentType<Quote>;
 export type QuoteSingleQuery = DocumentQuery<QuoteDoc, QuoteDoc>;
 export type QuoteMultiQuery = DocumentQuery<QuoteDoc[], QuoteDoc>;
+export type QuoteAggregate = Aggregate<QuoteDoc[]>;
 export type QuoteDeleteQuery = Query<{ ok?: number; n?: number; deletedCount?: number;}, QuoteDoc>
 
 interface IdOnly { 
@@ -27,7 +28,21 @@ interface QuotesFilter {
   quoter?: string;
   img?: { $ne: null } | null; // If 'img' exists, make it a null check
   timestamp?: { $gte?: Date, $lt?: Date };
+  stats?: { $ne: null }; // Used to filter out quotes without stats for stats filter
 }
+
+export enum QuoteSortOption {
+  DEFAULT,
+  TIME,
+  LIKE,
+  DISLIKE,
+  VIEW
+}
+
+// Register the type with TypeGraphQL for reflection
+registerEnumType(QuoteSortOption, {
+  name: "QuoteSortOption"
+});
 
 // Interface for external use
 export interface IQuote {
@@ -143,20 +158,10 @@ export class Quote implements IQuote {
     return id.length > 0 ? this.findById(id[0]).populate('stats').exec() : null;
   }
 
-  public static deleteBySeq(this: ReturnModelType<typeof Quote>, guild: string, seq: number): QuoteDeleteQuery {
-    return this.deleteOne({ guild, seq });
-  }
-
-  /*
-    channel?: string;
-    author?: string;
-    quoter?: string;
-    img?: { $ne: null } | null; // If 'img' exists, make it a null check
-    timestamp?: { $gte?: Date, $lt?: Date };
-  */
   public static filterFind(this: ReturnModelType<typeof Quote>, guild: string, 
       channel?: string, author?: string, quoter?: string, hasImg?: boolean,
-      before?: Date, after?: Date): QuoteMultiQuery {
+      before?: Date, after?: Date, sortKey?: QuoteSortOption, descending = false
+        ): QuoteMultiQuery | QuoteAggregate {
     // Generate filter from args
     const filter: QuotesFilter = { guild: guild };
     if (channel != null) {
@@ -181,19 +186,62 @@ export class Quote implements IQuote {
       }
     }
 
-    return this.find(filter);
+    let query: QuoteMultiQuery | QuoteAggregate = null;
+    if (sortKey == QuoteSortOption.LIKE || 
+        sortKey == QuoteSortOption.DISLIKE || 
+        sortKey == QuoteSortOption.VIEW) {
+      // These sort options require an aggregate instead of a simple find
+      // Determine field to sort on based on sortKey
+      const sortField =
+          sortKey == QuoteSortOption.LIKE ? "$stats.likes" :
+          sortKey == QuoteSortOption.DISLIKE ? "$stats.dislikes" :
+          "$stats.views";
+      // Filter out quotes without stats - breaks pipeline
+      // filter.stats = { $ne: null };
+      // Build aggregate pipeline to merge in stats and sort the object
+      query = this.aggregate([
+        { $match: filter }, // Filter to quotes we care about
+        { $lookup: { 
+          from: 'quotestats',
+          localField: 'stats',
+          foreignField: '_id',
+          as: 'stats' } }, // Join the 'stats' object
+        { $unwind: '$stats' }, // Unwind the above since its an array
+        { $addFields: { sortCount: { $size: sortField } } }, // Add in an aggregate field to sort by
+        { $sort: { sortCount: descending ? -1 : 1 } } // Do the actual sort
+      ]) as QuoteAggregate;
+
+    } else {
+      // Query can be a simple find
+      query = this.find(filter);
+ 
+      // DEFAULT sort = TIME sort, which is the default operation on Mongo
+      // Only worry if descending is true
+      if (descending) {
+        query = query.sort({ _id: -1 });
+      }
+    }
+
+    return query;
   }
 
+  /* Deprecated */
   public static findByGuild(this: ReturnModelType<typeof Quote>, guild: string): QuoteMultiQuery {
     return this.find({ guild });
   }
 
+  /* Deprecated */
   public static findByChannel(this: ReturnModelType<typeof Quote>, channel: string): QuoteMultiQuery {
     return this.find({ channel });
   }
 
+  /* Deprecated */
   public static findByAuthor(this: ReturnModelType<typeof Quote>, author: string, guild: string): QuoteMultiQuery {
     return this.find({ author, guild });
+  }
+
+  public static deleteBySeq(this: ReturnModelType<typeof Quote>, guild: string, seq: number): QuoteDeleteQuery {
+    return this.deleteOne({ guild, seq });
   }
 
   public static checkExists(this: ReturnModelType<typeof Quote>, link: string): Promise<boolean> {

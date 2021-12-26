@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { isDocument } from "@typegoose/typegoose";
 import { IsNotEmpty, ValidateIf } from "class-validator";
-import { Arg, Authorized, Field, FieldResolver, InputType, Int, Query, registerEnumType, Resolver, Root } from "type-graphql";
+import { Arg, Authorized, Field, FieldResolver, InputType, Int, Query, Resolver, Root } from "type-graphql";
 
-import { IQuote, Quote, QuoteModel } from "../models/Quote.js";
+import { IQuote, Quote, QuoteModel, QuoteSortOption } from "../models/Quote.js";
 import { QuoteStats, QuoteStatsModel } from "../models/QuoteStats.js";
 import { PaginationArgs } from "./pagination.js";
 
@@ -36,16 +36,6 @@ class QuoteDatetimeArgs {
   // Get Quotes after provided date
   after?: Date;
 }
-
-enum QuoteSortOption {
-  DEFAULT,
-  TIME
-}
-
-// Register the type with TypeGraphQL for reflection
-registerEnumType(QuoteSortOption, {
-  name: "QuoteSortOption"
-});
 
 @InputType()
 class QuoteSortArgs {
@@ -132,11 +122,10 @@ export class QuoteResolver {
     if (args.search == null) {
       // Generate query from args
       const query = QuoteModel.filterFind(guildId, args.channel, args.author, 
-            args.quoter, args.hasImg, args.datetime.before, args.datetime.after);
-      // Non-search only supports time sort anyway, just flip directions based on 'descending'
-      const sort = { _id: args.sort.descending ? -1 : 1 };
+            args.quoter, args.hasImg, args.datetime.before, args.datetime.after,
+            args.sort.type, args.sort.descending);
 
-      return query.sort(sort).skip(options.offset).limit(options.limit);
+      return query.skip(options.offset).limit(options.limit);
     } else {
       // TODO: Implement search
       throw new Error("Search not implemented");
