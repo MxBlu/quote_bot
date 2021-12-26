@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { isDocument } from "@typegoose/typegoose";
 import { IsNotEmpty, ValidateIf } from "class-validator";
-import { Arg, Authorized, Field, FieldResolver, InputType, Int, Query, Resolver, Root } from "type-graphql";
+import { Arg, Authorized, Directive, Field, FieldResolver, InputType, Int, Query, Resolver, Root } from "type-graphql";
 
 import { IQuote, Quote, QuoteModel, QuoteSortOption } from "../models/Quote.js";
 import { QuoteStats, QuoteStatsModel } from "../models/QuoteStats.js";
@@ -93,21 +93,21 @@ export class QuoteResolver {
     }
   }
   
-  /* Deprecated */
+  @Directive('@deprecated(reason: "Use `quote`")')
   @Authorized()
   @Query(returns => Quote, { nullable: true })
   public async quoteBySeq(@Arg("guildId") guildId: string, @Arg("seq") seq: number): Promise<Quote> {
     return QuoteModel.getBySeq(guildId, seq);
   }
 
-  /* Deprecated */
+  @Directive('@deprecated(reason: "Use `quote`")')
   @Authorized()
   @Query(returns => Quote, { nullable: true })
   public async randomQuote(@Arg("guildId") guildId: string): Promise<Quote> {
     return QuoteModel.getRandom(guildId);
   }
 
-  /* Deprecated */
+  @Directive('@deprecated(reason: "Use `quote`")')
   @Authorized()
   @Query(returns => Quote, { nullable: true })
   public async randomQuoteByAuthor(@Arg("guildId") guildId: string, @Arg("userId") userId: string): Promise<Quote> {
@@ -132,7 +132,7 @@ export class QuoteResolver {
     }
   }
 
-  /* Deprecated */
+  @Directive('@deprecated(reason: "Use `quotes`")')
   @Authorized()
   @Query(returns => [Quote], { nullable: true })
   public async quotesByGuild(@Arg("guildId") guildId: string, 
@@ -141,7 +141,7 @@ export class QuoteResolver {
         .skip(options.offset).limit(options.limit);
   }
 
-  /* Deprecated */
+  @Directive('@deprecated(reason: "Use `quotes`")')
   @Authorized()
   @Query(returns => [Quote], { nullable: true })
   public async quotesByAuthor(@Arg("guildId") guildId: string, @Arg("userId") userId: string, 
@@ -150,7 +150,7 @@ export class QuoteResolver {
         .skip(options.offset).limit(options.limit);
   }
 
-  /* Deprecated */
+  @Directive('@deprecated(reason: "Use `quotes`")')
   @Authorized()
   @Query(returns => [Quote], { nullable: true })
   public async quotesByChannel(@Arg("channelId") channelId: string, 
