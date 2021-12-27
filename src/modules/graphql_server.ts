@@ -9,6 +9,7 @@ import { GraphQLAuthorization } from "../graphql/authorization.js";
 import { GraphQLLogging } from "../graphql/logging.js";
 import { QuoteResolver } from "../graphql/Quote_resolver.js";
 import { UserResolver } from "../graphql/User_resolver.js";
+import { SearchDependency } from "../support/search.js";
 import { StoreDependency } from "../support/store.js";
 import { QuoteBotDependency } from "./quotebot.js";
 
@@ -22,8 +23,8 @@ class GraphQLServerImpl {
   }
 
   public async init(port: number): Promise<void> {
-    // We need QuoteBot for the Discord session, and Store for data
-    await Dependency.awaitMultiple(QuoteBotDependency, StoreDependency);
+    // We need QuoteBot for the Discord session, and Store for data, Search for search
+    await Dependency.awaitMultiple(QuoteBotDependency, StoreDependency, SearchDependency);
 
     const authentication = new GraphQLAuthentication();
     const authorization = new GraphQLAuthorization();
