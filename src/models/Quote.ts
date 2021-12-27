@@ -3,6 +3,7 @@ import { DocumentType, getModelForClass, isDocument, plugin, prop, Ref, ReturnMo
 import { AutoIncrementID } from '@typegoose/auto-increment';
 import { Field, ObjectType, registerEnumType } from 'type-graphql';
 import { Aggregate, DocumentQuery, Query } from 'mongoose';
+import mongoose from 'mongoose';
 
 import { QuoteStats, QuoteStatsDoc, QuoteStatsModel } from './QuoteStats.js';
 
@@ -46,6 +47,7 @@ registerEnumType(QuoteSortOption, {
 
 // Interface for external use
 export interface IQuote {
+  _id: mongoose.Types.ObjectId;
   seq?: number;
   channel: string;
   guild: string;
@@ -62,6 +64,10 @@ export interface IQuote {
 @plugin(AutoIncrementID, {trackerCollection: 'seq_counters', field: 'seq', startAt: 1, reference_fields: ['guild']})
 @ObjectType()
 export class Quote implements IQuote {
+  
+  // MongoDB ID
+  @Field()
+  readonly _id: mongoose.Types.ObjectId;
 
   // Sequencing value, unique to the guild. For referencing quotes in a list
   @prop({index: true})

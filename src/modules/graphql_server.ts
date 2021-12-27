@@ -1,12 +1,14 @@
 import { ApolloServer } from "apollo-server";
 import { ApolloServerPluginLandingPageDisabled, ApolloServerPluginLandingPageLocalDefault } from "apollo-server-core";
 import { Dependency, Logger } from "bot-framework";
+import  mongoose from "mongoose";
 import { buildSchema } from "type-graphql";
 
 import { GRAPHQL_DEBUG } from "../constants/constants.js";
 import { GraphQLAuthentication } from "../graphql/authentication.js";
 import { GraphQLAuthorization } from "../graphql/authorization.js";
 import { GraphQLLogging } from "../graphql/logging.js";
+import { ObjectIdScalar } from "../graphql/objectId_scalar.js";
 import { QuoteResolver } from "../graphql/Quote_resolver.js";
 import { UserResolver } from "../graphql/User_resolver.js";
 import { StoreDependency } from "../support/store.js";
@@ -31,6 +33,7 @@ class GraphQLServerImpl {
     const schema = await buildSchema({
       resolvers: [ QuoteResolver, UserResolver ],
       globalMiddlewares: [ GraphQLLogging ],
+      scalarsMap: [{ type: mongoose.Types.ObjectId, scalar: ObjectIdScalar }],
       validate: { skipMissingProperties: false }, // Allows conditionally validating for missing args
       authChecker: authorization.check.bind(authorization),
     });
