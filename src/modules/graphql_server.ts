@@ -1,7 +1,6 @@
 import { ApolloServer } from "apollo-server";
 import { ApolloServerPluginLandingPageDisabled, ApolloServerPluginLandingPageLocalDefault } from "apollo-server-core";
 import { Dependency, Logger } from "bot-framework";
-import  mongoose from "mongoose";
 import { buildSchema } from "type-graphql";
 
 import { GRAPHQL_DEBUG } from "../constants/constants.js";
