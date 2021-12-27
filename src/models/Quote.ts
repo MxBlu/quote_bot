@@ -11,7 +11,8 @@ export type QuoteDoc = DocumentType<Quote>;
 export type QuoteSingleQuery = DocumentQuery<QuoteDoc, QuoteDoc>;
 export type QuoteMultiQuery = DocumentQuery<QuoteDoc[], QuoteDoc>;
 export type QuoteAggregate = Aggregate<QuoteDoc[]>;
-export type QuoteDeleteQuery = Query<{ ok?: number; n?: number; deletedCount?: number;}, QuoteDoc>
+export type QuoteDeleteQueryResult = { ok?: number; n?: number; deletedCount?: number; };
+export type QuoteDeleteQuery = Query<QuoteDeleteQueryResult, QuoteDoc>
 
 interface IdOnly { 
   _id: string 
