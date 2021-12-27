@@ -14,8 +14,7 @@ export class DiscordRESTHelper {
 
 	private static async get(token: string, route: `/${string}`): Promise<unknown> {
 		const client = new REST({ version: '9' }).setToken(token);
-		const response = await client.get(route, { authPrefix: "Bearer" });
-		return response;
+		return client.get(route, { authPrefix: "Bearer" });
 	}
 
 }

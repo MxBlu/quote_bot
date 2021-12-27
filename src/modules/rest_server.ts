@@ -2,6 +2,7 @@ import { Logger } from "bot-framework";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { Application, NextFunction, Request, Response } from "express";
+import { ChannelsRoute } from "../rest/channels_route.js";
 
 import { GuildsRoute } from "../rest/guilds_route.js";
 import { IdentifyRoute } from "../rest/identify_route.js";
@@ -46,11 +47,13 @@ class RESTServerImpl {
   }
 
   private addRoutes(): void {
+    const channelsRoute = new ChannelsRoute();
     const identifyRoute = new IdentifyRoute();
     const guildsRoute = new GuildsRoute();
     const loginRoute = new LoginRoute();
     const oauthCallbackRoute = new OAuthCallbackRoute();
 
+    this.server.get('/channels/:guild', channelsRoute.handle.bind(channelsRoute));
     this.server.get('/identify', identifyRoute.handle.bind(identifyRoute));
     this.server.get('/guilds', guildsRoute.handle.bind(guildsRoute));
     this.server.get('/login', loginRoute.handle.bind(loginRoute));
