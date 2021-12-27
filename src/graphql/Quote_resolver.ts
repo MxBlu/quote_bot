@@ -124,7 +124,6 @@ export class QuoteResolver {
     let idFilter: number[] = null;
     if (args.search != null) {
       idFilter = await Search.search(guildId, args.search);
-      console.log(idFilter);
     }
     // Generate query from args
     const query = QuoteModel.filterFind(guildId, args.channel, args.author, 

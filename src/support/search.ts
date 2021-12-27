@@ -54,6 +54,7 @@ class SearchImpl {
     const bucket = guildId;
     // Query the index for search results
     const results = await this.searchChannel.query(QUOTES_COLLECTION, bucket, text);
+    this.logger.trace(`Query for ${text} in ${guildId} returned ${results.length} results`);
     // Convert result strings to numbers
     return results.map(r => parseInt(r));
   }
@@ -70,7 +71,8 @@ class SearchImpl {
       return;
     }
     // Index the quote
-    return this.ingestChannel.push(QUOTES_COLLECTION, bucket, objectId, text);
+    await this.ingestChannel.push(QUOTES_COLLECTION, bucket, objectId, text);
+    this.logger.debug(`Ingested Quote ${quote.guild} - ${quote.seq}`);
   }
 
   public async remove(guildId: string, seq: number): Promise<boolean> {
@@ -79,7 +81,11 @@ class SearchImpl {
     // ID to Index
     const objectId = String(seq);
     // Flush the object out of index and return success
-    return await this.ingestChannel.flusho(QUOTES_COLLECTION, bucket, objectId) > 0;
+    const success = await this.ingestChannel.flusho(QUOTES_COLLECTION, bucket, objectId) > 0;
+    if (success) {
+      this.logger.debug(`Removed Quote ${guildId} - ${seq}`);
+    }
+    return success;
   }
 
   private normaliseMessageText(text: string): string {
