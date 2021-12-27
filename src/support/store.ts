@@ -1,7 +1,7 @@
 import { Dependency, Logger } from 'bot-framework';
 import mongoose from 'mongoose';
 
-import { Quote, QuoteDeleteQuery, QuoteDeleteQueryResult, QuoteDoc, QuoteModel, QuoteMultiQuery, QuoteSingleQuery } from '../models/Quote.js';
+import { Quote, QuoteDeleteQueryResult, QuoteDoc, QuoteModel, QuoteMultiQuery, QuoteSingleQuery } from '../models/Quote.js';
 import { UserModel, UserSingleQuery } from '../models/User.js';
 import { Search } from './search.js';
 
