@@ -3744,6 +3744,11 @@ snapdragon@^0.8.1:
     source-map-resolve "^0.5.0"
     use "^3.1.0"
 
+sonic-channel@^1.2.6:
+  version "1.2.6"
+  resolved "https://registry.yarnpkg.com/sonic-channel/-/sonic-channel-1.2.6.tgz#b8ae761eeaa5a3854f073f0865309103d2eefb52"
+  integrity sha512-vJaC27/bYvd2v2ZKx6njHoQGxoLOHLjXHc7XF+3BAyNSULJ/A1lYyJkCdVgskvpIfpX5khpsg0aWAT4sORppSA==
+
 source-map-resolve@^0.5.0:
   version "0.5.3"
   resolved "https://registry.yarnpkg.com/source-map-resolve/-/source-map-resolve-0.5.3.tgz#190866bece7553e1f8f267a2ee82c606b5509a1a"
