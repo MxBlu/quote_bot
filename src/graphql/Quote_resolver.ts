@@ -93,27 +93,6 @@ export class QuoteResolver {
       return QuoteModel.getRandom(guildId, args.author);
     }
   }
-  
-  @Directive('@deprecated(reason: "Use `quote`")')
-  @Authorized()
-  @Query(returns => Quote, { nullable: true })
-  public async quoteBySeq(@Arg("guildId") guildId: string, @Arg("seq") seq: number): Promise<Quote> {
-    return QuoteModel.getBySeq(guildId, seq);
-  }
-
-  @Directive('@deprecated(reason: "Use `quote`")')
-  @Authorized()
-  @Query(returns => Quote, { nullable: true })
-  public async randomQuote(@Arg("guildId") guildId: string): Promise<Quote> {
-    return QuoteModel.getRandom(guildId);
-  }
-
-  @Directive('@deprecated(reason: "Use `quote`")')
-  @Authorized()
-  @Query(returns => Quote, { nullable: true })
-  public async randomQuoteByAuthor(@Arg("guildId") guildId: string, @Arg("userId") userId: string): Promise<Quote> {
-    return QuoteModel.getRandomFromAuthor(guildId, userId);
-  }
 
   @Authorized()
   @Query(returns => [Quote], { nullable: true })
@@ -148,33 +127,6 @@ export class QuoteResolver {
       // Return results which have already been sorted for us
       return results;
     }
-  }
-
-  @Directive('@deprecated(reason: "Use `quotes`")')
-  @Authorized()
-  @Query(returns => [Quote], { nullable: true })
-  public async quotesByGuild(@Arg("guildId") guildId: string, 
-      @Arg("options", { defaultValue: new PaginationArgs() }) options: PaginationArgs): Promise<Quote[]> {
-    return QuoteModel.findByGuild(guildId)
-        .skip(options.offset).limit(options.limit);
-  }
-
-  @Directive('@deprecated(reason: "Use `quotes`")')
-  @Authorized()
-  @Query(returns => [Quote], { nullable: true })
-  public async quotesByAuthor(@Arg("guildId") guildId: string, @Arg("userId") userId: string, 
-      @Arg("options", { defaultValue: new PaginationArgs() }) options: PaginationArgs): Promise<Quote[]> {
-    return QuoteModel.findByAuthor(userId, guildId)
-        .skip(options.offset).limit(options.limit);
-  }
-
-  @Directive('@deprecated(reason: "Use `quotes`")')
-  @Authorized()
-  @Query(returns => [Quote], { nullable: true })
-  public async quotesByChannel(@Arg("channelId") channelId: string, 
-      @Arg("options", { defaultValue: new PaginationArgs() }) options: PaginationArgs): Promise<Quote[]> {
-    return QuoteModel.findByChannel(channelId)
-        .skip(options.offset).limit(options.limit);
   }
 
   @FieldResolver()
