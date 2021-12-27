@@ -25,6 +25,7 @@ interface RandomQueryFilter {
 
 interface QuotesFilter {
   guild: string;
+  seq?: { $in: number[] }; // Used in conjunction with text search results
   channel?: string;
   author?: string;
   quoter?: string;
@@ -169,8 +170,8 @@ export class Quote implements IQuote {
 
   public static filterFind(this: ReturnModelType<typeof Quote>, guild: string, 
       channel?: string, author?: string, quoter?: string, hasImg?: boolean,
-      before?: Date, after?: Date, sortKey?: QuoteSortOption, descending = false
-        ): QuoteMultiQuery | QuoteAggregate {
+      before?: Date, after?: Date, idFilter?: number[], sortKey?: QuoteSortOption, 
+      descending = false): QuoteMultiQuery | QuoteAggregate {
     // Generate filter from args
     const filter: QuotesFilter = { guild: guild };
     if (channel != null) {
@@ -193,6 +194,9 @@ export class Quote implements IQuote {
       if (after != null) {
         filter.timestamp.$gte = after;
       }
+    }
+    if (idFilter != null) {
+      filter.seq = { $in: idFilter };
     }
 
     let query: QuoteMultiQuery | QuoteAggregate = null;

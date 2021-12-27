@@ -5,6 +5,7 @@ import { Arg, Authorized, Directive, Field, FieldResolver, InputType, Int, Query
 
 import { IQuote, Quote, QuoteModel, QuoteSortOption } from "../models/Quote.js";
 import { QuoteStats, QuoteStatsModel } from "../models/QuoteStats.js";
+import { Search } from "../support/search.js";
 import { PaginationArgs } from "./pagination.js";
 
 // Argument for 'quote' queries
@@ -119,16 +120,34 @@ export class QuoteResolver {
   public async quotes(@Arg("guildId") guildId: string,
       @Arg("args", { defaultValue: new QuotesArgs() }) args: QuotesArgs,
       @Arg("options", { defaultValue: new PaginationArgs() }) options: PaginationArgs): Promise<Quote[]> {
-    if (args.search == null) {
-      // Generate query from args
-      const query = QuoteModel.filterFind(guildId, args.channel, args.author, 
-            args.quoter, args.hasImg, args.datetime.before, args.datetime.after,
-            args.sort.type, args.sort.descending);
+    // If a text query exists, do a text search first
+    let idFilter: number[] = null;
+    if (args.search != null) {
+      idFilter = await Search.search(guildId, args.search);
+      console.log(idFilter);
+    }
+    // Generate query from args
+    const query = QuoteModel.filterFind(guildId, args.channel, args.author, 
+          args.quoter, args.hasImg, args.datetime.before, args.datetime.after,
+          idFilter, args.sort.type, args.sort.descending);
 
-      return query.skip(options.offset).limit(options.limit);
+    // If we have a text query and the sort is "DEFAULT", we need to approach this differently
+    if (idFilter != null && args.sort.type == QuoteSortOption.DEFAULT) {
+      // Get all the results for the query "unsorted" (really sorted by time but irrelevant)
+      const results = await query;
+      // Sort the results array in-place
+      // Order is determined by relative position in idFilter array
+      // If descending sort is requested, invert the sorting
+      // TODO: should descending sort even be considered..? it's not meaningful
+      results.sort((a, b) =>
+        (idFilter.indexOf(a.seq) - idFilter.indexOf(b.seq)) * (args.sort.descending ? -1 : 1));
+      // Apply offset and limit and return
+      return results.slice(options.offset, options.offset + options.limit);
     } else {
-      // TODO: Implement search
-      throw new Error("Search not implemented");
+      // Execute the query with offset and limit
+      const results = await query.skip(options.offset).limit(options.limit);
+      // Return results which have already been sorted for us
+      return results;
     }
   }
 
