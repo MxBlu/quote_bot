@@ -49,17 +49,16 @@ registerEnumType(QuoteSortOption, {
 // Interface for external use
 export interface IQuote {
   seq?: number;
-  channel: string;
-  guild: string;
-  message: string;
-  author: string;
-  quoter: string;
+  channel?: string;
+  guild?: string;
+  message?: string;
+  author?: string;
+  quoter?: string;
   img?: string;
-  link: string;
-  timestamp: Date;
+  link?: string;
+  timestamp?: Date;
   stats?: Ref<QuoteStats>;
 }
-
 
 @plugin(AutoIncrementID, {trackerCollection: 'seq_counters', field: 'seq', startAt: 1, reference_fields: ['guild']})
 @ObjectType()
@@ -73,27 +72,27 @@ export class Quote implements IQuote {
   // Channel ID of quoted message
   @prop({index: true})
   @Field()
-  public channel: string;
+  public channel?: string;
 
   // Guild ID of quoted message
   @prop({index: true})
   @Field()
-  public guild: string;
+  public guild?: string;
 
   // Message contents, in form of embed description
   @prop()
   @Field()
-  public message: string;
+  public message?: string;
 
   // User ID of quoted message author
   @prop({index: true})
   @Field()
-  public author: string;
+  public author?: string;
 
   // User ID of quote saver
   @prop()
   @Field()
-  public quoter: string;
+  public quoter?: string;
 
   // Image link if present in message
   @prop()
@@ -103,12 +102,12 @@ export class Quote implements IQuote {
   // URL of quoted message
   @prop({index: true})
   @Field()
-  public link: string;
+  public link?: string;
 
   // Date of quoted message
   @prop()
   @Field()
-  public timestamp: Date;
+  public timestamp?: Date;
 
   @prop({ ref: QuoteStats })
   @Field(type => QuoteStats, { nullable: true })

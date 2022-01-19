@@ -9,25 +9,25 @@ export type UserMultiQuery = DocumentQuery<UserDoc[], UserDoc>;
 
 // Composite primary key for User
 interface UserID {
-  user: string; // Discord user ID
-  guild: string; // Guild where user is residing
+  user?: string; // Discord user ID
+  guild?: string; // Guild where user is residing
 }
 
 @ObjectType()
 class UserIDClass implements UserID {
   @Field()
-  user: string;
+  user?: string;
 
   @Field()
-  guild: string;
+  guild?: string;
 }
 
 // Interface for external use
 export interface IUser {
-  _id: UserID;
-  guild: string;
-  displayName: string;
-  discriminator: string;
+  _id?: UserID;
+  guild?: string;
+  displayName?: string;
+  discriminator?: string;
 }
 
 // For persisting user information in case they leave the guild or such
@@ -37,22 +37,22 @@ export class User implements IUser {
   // Primary key
   @prop()
   @Field(type => UserIDClass)
-  public _id: UserID;
+  public _id?: UserID;
   
   // Guild ID of user (duplicate of _id value)
   @prop()
   @Field()
-  public guild: string;
+  public guild?: string;
   
   // Last known display name
   @prop()
   @Field()
-  public displayName: string;
+  public displayName?: string;
   
   // Discord user discriminator
   @prop()
   @Field()
-  public discriminator: string;
+  public discriminator?: string;
 
   // Discord avatar - the best we can get for the individual
   @Field()
