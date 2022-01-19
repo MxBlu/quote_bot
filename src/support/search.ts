@@ -90,7 +90,7 @@ class SearchImpl {
 
   private normaliseMessageText(text: string): string {
     return text
-      .substr(0, text.lastIndexOf('\n')) // Remove "Link" line (last line)
+      .substring(0, text.lastIndexOf('\n')) // Remove "Link" line (last line)
       .replace('\n', ' ') // replace new-lines to spaces
       .trim(); // Remove excess spaces
   }
