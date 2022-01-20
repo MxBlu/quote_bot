@@ -15,10 +15,10 @@ interface UserID {
 
 @ObjectType()
 class UserIDClass implements UserID {
-  @Field()
+  @Field({ nullable: true })
   user?: string;
 
-  @Field()
+  @Field({ nullable: true })
   guild?: string;
 }
 
@@ -36,26 +36,26 @@ export interface IUser {
 export class User implements IUser {
   // Primary key
   @prop()
-  @Field(type => UserIDClass)
+  @Field(type => UserIDClass, { nullable: true })
   public _id?: UserID;
   
   // Guild ID of user (duplicate of _id value)
   @prop()
-  @Field()
+  @Field({ nullable: true })
   public guild?: string;
   
   // Last known display name
   @prop()
-  @Field()
+  @Field({ nullable: true })
   public displayName?: string;
   
   // Discord user discriminator
   @prop()
-  @Field()
+  @Field({ nullable: true })
   public discriminator?: string;
 
   // Discord avatar - the best we can get for the individual
-  @Field()
+  @Field({ nullable: true })
   public avatarUrl?: string;
   
   public static getById(this: ReturnModelType<typeof User>, user: string, guild: string): UserSingleQuery {

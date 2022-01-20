@@ -66,32 +66,32 @@ export class Quote implements IQuote {
 
   // Sequencing value, unique to the guild. For referencing quotes in a list
   @prop({index: true})
-  @Field()
+  @Field({ nullable: true })
   public seq?: number;
 
   // Channel ID of quoted message
   @prop({index: true})
-  @Field()
+  @Field({ nullable: true })
   public channel?: string;
 
   // Guild ID of quoted message
   @prop({index: true})
-  @Field()
+  @Field({ nullable: true })
   public guild?: string;
 
   // Message contents, in form of embed description
   @prop()
-  @Field()
+  @Field({ nullable: true })
   public message?: string;
 
   // User ID of quoted message author
   @prop({index: true})
-  @Field()
+  @Field({ nullable: true })
   public author?: string;
 
   // User ID of quote saver
   @prop()
-  @Field()
+  @Field({ nullable: true })
   public quoter?: string;
 
   // Image link if present in message
@@ -101,12 +101,12 @@ export class Quote implements IQuote {
 
   // URL of quoted message
   @prop({index: true})
-  @Field()
+  @Field({ nullable: true })
   public link?: string;
 
   // Date of quoted message
   @prop()
-  @Field()
+  @Field({ nullable: true })
   public timestamp?: Date;
 
   @prop({ ref: QuoteStats })
