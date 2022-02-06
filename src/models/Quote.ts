@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { DocumentType, getModelForClass, isDocument, plugin, prop, Ref, ReturnModelType } from '@typegoose/typegoose';
 import { AutoIncrementID } from '@typegoose/auto-increment';
 import { Field, ObjectType, registerEnumType } from 'type-graphql';
@@ -12,6 +14,20 @@ export type QuoteMultiQuery = DocumentQuery<QuoteDoc[], QuoteDoc>;
 export type QuoteAggregate = Aggregate<QuoteDoc[]>;
 export type QuoteDeleteQueryResult = { ok?: number; n?: number; deletedCount?: number; };
 export type QuoteDeleteQuery = Query<QuoteDeleteQueryResult, QuoteDoc>
+
+// Test whether an object is a DocumentQuery
+// WARNING - only designed to be used to differentiate between a DocumentQuery and an Aggregate, undefined behaviour otherwise
+export function isDocumentQuery(obj: any): obj is DocumentQuery<never, never> {
+  // Merge function is only defined for a find
+  return obj.merge !== undefined;
+}
+
+// Test whether an object is an Aggregate
+// WARNING - only designed to be used to differentiate between a DocumentQuery and an Aggregate, undefined behaviour otherwise
+export function isAggregate(obj: any): obj is Aggregate<never> {
+  // Pipeline function is only defined for a find
+  return obj.pipeline !== undefined;
+}
 
 interface IdOnly { 
   _id: string 

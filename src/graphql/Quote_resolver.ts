@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { isDocument } from "@typegoose/typegoose";
 import { IsNotEmpty, ValidateIf } from "class-validator";
-import { Arg, Authorized, Directive, Field, FieldResolver, InputType, Int, Query, Resolver, Root } from "type-graphql";
+import { Arg, Authorized, Field, FieldResolver, InputType, Int, ObjectType, Query, Resolver, Root } from "type-graphql";
 
-import { IQuote, Quote, QuoteModel, QuoteSortOption } from "../models/Quote.js";
+import { IQuote, isAggregate, isDocumentQuery, Quote, QuoteModel, QuoteSortOption } from "../models/Quote.js";
 import { QuoteStats, QuoteStatsModel } from "../models/QuoteStats.js";
 import { Search } from "../support/search.js";
 import { PaginationArgs } from "./pagination.js";
@@ -81,6 +81,19 @@ class QuotesArgs {
   sort = new QuoteSortArgs();
 }
 
+// Output type for paginated quote queries
+@ObjectType()
+export class QuotesQueryResponse {
+  @Field(type => [Quote])
+  results: Quote[];
+
+  @Field()
+  totalResultCount: number;
+}
+
+// Type for the result of a Model.aggregate([]).count('count') query
+type AggregateCountResult = [ { count: number }? ];
+
 @Resolver(of => Quote)
 export class QuoteResolver {
 
@@ -95,10 +108,10 @@ export class QuoteResolver {
   }
 
   @Authorized()
-  @Query(returns => [Quote], { nullable: true })
+  @Query(returns => QuotesQueryResponse)
   public async quotes(@Arg("guildId") guildId: string,
       @Arg("args", { defaultValue: new QuotesArgs() }) args: QuotesArgs,
-      @Arg("options", { defaultValue: new PaginationArgs() }) options: PaginationArgs): Promise<Quote[]> {
+      @Arg("options", { defaultValue: new PaginationArgs() }) options: PaginationArgs): Promise<QuotesQueryResponse> {
     // If a text query exists, do a text search first
     let idFilter: number[] = null;
     if (args.search != null) {
@@ -112,20 +125,39 @@ export class QuoteResolver {
     // If we have a text query and the sort is "DEFAULT", we need to approach this differently
     if (idFilter != null && args.sort.type == QuoteSortOption.DEFAULT) {
       // Get all the results for the query "unsorted" (really sorted by time but irrelevant)
-      const results = await query;
+      let results = await query;
+      // Get total result count
+      const totalResultCount = results.length;
       // Sort the results array in-place
       // Order is determined by relative position in idFilter array
       // If descending sort is requested, invert the sorting
       // TODO: should descending sort even be considered..? it's not meaningful
       results.sort((a, b) =>
         (idFilter.indexOf(a.seq) - idFilter.indexOf(b.seq)) * (args.sort.descending ? -1 : 1));
-      // Apply offset and limit and return
-      return results.slice(options.offset, options.offset + options.limit);
+      // Apply offset and limit
+      results = results.slice(options.offset, options.offset + options.limit);
+      // Return as a total result count and 
+      return {
+        results: results,
+        totalResultCount: totalResultCount
+      };
     } else {
-      // Execute the query with offset and limit
+      // Execute a cloned query to get result count
+      let totalResultCount = 0;
+      // Count is acquired by different means for aggregates and queries...
+      if (isAggregate(query)) {
+        const countResp 
+          = await QuoteModel.aggregate(query.pipeline()).count("count") as unknown as AggregateCountResult;
+        totalResultCount = countResp[0]?.count ?? 0;
+      } else if (isDocumentQuery(query)) {
+        totalResultCount = await QuoteModel.find().merge(query).countDocuments();
+      }
+      // Execute the query with offset and limit for the actual results
       const results = await query.skip(options.offset).limit(options.limit);
-      // Return results which have already been sorted for us
-      return results;
+      return {
+        results: results,
+        totalResultCount: totalResultCount
+      };
     }
   }
 
