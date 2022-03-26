@@ -1,5 +1,5 @@
 import { CommandProvider, Interactable, Logger, LogLevel, ModernApplicationCommandJSONBody, sendCmdReply } from "bot-framework";
-import { SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandNumberOption, SlashCommandUserOption } from "@discordjs/builders";
+import { SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandUserOption } from "@discordjs/builders";
 import { ButtonInteraction, CommandInteraction, Message, MessageEmbed, User } from "discord.js";
 
 import { QuoteDoc } from "../models/Quote.js";
