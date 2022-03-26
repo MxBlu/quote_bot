@@ -65,11 +65,10 @@ export class ReattrQuoteCommand implements CommandProvider<CommandInteraction> {
       return;
     }
     // Ensure the calling user is an admin or the author of said quote
-    if (!await isAdmin(interaction.guild, interaction.user) && quote.author != interaction.user.id ) {
+    if (! (await isAdmin(interaction.guild, interaction.user) || quote.author == interaction.user.id)) {
       sendCmdReply(interaction, 'Error: not an administrator or author of quote', this.logger, LogLevel.DEBUG);
       return;
     }
-
 
     // Update the author field and save to db
     quote.author = newAuthor.id;
