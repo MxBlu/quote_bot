@@ -51,11 +51,7 @@ export class ReattrQuoteCommand implements CommandProvider<CommandInteraction> {
   }
 
   public async handle(interaction: CommandInteraction): Promise<void> {
-    // Ensure the calling user is an admin
-    if (! await isAdmin(interaction.guild, interaction.user)) {
-      sendCmdReply(interaction, 'Error: not admin', this.logger, LogLevel.DEBUG);
-      return;
-    }
+
 
     // Get arguments from interaction
     const guild = interaction.guild;
@@ -68,6 +64,12 @@ export class ReattrQuoteCommand implements CommandProvider<CommandInteraction> {
       sendCmdReply(interaction, `Error: invalid quote ID`, this.logger, LogLevel.TRACE);
       return;
     }
+    // Ensure the calling user is an admin or the author of said quote
+    if (!await isAdmin(interaction.guild, interaction.user) && quote.author != interaction.user.id ) {
+      sendCmdReply(interaction, 'Error: not an administrator or author of quote', this.logger, LogLevel.DEBUG);
+      return;
+    }
+
 
     // Update the author field and save to db
     quote.author = newAuthor.id;
