@@ -1,39 +1,76 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { DocumentType, getModelForClass, modelOptions, prop, ReturnModelType, Severity } from "@typegoose/typegoose";
 import { DocumentQuery } from "mongoose";
+import { Field, ObjectType } from "type-graphql";
 
-export type UserSingleQuery = DocumentQuery<DocumentType<User>, DocumentType<User>>;
+export type UserDoc = DocumentType<User>;
+export type UserSingleQuery = DocumentQuery<UserDoc, UserDoc>;
+export type UserMultiQuery = DocumentQuery<UserDoc[], UserDoc>;
+
+// Composite primary key for User
+interface UserID {
+  user?: string; // Discord user ID
+  guild?: string; // Guild where user is residing
+}
+
+@ObjectType()
+class UserIDClass implements UserID {
+  @Field({ nullable: true })
+  user?: string;
+
+  @Field({ nullable: true })
+  guild?: string;
+}
+
+// Interface for external use
+export interface IUser {
+  _id?: UserID;
+  guild?: string;
+  displayName?: string;
+  discriminator?: string;
+}
 
 // For persisting user information in case they leave the guild or such
 @modelOptions({ options: { allowMixed: Severity.ALLOW } })
-export class User {
-  // Sequencing value, unique to the guild. For referencing quotes in a list
+@ObjectType()
+export class User implements IUser {
+  // Primary key
   @prop()
-  public _id: { // Composite index of
-    user: string, // Discord user ID
-    guild: string // Guild where user is residing
-  };
+  @Field(type => UserIDClass, { nullable: true })
+  public _id?: UserID;
   
   // Guild ID of user (duplicate of _id value)
   @prop()
-  public guild: string;
+  @Field({ nullable: true })
+  public guild?: string;
   
   // Last known display name
   @prop()
-  public displayName: string;
+  @Field({ nullable: true })
+  public displayName?: string;
   
   // Discord user discriminator
   @prop()
-  public discriminator: string;
+  @Field({ nullable: true })
+  public discriminator?: string;
+
+  // Discord avatar - the best we can get for the individual
+  @Field({ nullable: true })
+  public avatarUrl?: string;
   
   public static getById(this: ReturnModelType<typeof User>, user: string, guild: string): UserSingleQuery {
     return this.findById({ user, guild });
+  }
+
+  public static getByGuild(this: ReturnModelType<typeof User>, guild: string): UserMultiQuery {
+    return this.find({ guild });
   }
   
   public static async upsert(this: ReturnModelType<typeof User>, 
       user: string, guild: string, displayName: string, discriminator: string): Promise<boolean> {
     const result = await this.updateOne(
       { _id: { user, guild } },
-      { $set: { displayName, discriminator } },
+      { $set: { displayName, discriminator, guild } },
       { upsert: true }
     ).exec();
     return result.ok == 1;

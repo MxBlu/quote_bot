@@ -1,8 +1,9 @@
 import { Dependency, Logger } from 'bot-framework';
 import mongoose from 'mongoose';
 
-import { Quote, QuoteDeleteQuery, QuoteDoc, QuoteModel, QuoteMultiQuery, QuoteSingleQuery } from '../models/Quote.js';
+import { Quote, QuoteDeleteQueryResult, QuoteDoc, QuoteModel, QuoteMultiQuery, QuoteSingleQuery } from '../models/Quote.js';
 import { UserModel, UserSingleQuery } from '../models/User.js';
+import { Search } from './search.js';
 
 /*
   API class to interact with underlying storage implementation
@@ -85,8 +86,12 @@ class StoreImpl {
     quote.img = img;
     quote.link = link;
     quote.timestamp = timestamp;
-    const quoteModel = await QuoteModel.createwithStats(quote);
-    return quoteModel.save();
+    // Generate and save the quote
+    let quoteModel = await QuoteModel.createwithStats(quote);
+    quoteModel = await quoteModel.save();
+    // Index the quote
+    await Search.ingest(quoteModel);
+    return quoteModel;
   }
 
   // Check if a quote exists with given message link
@@ -95,8 +100,13 @@ class StoreImpl {
   }
 
   // Delete a quote from the db
-  public delQuote(guildId: string, seq: number): QuoteDeleteQuery {
-    return QuoteModel.deleteBySeq(guildId, seq);
+  public async delQuote(guildId: string, seq: number): Promise<QuoteDeleteQueryResult> {
+    const result = await QuoteModel.deleteBySeq(guildId, seq);
+    // If deletion was successful on Mongo, delete it from the search index too
+    if (result.deletedCount != null && result.deletedCount > 0) {
+      await Search.remove(guildId, seq);
+    }
+    return result;
   }
 
   // Insert/update a user in the db

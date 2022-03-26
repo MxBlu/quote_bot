@@ -43,7 +43,7 @@ export class DelQuoteCommand implements CommandProvider<CommandInteraction> {
     const quoteId = interaction.options.getInteger('id', true);
 
     // Attempt to delete quote with given id
-    const res = await Store.delQuote(guildId, quoteId).exec();
+    const res = await Store.delQuote(guildId, quoteId);
     if (res.deletedCount != null && res.deletedCount > 0) {
       sendCmdReply(interaction, `Quote ${quoteId} deleted.`, this.logger, LogLevel.INFO);
       return;
