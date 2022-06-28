@@ -31,7 +31,8 @@ export class QuoteEventHandler {
       break;
     case "omegachair":
     case "♿":
-      // Save on wheelchair react
+    case "⭐":
+      // Save on wheelchair or star react
       this.quoteSaveCommand.legacyHandle(message, user);
       reaction.remove();
       break;
