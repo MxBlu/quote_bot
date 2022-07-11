@@ -1,5 +1,6 @@
 import { Logger } from "bot-framework";
 import { MessageReaction, GuildMember } from "discord.js";
+import { REACTION_HANDLING_DISABLED } from "../constants/constants.js";
 
 import { QuoteSaveCommand } from "../context_commands/quotesave_command.js";
 import { QuoteCommand } from "../context_commands/quote_command.js";
@@ -18,6 +19,12 @@ export class QuoteEventHandler {
   }
 
   public messageReactionHandler = async (reaction: MessageReaction, user: GuildMember): Promise<void> => {
+    // Check if reaction handling is disabled
+    // If so, just stop here
+    if (REACTION_HANDLING_DISABLED) {
+      return;
+    }
+
     // Make sure we get a full message instead of a partial
     const message = await reaction.message.fetch();
 

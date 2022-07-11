@@ -22,3 +22,6 @@ export const GRAPHQL_DEBUG = envFlagOrDefault("GRAPHQL_DEBUG", false);
 
 // If token is present, bypasses authentication on GraphQL
 export const GRAPHQL_AUTH_BYPASS_TOKEN = process.env.GRAPHQL_AUTH_BYPASS_TOKEN;
+
+// Disables handling of reaction events
+export const REACTION_HANDLING_DISABLED = envFlagOrDefault("REACTION_HANDLING_DISABLED", false);
