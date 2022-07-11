@@ -2,8 +2,8 @@ import { Logger } from "bot-framework";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { Application, NextFunction, Request, Response } from "express";
-import { ChannelsRoute } from "../rest/channels_route.js";
 
+import { ChannelsRoute } from "../rest/channels_route.js";
 import { GuildsRoute } from "../rest/guilds_route.js";
 import { IdentifyRoute } from "../rest/identify_route.js";
 import { LoginRoute } from "../rest/login_route.js";
