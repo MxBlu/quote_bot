@@ -10,23 +10,20 @@ class SearchImpl {
   searchChannel: SearchChannel
   // Sonic ingest channel
   ingestChannel: IngestChannel;
-  // Dependencies for initialising
-  initDependencies: Map<string, Dependency>;
 
   logger: Logger;
 
   constructor () {
     this.logger = new Logger("Search");
-    // Create dependencies for initialising
-    this.initDependencies = new Map();
-    this.initDependencies.set("search", new Dependency("Search_SearchChannel"));
-    this.initDependencies.set("ingest", new Dependency("Search_IngestChannel"));
   }
 
   public async init(host: string, port: number, auth: string): Promise<void> {
+    // Create init dependencies
+    const searchChannelDependency = new Dependency("Search_SearchChannel");
+    const ingestChannelDependency = new Dependency("Search_IngestChannel");
     // Connect to search channel
     this.searchChannel = new SearchChannel({ host, port, auth }).connect({
-      connected: () => this.onConnected("search"),
+      connected: () => this.onConnected("search", searchChannelDependency),
       disconnected: () => this.onChannelStateChange("search", "disconnected"),
       error: (error) => this.onError(error, "search"),
       retrying: () => this.onChannelStateChange("search", "retrying"),
@@ -34,7 +31,7 @@ class SearchImpl {
     });
     // Connect to ingest channel
     this.ingestChannel = new IngestChannel({ host, port, auth }).connect({
-      connected: () => this.onConnected("ingest"),
+      connected: () => this.onConnected("ingest", ingestChannelDependency),
       disconnected: () => this.onChannelStateChange("ingest", "disconnected"),
       error: (error) => this.onError(error, "ingest"),
       retrying: () => this.onChannelStateChange("ingest", "retrying"),
@@ -42,8 +39,8 @@ class SearchImpl {
     });
     // Wait for channels to connect
     await Dependency.awaitMultiple(
-      this.initDependencies.get("search"),
-      this.initDependencies.get("ingest")
+      searchChannelDependency,
+      ingestChannelDependency
     );
     this.logger.info('All channels connected');
     SearchDependency.ready();
@@ -97,10 +94,10 @@ class SearchImpl {
 
   // Connection state handlers
 
-  private onConnected = (channelType: string): void => {
+  private onConnected = (channelType: string, connectionDependency: Dependency): void => {
     this.logger.info(`Sonic Channel '${channelType}' connected`);
     // Notify init dependency that channel is ready
-    this.initDependencies.get(channelType).ready();
+    connectionDependency.ready();
   }
 
   private onChannelStateChange = (channelType: string, newState: string): void => {
