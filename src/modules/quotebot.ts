@@ -62,7 +62,7 @@ export class QuoteBotImpl extends DiscordBot {
     this.discord.once('ready', this.onreadyHandler);
     this.discord.on('messageReactionAdd', this.reactionHandler);
     this.discord.on('guildMemberAdd', this.memberUpdateHandler);
-    this.discord.on('guildMemberUpdate', (o_m, m) => this.memberUpdateHandler(m)); // ignore 'old member' param
+    this.discord.on('guildMemberUpdate', (o_m, m) => this.memberUpdateHandler(<GuildMember> m)); // ignore 'old member' param
   }
 
   public override getHelpMessage(): string {
