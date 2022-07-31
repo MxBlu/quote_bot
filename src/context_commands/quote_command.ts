@@ -1,4 +1,4 @@
-import { CommandBuilder, CommandProvider, Interactable, isAdmin, Logger } from "bot-framework";
+import { CommandBuilder, CommandProvider, Interactable, isGuildMemberAdmin, Logger } from "bot-framework";
 import { ApplicationCommandType, ButtonInteraction, ContextMenuCommandBuilder, ContextMenuCommandInteraction, GuildMember, InteractionReplyOptions, Message, MessageOptions, User } from "discord.js";
 
 import { getBestGuildMember } from "../models/UserLite.js";
@@ -102,7 +102,7 @@ export class QuoteCommand implements CommandProvider<ContextMenuCommandInteracti
         // Check permissions
         // Only the quoter or an admin can delete a quote
         if (interaction.member.user.id != interactable.props.quoter.id &&
-            ! await isAdmin(interaction.guild, <User> interaction.member.user)) {
+            !isGuildMemberAdmin(<GuildMember> interaction.member)) {
           this.logger.warn(`Unauthorised attempt at quote deletion by ${interaction.member.user.username}`);
           interaction.reply({
             content: "Quote deletion only permitted to the quoter",

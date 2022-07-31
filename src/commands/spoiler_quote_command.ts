@@ -1,5 +1,5 @@
-import { CommandBuilder, CommandProvider, isAdmin, Logger, LogLevel, sendCmdReply } from "bot-framework";
-import { ChatInputCommandInteraction, CommandInteraction, SlashCommandBuilder, SlashCommandIntegerOption } from "discord.js";
+import { CommandBuilder, CommandProvider, isGuildMemberAdmin, Logger, LogLevel, sendCmdReply } from "bot-framework";
+import { ChatInputCommandInteraction, CommandInteraction, GuildMember, SlashCommandBuilder, SlashCommandIntegerOption } from "discord.js";
 
 import { Store } from "../support/store.js";
 
@@ -39,7 +39,7 @@ export class SpoilerQuoteCommand implements CommandProvider<CommandInteraction> 
 
   public async handle(interaction: ChatInputCommandInteraction): Promise<void> {
     // Ensure the calling user is an admin
-    if (! await isAdmin(interaction.guild, interaction.user)) {
+    if (!isGuildMemberAdmin(<GuildMember> interaction.member)) {
       sendCmdReply(interaction, 'Error: not admin', this.logger, LogLevel.DEBUG);
       return;
     }

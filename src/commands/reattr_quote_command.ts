@@ -1,5 +1,5 @@
-import { CommandBuilder, CommandProvider, isAdmin, Logger, LogLevel, sendCmdReply } from "bot-framework";
-import { ChatInputCommandInteraction, CommandInteraction, SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandUserOption } from "discord.js";
+import { CommandBuilder, CommandProvider, isGuildMemberAdmin, Logger, LogLevel, sendCmdReply } from "bot-framework";
+import { ChatInputCommandInteraction, CommandInteraction, GuildMember, SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandUserOption } from "discord.js";
 
 import { Store } from "../support/store.js";
 
@@ -63,7 +63,7 @@ export class ReattrQuoteCommand implements CommandProvider<CommandInteraction> {
     }
 
     // Ensure the calling user is an admin or the author of said quote
-    if (! (await isAdmin(interaction.guild, interaction.user) || quote.quoter == interaction.user.id)) {
+    if (! (isGuildMemberAdmin(<GuildMember> interaction.member) || quote.quoter == interaction.user.id)) {
       sendCmdReply(interaction, 'Error: not an administrator or author of quote', this.logger, LogLevel.DEBUG);
       return;
     }
