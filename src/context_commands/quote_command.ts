@@ -25,7 +25,7 @@ export class QuoteCommand implements CommandProvider<ContextMenuCommandInteracti
 
   public async handle(interaction: ContextMenuCommandInteraction): Promise<void> {
     // Just make sure we have a message here
-    if (interaction.commandType == ApplicationCommandType.Message) {
+    if (interaction.commandType != ApplicationCommandType.Message) {
       throw new Error("Unexpected USER interaction");
     }
 
