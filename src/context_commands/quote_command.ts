@@ -1,23 +1,21 @@
-import { ApplicationCommandType, CommandProvider, Interactable, Logger, ModernApplicationCommandJSONBody } from "bot-framework";
-import { ButtonInteraction, ContextMenuInteraction, GuildMember, Message, MessageOptions } from "discord.js";
+import { CommandBuilder, CommandProvider, Interactable, Logger } from "bot-framework";
+import { ApplicationCommandType, ButtonInteraction, ContextMenuCommandBuilder, ContextMenuCommandInteraction, GuildMember, InteractionReplyOptions, Message, MessageOptions } from "discord.js";
 
 import { getBestGuildMember } from "../models/UserLite.js";
 import { generateEmbed } from "../support/quote_utils.js";
 
-export class QuoteCommand implements CommandProvider<ContextMenuInteraction> {
+export class QuoteCommand implements CommandProvider<ContextMenuCommandInteraction> {
   logger: Logger;
   
   constructor() {
     this.logger = new Logger("QuoteCommand");
   }
 
-  public provideSlashCommands(): ModernApplicationCommandJSONBody[] {
+  public provideCommands(): CommandBuilder[] {
     return [
-        {
-            name: "Quote",
-            description: "",
-            type: ApplicationCommandType.MESSAGE
-        }
+      new ContextMenuCommandBuilder()
+        .setName("Quote")
+        .setType(ApplicationCommandType.Message)
     ];
   }
 
@@ -25,9 +23,9 @@ export class QuoteCommand implements CommandProvider<ContextMenuInteraction> {
     return "Add a #️⃣ react to a message to quote the message";
   }
 
-  public async handle(interaction: ContextMenuInteraction): Promise<void> {
+  public async handle(interaction: ContextMenuCommandInteraction): Promise<void> {
     // Just make sure we have a message here
-    if (interaction.targetType != "MESSAGE") {
+    if (interaction.commandType == ApplicationCommandType.Message) {
       throw new Error("Unexpected USER interaction");
     }
 
@@ -73,7 +71,7 @@ export class QuoteCommand implements CommandProvider<ContextMenuInteraction> {
   }
 
   // Generate message with quote contents
-  private async doQuoteAction(message: Message, quoter: GuildMember): Promise<MessageOptions> {
+  private async doQuoteAction(message: Message, quoter: GuildMember): Promise<InteractionReplyOptions & MessageOptions> {
     // Get best guild member we can for the author
     const author = await getBestGuildMember(message.guild, message.author);
 

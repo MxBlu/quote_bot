@@ -1,7 +1,6 @@
 
-import { CommandProvider, Interactable, Logger, LogLevel, ModernApplicationCommandJSONBody, sendCmdReply } from "bot-framework";
-import { SlashCommandBuilder, SlashCommandChannelOption, SlashCommandIntegerOption, SlashCommandUserOption } from "@discordjs/builders";
-import { ButtonInteraction, CommandInteraction, Message, MessageEmbed } from "discord.js";
+import { CommandBuilder, CommandProvider, Interactable, Logger, LogLevel, sendCmdReply } from "bot-framework";
+import { ButtonInteraction, ChatInputCommandInteraction, CommandInteraction, EmbedBuilder, Message, SlashCommandBuilder, SlashCommandChannelOption, SlashCommandIntegerOption, SlashCommandUserOption } from "discord.js";
 
 import { QuoteDoc, QuoteMultiQuery } from "../models/Quote.js";
 import { generateQuoteMsgs } from "../support/quote_utils.js";
@@ -25,7 +24,7 @@ export class ListQuotesCommand implements CommandProvider<CommandInteraction> {
     this.logger = new Logger("ListQuotesCommand");
   }
 
-  public provideSlashCommands(): ModernApplicationCommandJSONBody[] {
+  public provideCommands(): CommandBuilder[] {
     return [
       new SlashCommandBuilder()
         .setName('listquotes')
@@ -44,7 +43,7 @@ export class ListQuotesCommand implements CommandProvider<CommandInteraction> {
           new SlashCommandChannelOption()
             .setName('channel')
             .setDescription('Quoted channel')
-        ).toJSON(),
+        ),
       new SlashCommandBuilder()
         .setName('lq')
         .setDescription('List quotes for given filters')
@@ -62,7 +61,7 @@ export class ListQuotesCommand implements CommandProvider<CommandInteraction> {
           new SlashCommandChannelOption()
             .setName('channel')
             .setDescription('Quoted channel')
-        ).toJSON()
+        )
     ];
   }
 
@@ -71,7 +70,7 @@ export class ListQuotesCommand implements CommandProvider<CommandInteraction> {
       "/listquotes <filter> [<id start>] - Get quotes from a given channel or author, optionally starting from <id start>";
   }
 
-  public async handle(interaction: CommandInteraction): Promise<void> {
+  public async handle(interaction: ChatInputCommandInteraction): Promise<void> {
     // Get arguments from interaction
     const guild = interaction.guild;
     const quoteIdStart = interaction.options.getInteger('idstart');
@@ -136,7 +135,7 @@ export class ListQuotesCommand implements CommandProvider<CommandInteraction> {
     scope += ` (${count})`;
 
     // Create embed to display quotes
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
         .setTitle(`Quotes - ${scope}`)
         .setDescription(quoteMsgs.join("\n"))
 
@@ -184,9 +183,9 @@ export class ListQuotesCommand implements CommandProvider<CommandInteraction> {
     const quoteMsgs = await generateQuoteMsgs(interaction.guild, quotes);
 
     // Modify original embed with new quotes
-    const newEmbed = new MessageEmbed(interaction.message.embeds[0] as MessageEmbed)
+    const newEmbed = new EmbedBuilder(interaction.message.embeds[0])
         .setDescription(quoteMsgs.join("\n"))
-        .setFooter(props.skip > 0 ? `+${props.skip}` : '');
+        .setFooter({ text: props.skip > 0 ? `+${props.skip}` : '' });
     
     this.logger.debug(`${interaction.user.username} navigated quote list - ${props.scope} skip ${props.skip}`);
     interaction.update({ embeds: [ newEmbed ] });
@@ -213,9 +212,9 @@ export class ListQuotesCommand implements CommandProvider<CommandInteraction> {
     const quoteMsgs = await generateQuoteMsgs(interaction.guild, quotes);
     
     // Modify original embed with new quotes
-    const newEmbed = new MessageEmbed(interaction.message.embeds[0] as MessageEmbed)
+    const newEmbed = new EmbedBuilder(interaction.message.embeds[0])
         .setDescription(quoteMsgs.join("\n"))
-        .setFooter(props.skip > 0 ? `+${props.skip}` : '');
+        .setFooter({ text: props.skip > 0 ? `+${props.skip}` : '' });
     
     this.logger.debug(`${interaction.user.username} navigated quote list - ${props.scope} skip ${props.skip}`);
     interaction.update({ embeds: [ newEmbed ] });

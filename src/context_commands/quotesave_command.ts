@@ -1,24 +1,22 @@
-import { ApplicationCommandType, CommandProvider, Logger, ModernApplicationCommandJSONBody, sendMessage } from "bot-framework";
-import { ContextMenuInteraction, GuildMember, Message, MessageOptions } from "discord.js";
+import { CommandBuilder, CommandProvider, Logger, sendMessage } from "bot-framework";
+import { ApplicationCommandType, ContextMenuCommandBuilder, ContextMenuCommandInteraction, GuildMember, InteractionReplyOptions, Message, MessageOptions } from "discord.js";
 
 import { getBestGuildMember } from "../models/UserLite.js";
 import { generateEmbed } from "../support/quote_utils.js";
 import { Store } from "../support/store.js";
 
-export class QuoteSaveCommand implements CommandProvider<ContextMenuInteraction> {
+export class QuoteSaveCommand implements CommandProvider<ContextMenuCommandInteraction> {
   logger: Logger;
   
   constructor() {
     this.logger = new Logger("QuoteSaveCommand");
   }
 
-  public provideSlashCommands(): ModernApplicationCommandJSONBody[] {
+  public provideCommands(): CommandBuilder[] {
     return [
-        {
-            name: "Save Quote",
-            description: "",
-            type: ApplicationCommandType.MESSAGE
-        }
+      new ContextMenuCommandBuilder()
+        .setName("Save Quote")
+        .setType(ApplicationCommandType.Message)
     ];
   }
 
@@ -26,9 +24,9 @@ export class QuoteSaveCommand implements CommandProvider<ContextMenuInteraction>
     return "Add a ♿ or :omegaChair: emote to save a quote";
   }
 
-  public async handle(interaction: ContextMenuInteraction): Promise<void> {
+  public async handle(interaction: ContextMenuCommandInteraction): Promise<void> {
     // Just make sure we have a message here
-    if (interaction.targetType != "MESSAGE") {
+    if (interaction.commandType != ApplicationCommandType.Message) {
       throw new Error("Unexpected USER interaction");
     }
 
@@ -62,7 +60,7 @@ export class QuoteSaveCommand implements CommandProvider<ContextMenuInteraction>
   }
 
   // Generate message with quote contents
-  private async doQuoteAction(message: Message, quoter: GuildMember): Promise<MessageOptions> {
+  private async doQuoteAction(message: Message, quoter: GuildMember): Promise<InteractionReplyOptions & MessageOptions> {
     // Get best guild member we can for the author
     const author = await getBestGuildMember(message.guild, message.author);
 
@@ -71,7 +69,7 @@ export class QuoteSaveCommand implements CommandProvider<ContextMenuInteraction>
 
     // Store quoted message to db
     const quote = await Store.addQuote(message.guild.id, message.channel.id, author.id, quoter.id,
-      embed.description, embed.image?.url, message.url, message.createdAt);
+      embed.data.description, embed.data.image?.url, message.url, message.createdAt);
 
     this.logger.info(`${quoter.user.username} saved quote ${message.url}`);
     

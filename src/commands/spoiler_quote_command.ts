@@ -1,6 +1,5 @@
-import { CommandProvider, isAdmin, Logger, LogLevel, ModernApplicationCommandJSONBody, sendCmdReply } from "bot-framework";
-import { SlashCommandBuilder, SlashCommandIntegerOption } from "@discordjs/builders";
-import { CommandInteraction } from "discord.js";
+import { CommandBuilder, CommandProvider, isAdmin, Logger, LogLevel, sendCmdReply } from "bot-framework";
+import { ChatInputCommandInteraction, CommandInteraction, SlashCommandBuilder, SlashCommandIntegerOption } from "discord.js";
 
 import { Store } from "../support/store.js";
 
@@ -11,7 +10,7 @@ export class SpoilerQuoteCommand implements CommandProvider<CommandInteraction> 
     this.logger = new Logger("SpoilerQuoteCommand");
   }
 
-  provideSlashCommands(): ModernApplicationCommandJSONBody[] {
+  provideCommands(): CommandBuilder[] {
     return [
       new SlashCommandBuilder()
         .setName('spoilerquote')
@@ -21,7 +20,7 @@ export class SpoilerQuoteCommand implements CommandProvider<CommandInteraction> 
             .setName('id')
             .setDescription('Quote ID')
             .setRequired(true)
-        ).toJSON(),
+        ),
       new SlashCommandBuilder()
         .setName('sq')
         .setDescription('Spoiler/unspoiler the text of a quote')
@@ -30,7 +29,7 @@ export class SpoilerQuoteCommand implements CommandProvider<CommandInteraction> 
             .setName('id')
             .setDescription('Quote ID')
             .setRequired(true)
-        ).toJSON()
+        )
     ];
   }
 
@@ -38,7 +37,7 @@ export class SpoilerQuoteCommand implements CommandProvider<CommandInteraction> 
     return "/spoilerquote <id> - Spoiler/unspoiler the text of a quote";
   }
 
-  public async handle(interaction: CommandInteraction): Promise<void> {
+  public async handle(interaction: ChatInputCommandInteraction): Promise<void> {
     // Ensure the calling user is an admin
     if (! await isAdmin(interaction.guild, interaction.user)) {
       sendCmdReply(interaction, 'Error: not admin', this.logger, LogLevel.DEBUG);

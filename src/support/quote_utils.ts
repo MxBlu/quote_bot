@@ -1,4 +1,4 @@
-import { Guild, Message, MessageEmbed } from "discord.js";
+import { EmbedBuilder, Guild, Message } from "discord.js";
 
 import { QuoteDoc } from "../models/Quote.js";
 import { getBestGuildMemberById, UserLite } from "../models/UserLite.js";
@@ -23,16 +23,16 @@ export const generateQuoteMsgs = async (guild: Guild, quotes: QuoteDoc[]): Promi
 }
 
 // Create a quote embed
-export const generateEmbed = (message: Message, author: UserLite): MessageEmbed => {
+export const generateEmbed = (message: Message, author: UserLite): EmbedBuilder => {
   // Create embed content
   let content = `${message.content}\n`
               + `[Link](${message.url})`;
 
   // Create base embed
-  const embed = new MessageEmbed()
-      .setColor('RANDOM')
+  const embed = new EmbedBuilder()
+      .setColor("Random")
       .setTimestamp(message.createdAt)
-      .setAuthor(author.displayName, author.displayAvatarURL);
+      .setAuthor({ name: author.displayName, iconURL: author.displayAvatarURL });
 
   // If there's any images or attachments, add them to the embed
   // First check for an image URL in the contents
@@ -44,7 +44,7 @@ export const generateEmbed = (message: Message, author: UserLite): MessageEmbed 
   message.attachments.map(a => {
     // If we don't already have an image set
     // test if the current attachment is one and add if so
-    if (embed.image === null) {
+    if (embed.data.image === null) {
       imgRegex = a.url.match(IMG_RX);
       if (imgRegex !== null) {
         embed.setImage(imgRegex[0]);

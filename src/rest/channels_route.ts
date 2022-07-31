@@ -1,4 +1,5 @@
 import { Logger } from "bot-framework";
+import { ChannelType } from "discord.js";
 import { Request, Response } from "express";
 
 import { QuoteBot } from "../modules/quotebot.js";
@@ -54,8 +55,8 @@ export class ChannelsRoute {
     
     // Trim down to only relevant channels
     const channelsResponse = channels
-      .filter(c => c.type == "GUILD_TEXT") // Channels that are text channels
-      .filter(c => c.permissionsFor(guildMember).has('VIEW_CHANNEL')) // Filter to only channels user can see
+      .filter(c => c.type == ChannelType.GuildText) // Channels that are text channels
+      .filter(c => c.permissionsFor(guildMember).has("ViewChannel")) // Filter to only channels user can see
       .map(c => ({  // Map to ID and name
         id: c.id,
         name: c.name

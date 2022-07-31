@@ -1,5 +1,5 @@
-import { BaseBot, ClientOptionsWithoutIntents, Dependency } from "bot-framework";
-import { MessageReaction, User, PartialUser, Intents, GuildMember } from "discord.js";
+import { ClientOptionsWithoutIntents, Dependency, DiscordBot } from "bot-framework";
+import { MessageReaction, User, PartialUser, Partials, GatewayIntentBits, GuildMember } from "discord.js";
 
 import { Store, StoreDependency } from "../support/store.js";
 import { QuoteEventHandler } from "../events/quote_event.js";
@@ -9,7 +9,7 @@ import { DelQuoteCommand } from "../commands/del_quote_command.js";
 import { ReattrQuoteCommand } from "../commands/reattr_quote_command.js";
 import { SpoilerQuoteCommand } from "../commands/spoiler_quote_command.js";
 
-export class QuoteBotImpl extends BaseBot {
+export class QuoteBotImpl extends DiscordBot {
 
   // Command handlers
   quoteEventHandler: QuoteEventHandler;
@@ -27,15 +27,19 @@ export class QuoteBotImpl extends BaseBot {
     // I don't recall why the REACTION partial is around, probably for good reason
     // GUILD_MEMBER partial allows quoting of members who have left the server
     const options: ClientOptionsWithoutIntents = {
-      partials: [ "MESSAGE", "REACTION", "GUILD_MEMBER" ]
+      partials: [ 
+        Partials.Message, 
+        Partials.Reaction,
+        Partials.GuildMember
+      ]
     };
     
     // Intents to match Discord events we want
     const intents = [
-      Intents.FLAGS.GUILDS, // Without this, channels are never defined within Discord.js....
-      Intents.FLAGS.GUILD_MEMBERS,
-      Intents.FLAGS.GUILD_MESSAGES,
-      Intents.FLAGS.GUILD_MESSAGE_REACTIONS
+      GatewayIntentBits.Guilds, // Without this, channels are never defined within Discord.js....
+      GatewayIntentBits.GuildMembers,
+      GatewayIntentBits.GuildMessages,
+      GatewayIntentBits.GuildMessageReactions
     ];
     
     super.init(discordToken, intents, options);
@@ -58,7 +62,7 @@ export class QuoteBotImpl extends BaseBot {
     this.discord.once('ready', this.onreadyHandler);
     this.discord.on('messageReactionAdd', this.reactionHandler);
     this.discord.on('guildMemberAdd', this.memberUpdateHandler);
-    this.discord.on('guildMemberUpdate', (_, m) => this.memberUpdateHandler(m)); // ignore 'old member' param
+    this.discord.on('guildMemberUpdate', (o_m, m) => this.memberUpdateHandler(m)); // ignore 'old member' param
   }
 
   public override getHelpMessage(): string {

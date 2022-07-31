@@ -1,6 +1,5 @@
-import { CommandProvider, isAdmin, Logger, LogLevel, ModernApplicationCommandJSONBody, sendCmdReply } from "bot-framework";
-import { SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandUserOption } from "@discordjs/builders";
-import { CommandInteraction } from "discord.js";
+import { CommandBuilder, CommandProvider, isAdmin, Logger, LogLevel, sendCmdReply } from "bot-framework";
+import { ChatInputCommandInteraction, CommandInteraction, SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandUserOption } from "discord.js";
 
 import { Store } from "../support/store.js";
 
@@ -11,7 +10,7 @@ export class ReattrQuoteCommand implements CommandProvider<CommandInteraction> {
     this.logger = new Logger("ReattrQuoteCommand");
   }
   
-  public provideSlashCommands(): ModernApplicationCommandJSONBody[] {
+  public provideCommands(): CommandBuilder[] {
     return [
       new SlashCommandBuilder()
         .setName('reattrquote')
@@ -27,7 +26,7 @@ export class ReattrQuoteCommand implements CommandProvider<CommandInteraction> {
             .setName('user')
             .setDescription('New author')
             .setRequired(true)
-        ).toJSON(),
+        ),
       new SlashCommandBuilder()
         .setName('rq')
         .setDescription('Reattribute a quote to a given user')
@@ -42,7 +41,7 @@ export class ReattrQuoteCommand implements CommandProvider<CommandInteraction> {
             .setName('user')
             .setDescription('New author')
             .setRequired(true)
-        ).toJSON()
+        )
     ];
   }
 
@@ -50,9 +49,7 @@ export class ReattrQuoteCommand implements CommandProvider<CommandInteraction> {
     return "/reattrquote <id> <user> - Reattribute a quote to a given user";
   }
 
-  public async handle(interaction: CommandInteraction): Promise<void> {
-
-
+  public async handle(interaction: ChatInputCommandInteraction): Promise<void> {
     // Get arguments from interaction
     const guild = interaction.guild;
     const quoteId = interaction.options.getInteger('id', true);
@@ -64,6 +61,7 @@ export class ReattrQuoteCommand implements CommandProvider<CommandInteraction> {
       sendCmdReply(interaction, `Error: invalid quote ID`, this.logger, LogLevel.TRACE);
       return;
     }
+
     // Ensure the calling user is an admin or the author of said quote
     if (! (await isAdmin(interaction.guild, interaction.user) || quote.quoter == interaction.user.id)) {
       sendCmdReply(interaction, 'Error: not an administrator or author of quote', this.logger, LogLevel.DEBUG);

@@ -1,6 +1,5 @@
-import { CommandProvider, Interactable, Logger, LogLevel, ModernApplicationCommandJSONBody, sendCmdReply } from "bot-framework";
-import { SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandUserOption } from "@discordjs/builders";
-import { ButtonInteraction, CommandInteraction, Message, MessageEmbed, User } from "discord.js";
+import { CommandBuilder, CommandProvider, Interactable, Logger, LogLevel, sendCmdReply } from "bot-framework";
+import { ButtonInteraction, ChatInputCommandInteraction, CommandInteraction, EmbedBuilder, Message, SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandUserOption, User } from "discord.js";
 
 import { QuoteDoc } from "../models/Quote.js";
 import { getBestGuildMemberById } from "../models/UserLite.js";
@@ -17,7 +16,7 @@ class GetQuoteProps {
   scope: string;
 }
 
-export class GetQuoteCommand implements CommandProvider<CommandInteraction> {
+export class GetQuoteCommand implements CommandProvider<ChatInputCommandInteraction> {
   // Whether to allow another encore yet - used for rate limiting
   rateLimited: boolean;
 
@@ -28,7 +27,7 @@ export class GetQuoteCommand implements CommandProvider<CommandInteraction> {
     this.logger = new Logger("GetQuoteCommand");
   }
 
-  public provideSlashCommands(): ModernApplicationCommandJSONBody[] {
+  public provideCommands(): CommandBuilder[] {
     return [
       new SlashCommandBuilder()
         .setName('getquote')
@@ -42,7 +41,7 @@ export class GetQuoteCommand implements CommandProvider<CommandInteraction> {
           new SlashCommandUserOption()
             .setName('user')
             .setDescription('Quoted user')
-        ).toJSON(),
+        ),
       new SlashCommandBuilder()
         .setName('gq')
         .setDescription('Get a random quote')
@@ -55,7 +54,7 @@ export class GetQuoteCommand implements CommandProvider<CommandInteraction> {
           new SlashCommandUserOption()
             .setName('user')
             .setDescription('Quoted user')
-        ).toJSON()
+        )
     ];
   }
 
@@ -66,11 +65,11 @@ export class GetQuoteCommand implements CommandProvider<CommandInteraction> {
   }
 
   // Wrap the actual handling up, so we can allow an alternative call to the handler with a ButtonInteraction
-  public async handle(interaction: CommandInteraction): Promise<void> {
+  public async handle(interaction: ChatInputCommandInteraction): Promise<void> {
     await this.doGetQuote(interaction, null);
   }
 
-  public async doGetQuote(interaction: CommandInteraction | ButtonInteraction, encoreProps: GetQuoteProps): Promise<void> {
+  public async doGetQuote(interaction: ChatInputCommandInteraction | ButtonInteraction, encoreProps: GetQuoteProps): Promise<void> {
     // Get arguments from interaction
     const guild = interaction.guild;
     let quoteId: number = null;
@@ -129,13 +128,13 @@ export class GetQuoteCommand implements CommandProvider<CommandInteraction> {
       messagePreamble = encoreText + "\n" + messagePreamble;
     }
 
-    const embed = new MessageEmbed()
-        .setAuthor(author.displayName, author.displayAvatarURL)
+    const embed = new EmbedBuilder()
+        .setAuthor({ name: author.displayName, iconURL: author.displayAvatarURL })
         .setDescription(quote.message)
-        .setColor('RANDOM')
+        .setColor("Random")
         .setTimestamp(quote.timestamp)
         .setImage(quote.img)
-        .setFooter(`${stats.views.length} 📺 ${stats.likes.length} 👍 ${stats.dislikes.length} 👎`);
+        .setFooter({ text: `${stats.views.length} 📺 ${stats.likes.length} 👍 ${stats.dislikes.length} 👎` });
 
     // Setup interaction controls
     const interactable = new Interactable<GetQuoteProps>();
@@ -177,8 +176,8 @@ export class GetQuoteCommand implements CommandProvider<CommandInteraction> {
 
     // Re-generate quote, but with updated like count
     const originalMessage = interactable.message;
-    const newEmbed = new MessageEmbed(originalMessage.embeds[0])
-        .setFooter(`${stats.views.length} 📺 ${stats.likes.length} 👍 ${stats.dislikes.length} 👎`);
+    const newEmbed = new EmbedBuilder(originalMessage.embeds[0])
+        .setFooter({ text: `${stats.views.length} 📺 ${stats.likes.length} 👍 ${stats.dislikes.length} 👎` });
 
     this.logger.debug(`${interaction.user.username} toggled like - ${quote.guild} => ${quote.seq}`);
     interaction.update({ content: originalMessage.content, embeds: [ newEmbed ] });
@@ -193,8 +192,8 @@ export class GetQuoteCommand implements CommandProvider<CommandInteraction> {
 
     // Re-generate quote, but with updated like count
     const originalMessage = interactable.message;
-    const newEmbed = new MessageEmbed(originalMessage.embeds[0])
-        .setFooter(`${stats.views.length} 📺 ${stats.likes.length} 👍 ${stats.dislikes.length} 👎`);
+    const newEmbed = new EmbedBuilder(originalMessage.embeds[0])
+        .setFooter({ text: `${stats.views.length} 📺 ${stats.likes.length} 👍 ${stats.dislikes.length} 👎` });
 
     this.logger.debug(`${interaction.user.username} toggled like - ${quote.guild} => ${quote.seq}`);
     interaction.update({ content: originalMessage.content, embeds: [ newEmbed ] });

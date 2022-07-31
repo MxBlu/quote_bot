@@ -1,5 +1,5 @@
 import { REST } from "@discordjs/rest";
-import { APIGuild, APIUser, Routes } from "discord-api-types/v9";
+import { APIGuild, APIUser, Routes } from "discord-api-types/v10";
 
 // To reduce Discord REST API usage all over the place
 export class DiscordRESTHelper {

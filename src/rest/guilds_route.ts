@@ -1,5 +1,5 @@
 import { Logger } from "bot-framework";
-import { Permissions, PermissionString } from "discord.js";
+import { PermissionsBitField } from "discord.js";
 import { Request, Response } from "express";
 
 import { QuoteBot } from "../modules/quotebot.js";
@@ -46,7 +46,9 @@ export class GuildsRoute {
       .map(g => ({
         id: g.id,
         name: g.name,
-        admin: new Permissions(g.permissions as PermissionString).has("ADMINISTRATOR")
+        admin: g.permissions 
+          ? new PermissionsBitField(BigInt(g.permissions)).has("Administrator") 
+          : false
       }));
     // Return as JSON
     res.json(guildsResponse);
