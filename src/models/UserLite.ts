@@ -1,9 +1,9 @@
-import { Guild, Constants as DiscordConstants, User as DiscordUser, Options } from "discord.js";
+import { Guild, User as DiscordUser, CDN, DefaultRestOptions } from "discord.js";
 
 import { Store } from "../support/store.js";
 import { User } from "./User.js";
 
-const DISCORD_CDN = DiscordConstants.Endpoints.CDN(Options.createDefault().http.cdn);
+const DISCORD_CDN = new CDN(DefaultRestOptions.cdn);
 
 // As much of a GuildMember that we can get
 export class UserLite {
@@ -39,13 +39,13 @@ export const getBestGuildMemberById = async function(guild: Guild, userId: strin
     // Make a mock "GuildMember" object
     // Default avatar URL
     bestUser.displayName = dbUser.displayName;
-    bestUser.displayAvatarURL = DISCORD_CDN.DefaultAvatar(Number(dbUser.discriminator) % 5)
+    bestUser.displayAvatarURL = DISCORD_CDN.defaultAvatar(Number(dbUser.discriminator) % 5)
     return bestUser;
   }
   
   // If nothing else, create a mock GuildMember with whatever we have
   bestUser.displayName = '(Unknown)';
-  bestUser.displayAvatarURL = DISCORD_CDN.DefaultAvatar(parseInt(userId) % 5);
+  bestUser.displayAvatarURL = DISCORD_CDN.defaultAvatar(parseInt(userId) % 5);
   return bestUser;
 }
 
