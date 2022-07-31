@@ -102,8 +102,12 @@ export class QuoteCommand implements CommandProvider<ContextMenuCommandInteracti
         // Check permissions
         // Only the quoter or an admin can delete a quote
         if (interaction.member.user.id != interactable.props.quoter.id &&
-            !isAdmin(interaction.guild, <User> interaction.member.user)) {
+            ! await isAdmin(interaction.guild, <User> interaction.member.user)) {
           this.logger.warn(`Unauthorised attempt at quote deletion by ${interaction.member.user.username}`);
+          interaction.reply({
+            content: "Quote deletion only permitted to the quoter",
+            ephemeral: true
+          });
           return;
         }
 
