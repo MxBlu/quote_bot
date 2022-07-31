@@ -1,8 +1,12 @@
-import { CommandBuilder, CommandProvider, Interactable, Logger } from "bot-framework";
-import { ApplicationCommandType, ButtonInteraction, ContextMenuCommandBuilder, ContextMenuCommandInteraction, GuildMember, InteractionReplyOptions, Message, MessageOptions } from "discord.js";
+import { CommandBuilder, CommandProvider, Interactable, isAdmin, Logger } from "bot-framework";
+import { ApplicationCommandType, ButtonInteraction, ContextMenuCommandBuilder, ContextMenuCommandInteraction, GuildMember, InteractionReplyOptions, Message, MessageOptions, User } from "discord.js";
 
 import { getBestGuildMember } from "../models/UserLite.js";
 import { generateEmbed } from "../support/quote_utils.js";
+
+class QuoteDeleteProps {
+  quoter: GuildMember;
+}
 
 export class QuoteCommand implements CommandProvider<ContextMenuCommandInteraction> {
   logger: Logger;
@@ -37,7 +41,7 @@ export class QuoteCommand implements CommandProvider<ContextMenuCommandInteracti
     const messageOptions = await this.doQuoteAction(message, quoter);
 
     // Generate an Interactable and it's action row to allow deletion
-    const interactable = this.generateInteractable();
+    const interactable = this.generateInteractable(quoter);
     const actionRow = interactable.getActionRow();
 
     // Send the reply with the action row included and fetch the resulting message
@@ -57,7 +61,7 @@ export class QuoteCommand implements CommandProvider<ContextMenuCommandInteracti
     const messageOptions = await this.doQuoteAction(message, quoter);
 
     // Generate an Interactable and it's action row to allow deletion
-    const interactable = this.generateInteractable();
+    const interactable = this.generateInteractable(quoter);
     const actionRow = interactable.getActionRow();
 
     // Add the action row to the message and send it
@@ -86,14 +90,23 @@ export class QuoteCommand implements CommandProvider<ContextMenuCommandInteracti
   }
 
   // Generate an Interactable to allow user deletion of quotes
-  private generateInteractable(): Interactable<void> {
-    const interactable = new Interactable<void>();
+  private generateInteractable(quoter: GuildMember): Interactable<QuoteDeleteProps> {
+    const interactable = new Interactable<QuoteDeleteProps>();
+    interactable.props = { quoter: quoter };
     interactable.registerHandler(this.deleteHandler, { emoji: "❌" });
     return interactable;
   }
 
-  private deleteHandler = async (interactable: Interactable<void>, 
+  private deleteHandler = async (interactable: Interactable<QuoteDeleteProps>, 
       interaction: ButtonInteraction) => {
+        // Check permissions
+        // Only the quoter or an admin can delete a quote
+        if (interaction.member.user.id != interactable.props.quoter.id &&
+            !isAdmin(interaction.guild, <User> interaction.member.user)) {
+          this.logger.warn(`Unauthorised attempt at quote deletion by ${interaction.member.user.username}`);
+          return;
+        }
+
         // Delete the message the interaction is on
         await interactable.message.delete();
         this.logger.debug(`${interaction.user.username} deleted quoted message`);
