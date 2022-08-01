@@ -27,7 +27,7 @@ export const getBestGuildMemberById = async function(guild: Guild, userId: strin
     return bestUser;
   } catch(e) {
     // Only DiscordAPIError is passable - means the user is not in the guild anymore
-    if (e.name !== 'DiscordAPIError') {
+    if (e.name == null || !e.name.startsWith('DiscordAPIError')) {
       throw e;
     }
   }
