@@ -1,5 +1,5 @@
 import { CommandBuilder, CommandProvider, Interactable, isGuildMemberAdmin, Logger } from "bot-framework";
-import { ApplicationCommandType, ButtonInteraction, ContextMenuCommandBuilder, ContextMenuCommandInteraction, GuildMember, InteractionReplyOptions, Message, MessageOptions, User } from "discord.js";
+import { ApplicationCommandType, ButtonInteraction, ContextMenuCommandBuilder, ContextMenuCommandInteraction, GuildMember, InteractionReplyOptions, Message, MessageOptions } from "discord.js";
 
 import { getBestGuildMember } from "../models/UserLite.js";
 import { generateEmbed } from "../support/quote_utils.js";

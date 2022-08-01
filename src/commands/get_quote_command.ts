@@ -1,5 +1,5 @@
 import { CommandBuilder, CommandProvider, Interactable, Logger, LogLevel, sendCmdReply } from "bot-framework";
-import { ButtonInteraction, ChatInputCommandInteraction, CommandInteraction, EmbedBuilder, Message, SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandUserOption, User } from "discord.js";
+import { ButtonInteraction, ChatInputCommandInteraction, CommandInteraction, Embed, EmbedBuilder, Message, SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandUserOption, User } from "discord.js";
 
 import { QuoteDoc } from "../models/Quote.js";
 import { getBestGuildMemberById } from "../models/UserLite.js";
@@ -176,7 +176,7 @@ export class GetQuoteCommand implements CommandProvider<ChatInputCommandInteract
 
     // Re-generate quote, but with updated like count
     const originalMessage = interactable.message;
-    const newEmbed = new EmbedBuilder(originalMessage.embeds[0])
+    const newEmbed = EmbedBuilder.from(originalMessage.embeds[0])
         .setFooter({ text: `${stats.views.length} 📺 ${stats.likes.length} 👍 ${stats.dislikes.length} 👎` });
 
     this.logger.debug(`${interaction.user.username} toggled like - ${quote.guild} => ${quote.seq}`);
@@ -192,7 +192,7 @@ export class GetQuoteCommand implements CommandProvider<ChatInputCommandInteract
 
     // Re-generate quote, but with updated like count
     const originalMessage = interactable.message;
-    const newEmbed = new EmbedBuilder(originalMessage.embeds[0])
+    const newEmbed = EmbedBuilder.from(originalMessage.embeds[0])
         .setFooter({ text: `${stats.views.length} 📺 ${stats.likes.length} 👍 ${stats.dislikes.length} 👎` });
 
     this.logger.debug(`${interaction.user.username} toggled like - ${quote.guild} => ${quote.seq}`);
