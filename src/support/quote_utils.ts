@@ -44,7 +44,7 @@ export const generateEmbed = (message: Message, author: UserLite): EmbedBuilder 
   message.attachments.map(a => {
     // If we don't already have an image set
     // test if the current attachment is one and add if so
-    if (embed.data.image?.url === null) {
+    if (embed.data.image?.url == null) {
       imgRegex = a.url.match(IMG_RX);
       if (imgRegex !== null) {
         embed.setImage(imgRegex[0]);
