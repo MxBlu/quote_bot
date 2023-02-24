@@ -1,5 +1,5 @@
 import { CommandBuilder, CommandProvider, Interactable, isGuildMemberAdmin, Logger } from "bot-framework";
-import { ApplicationCommandType, ButtonInteraction, ContextMenuCommandBuilder, ContextMenuCommandInteraction, GuildMember, InteractionReplyOptions, Message, MessageOptions } from "discord.js";
+import { ApplicationCommandType, ButtonInteraction, Collection, ContextMenuCommandBuilder, ContextMenuCommandInteraction, GuildBasedChannel, GuildMember, GuildTextBasedChannel, InteractionReplyOptions, Message, MessageOptions, SelectMenuInteraction } from "discord.js";
 
 import { getBestGuildMember } from "../models/UserLite.js";
 import { generateEmbed } from "../support/quote_utils.js";
@@ -8,9 +8,14 @@ class QuoteDeleteProps {
   quoter: GuildMember;
 }
 
+class SelectChannelProps {
+  quoter: GuildMember;
+  message: Message;
+}
+
 export class QuoteCommand implements CommandProvider<ContextMenuCommandInteraction> {
   logger: Logger;
-  
+
   constructor() {
     this.logger = new Logger("QuoteCommand");
   }
@@ -37,22 +42,19 @@ export class QuoteCommand implements CommandProvider<ContextMenuCommandInteracti
     const message = await interaction.channel.messages.fetch(interaction.targetId);
     const quoter = interaction.member as GuildMember;
 
-    // Generate the quoted message
-    const messageOptions = await this.doQuoteAction(message, quoter);
+    // Get list of all other channels, which is used for the new interaction handler.
+    const textBasedChannels = interaction.guild.channels.cache.filter((channels) => channels.isTextBased());
 
-    // Generate an Interactable and it's action row to allow deletion
-    const interactable = this.generateInteractable(quoter);
-    const actionRow = interactable.getActionRow();
+    const selectMenuInteractable = this.generateSelectMenuInteractable(message, textBasedChannels, quoter)
+    const stringActionRow = selectMenuInteractable.getActionRow()
 
-    // Send the reply with the action row included and fetch the resulting message
-    const quoteMessage = await interaction.reply({
-      ...messageOptions,
-      components: [ actionRow ],
-      fetchReply: true
+    const channelSelectMessage = await interaction.reply({
+      components: [stringActionRow],
+      fetchReply: true,
+      ephemeral: true
     });
 
-    // Activate the Interactable
-    interactable.activate(quoteMessage as Message);
+    selectMenuInteractable.activate(channelSelectMessage)
   }
 
   // Handle legacy (emoji react based) events
@@ -61,13 +63,13 @@ export class QuoteCommand implements CommandProvider<ContextMenuCommandInteracti
     const messageOptions = await this.doQuoteAction(message, quoter);
 
     // Generate an Interactable and it's action row to allow deletion
-    const interactable = this.generateInteractable(quoter);
+    const interactable = this.generateQuotableInteractable(quoter);
     const actionRow = interactable.getActionRow();
 
     // Add the action row to the message and send it
     const quoteMessage = await message.channel.send({
       ...messageOptions,
-      components: [ actionRow ]
+      components: [actionRow]
     });
 
     // Activate the Interactable
@@ -86,33 +88,90 @@ export class QuoteCommand implements CommandProvider<ContextMenuCommandInteracti
 
     // Send message with embed
     const messagePreamble = `**${quoter.displayName}** quoted **${author.displayName}**:`;
-    return { content: messagePreamble, embeds: [ embed ] };
+    return { content: messagePreamble, embeds: [embed] };
+  }
+
+  // Generate a custom interactable to allow user to select channel to send message into
+  private generateSelectMenuInteractable(message: Message, channels: Collection<string, GuildBasedChannel>, quoter: GuildMember): Interactable<SelectChannelProps> {
+    const interactable = new Interactable<SelectChannelProps>();
+
+    interactable.props = { quoter, message }
+
+    const stringOptionItemList = channels.map((channel) => {
+      return {
+        label: channel.name,
+        value: channel.id
+      }
+    })
+
+    interactable.registerHandler(this.selectMenuHandler, { items: stringOptionItemList }, "string")
+    return interactable;
   }
 
   // Generate an Interactable to allow user deletion of quotes
-  private generateInteractable(quoter: GuildMember): Interactable<QuoteDeleteProps> {
+  private generateQuotableInteractable(quoter: GuildMember): Interactable<QuoteDeleteProps> {
     const interactable = new Interactable<QuoteDeleteProps>();
     interactable.props = { quoter: quoter };
     interactable.registerHandler(this.deleteHandler, { emoji: "❌" });
     return interactable;
   }
 
-  private deleteHandler = async (interactable: Interactable<QuoteDeleteProps>, 
-      interaction: ButtonInteraction) => {
-        // Check permissions
-        // Only the quoter or an admin can delete a quote
-        if (interaction.member.user.id != interactable.props.quoter.id &&
-            !isGuildMemberAdmin(<GuildMember> interaction.member)) {
-          this.logger.warn(`Unauthorised attempt at quote deletion by ${interaction.member.user.username}`);
-          interaction.reply({
-            content: "Quote deletion only permitted to the quoter",
-            ephemeral: true
-          });
-          return;
-        }
+  private selectMenuHandler = async (interactable: Interactable<SelectChannelProps>, 
+    interaction: SelectMenuInteraction) => {
+    // paranoia guard class
+    if (!interaction.isSelectMenu()) return;
 
-        // Delete the message the interaction is on
-        await interactable.message.delete();
-        this.logger.debug(`${interaction.user.username} deleted quoted message`);
+    const selectedChannelValue = interaction.values[0]
+
+    // Essentially, use the interaction object to get back into the list of channels in order to have a channel object to interact with
+    // Since selectMenu is only ever manipulating text based channels, we can safely cast this
+    const channel: GuildTextBasedChannel = <GuildTextBasedChannel>interaction.channel.guild.channels.cache.get(selectedChannelValue);
+
+    // Perform type checking. Ideally would programmatically redefine instead of relying on type casting and guard checking
+    if (!channel.isTextBased) {
+      this.logger.error("Cheeky cunt attempted to repost the message in a non-text based channel.");
+      return;
+    }
+
+    // Let the user know that we're reposting the message
+    await interaction.update(`Reposting to ${channel.name}`)
+
+    // Generate the quoted message
+    const messageOptions = await this.doQuoteAction(interactable.props.message, interactable.props.quoter);
+
+    // Generate an Interactable and it's action row to allow deletion
+    const quoteInteractable = this.generateQuotableInteractable(interactable.props.quoter);
+    const actionRow = quoteInteractable.getActionRow();
+
+    // Send the reply with the action row included and fetch the resulting message
+    // WARN: Quite frankly not sure if fetchReply is needed as an argument, need to test if it breaks 
+    const quoteMessage = await channel.send({
+      ...messageOptions,
+      components: [actionRow]
+    });
+
+    // Activate the Interactable
+    interactable.activate(quoteMessage as Message);
+
+    this.logger.debug(`${interaction.user.username} has reposted to ${interaction.values[0]}`)
+  }
+
+  private deleteHandler = async (interactable: Interactable<QuoteDeleteProps>,
+    interaction: ButtonInteraction) => {
+    // Check permissions
+    // Only the quoter or an admin can delete a quote
+    if (interaction.member.user.id != interactable.props.quoter.id &&
+      !isGuildMemberAdmin(<GuildMember>interaction.member)) {
+      this.logger.warn(`Unauthorised attempt at quote deletion by ${interaction.member.user.username}`);
+      interaction.reply({
+        content: "Quote deletion only permitted to the quoter",
+        ephemeral: true
+      });
+      return;
+    }
+
+    // Delete the message the interaction is on
+    await interactable.message.delete();
+    this.logger.debug(`${interaction.user.username} deleted quoted message`);
   }
 }

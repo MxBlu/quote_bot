@@ -1,5 +1,5 @@
 import { CommandBuilder, CommandProvider, Interactable, Logger, LogLevel, sendCmdReply } from "bot-framework";
-import { ButtonInteraction, ChatInputCommandInteraction, CommandInteraction, Embed, EmbedBuilder, Message, SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandUserOption, User } from "discord.js";
+import { ButtonInteraction, ChatInputCommandInteraction, CommandInteraction, EmbedBuilder, Message, SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandUserOption, User } from "discord.js";
 
 import { QuoteDoc } from "../models/Quote.js";
 import { getBestGuildMemberById } from "../models/UserLite.js";
