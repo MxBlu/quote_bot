@@ -16,7 +16,7 @@ export const generateQuoteMsgs = async (guild: Guild, quotes: QuoteDoc[]): Promi
 
     // Generate a list of quote links for 'listquotes'
     quoteMsgs.push(`${quote.seq}: [**${quoter.displayName}** quoted **${author.displayName}** ` +
-        `(${quote.timestamp.toLocaleString()})](${quote.link})`);
+        `(<t:${Math.floor(quote.timestamp.getTime() / 1000)}:f>)](${quote.link})`);
   }
 
   return quoteMsgs;
