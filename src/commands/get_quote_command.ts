@@ -1,5 +1,5 @@
 import { CommandBuilder, CommandProvider, Interactable, Logger, LogLevel, sendCmdReply } from "bot-framework";
-import { ButtonInteraction, ChatInputCommandInteraction, CommandInteraction, Embed, EmbedBuilder, Message, SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandUserOption, User } from "discord.js";
+import { ButtonInteraction, ChatInputCommandInteraction, CommandInteraction, EmbedBuilder, Message, SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandUserOption, User } from "discord.js";
 
 import { QuoteDoc } from "../models/Quote.js";
 import { getBestGuildMemberById } from "../models/UserLite.js";
@@ -138,9 +138,9 @@ export class GetQuoteCommand implements CommandProvider<ChatInputCommandInteract
 
     // Setup interaction controls
     const interactable = new Interactable<GetQuoteProps>();
-    interactable.registerHandler(this.likeableLikeHandler, { emoji: "👍" });
-    interactable.registerHandler(this.likeableDislikeHandler, { emoji: "👎" });
-    interactable.registerHandler(this.encoreHandler, { emoji: "👏" });
+    interactable.registerButtonHandler(this.likeableLikeHandler, { emoji: "👍" });
+    interactable.registerButtonHandler(this.likeableDislikeHandler, { emoji: "👎" });
+    interactable.registerButtonHandler(this.encoreHandler, { emoji: "👏" });
     interactable.props = new GetQuoteProps();
     interactable.props.quote = quote;
     interactable.props.user = user;
