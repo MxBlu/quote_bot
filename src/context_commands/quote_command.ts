@@ -43,10 +43,12 @@ export class QuoteCommand implements CommandProvider<ContextMenuCommandInteracti
     const quoter = interaction.member as GuildMember;
 
     // Get list of all other channels, which is used for the new interaction handler.
-    const textBasedChannels = interaction.guild.channels.cache.filter((channels) => channels.isTextBased());
+    const textBasedChannels = interaction.guild.channels.cache
+      .filter((channels) => channels.isTextBased())
+      .first(25);
 
-    const selectMenuInteractable = this.generateSelectMenuInteractable(message, textBasedChannels, quoter)
-    const stringActionRow = selectMenuInteractable.getActionRow()
+    const selectMenuInteractable = this.generateSelectMenuInteractable(message, textBasedChannels, quoter);
+    const stringActionRow = selectMenuInteractable.getActionRow();
 
     const channelSelectMessage = await interaction.reply({
       components: [stringActionRow],
@@ -92,19 +94,22 @@ export class QuoteCommand implements CommandProvider<ContextMenuCommandInteracti
   }
 
   // Generate a custom interactable to allow user to select channel to send message into
-  private generateSelectMenuInteractable(message: Message, channels: Collection<string, GuildBasedChannel>, quoter: GuildMember): Interactable<SelectChannelProps> {
+  private generateSelectMenuInteractable(message: Message, channels: GuildBasedChannel[], quoter: GuildMember): Interactable<SelectChannelProps> {
     const interactable = new Interactable<SelectChannelProps>();
 
-    interactable.props = { quoter, message }
+    interactable.props = { quoter, message };
 
     const stringOptionItemList = channels.map((channel) => {
       return {
         label: channel.name,
         value: channel.id
       }
-    })
+    });
 
-    interactable.registerHandler(this.selectMenuHandler, { items: stringOptionItemList }, "string")
+    interactable.registerSelectMenuHandler(this.selectMenuHandler, {
+      items: stringOptionItemList,
+      placeholder: 'Select channel to quote to'
+    });
     return interactable;
   }
 
@@ -112,29 +117,20 @@ export class QuoteCommand implements CommandProvider<ContextMenuCommandInteracti
   private generateQuotableInteractable(quoter: GuildMember): Interactable<QuoteDeleteProps> {
     const interactable = new Interactable<QuoteDeleteProps>();
     interactable.props = { quoter: quoter };
-    interactable.registerHandler(this.deleteHandler, { emoji: "❌" });
+    interactable.registerButtonHandler(this.deleteHandler, { emoji: "❌" });
     return interactable;
   }
 
-  private selectMenuHandler = async (interactable: Interactable<SelectChannelProps>, 
+  private selectMenuHandler = async (interactable: Interactable<SelectChannelProps>,
     interaction: SelectMenuInteraction) => {
-    // paranoia guard class
-    if (!interaction.isSelectMenu()) return;
-
-    const selectedChannelValue = interaction.values[0]
+    const selectedChannelValue = interaction.values[0];
 
     // Essentially, use the interaction object to get back into the list of channels in order to have a channel object to interact with
     // Since selectMenu is only ever manipulating text based channels, we can safely cast this
-    const channel: GuildTextBasedChannel = <GuildTextBasedChannel>interaction.channel.guild.channels.cache.get(selectedChannelValue);
-
-    // Perform type checking. Ideally would programmatically redefine instead of relying on type casting and guard checking
-    if (!channel.isTextBased) {
-      this.logger.error("Cheeky cunt attempted to repost the message in a non-text based channel.");
-      return;
-    }
+    const channel: GuildTextBasedChannel = <GuildTextBasedChannel>interaction.guild.channels.cache.get(selectedChannelValue);
 
     // Let the user know that we're reposting the message
-    await interaction.update(`Reposting to ${channel.name}`)
+    await interaction.update(`Quoted to #${channel.name}`);
 
     // Generate the quoted message
     const messageOptions = await this.doQuoteAction(interactable.props.message, interactable.props.quoter);
@@ -153,7 +149,7 @@ export class QuoteCommand implements CommandProvider<ContextMenuCommandInteracti
     // Activate the Interactable
     interactable.activate(quoteMessage as Message);
 
-    this.logger.debug(`${interaction.user.username} has reposted to ${interaction.values[0]}`)
+    this.logger.debug(`${interaction.user.username} has reposted ${quoteMessage.id} to #${channel.name}`);
   }
 
   private deleteHandler = async (interactable: Interactable<QuoteDeleteProps>,
