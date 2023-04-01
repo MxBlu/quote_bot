@@ -141,8 +141,8 @@ export class ListQuotesCommand implements CommandProvider<CommandInteraction> {
 
     // Setup interaction controls
     const interactable = new Interactable<ListQuoteProps>();
-    interactable.registerHandler(this.listQuotesLeftHandler, { emoji: "⬅️" });
-    interactable.registerHandler(this.listQuotesRightHandler, { emoji: "➡️" });
+    interactable.registerButtonHandler(this.listQuotesLeftHandler, { emoji: "⬅️" });
+    interactable.registerButtonHandler(this.listQuotesRightHandler, { emoji: "➡️" });
     interactable.props = new ListQuoteProps();
     interactable.props.query = query;
     interactable.props.scope = scope;
@@ -185,7 +185,7 @@ export class ListQuotesCommand implements CommandProvider<CommandInteraction> {
     // Modify original embed with new quotes
     const newEmbed = new EmbedBuilder(interaction.message.embeds[0])
         .setDescription(quoteMsgs.join("\n"))
-        .setFooter({ text: props.skip > 0 ? `+${props.skip}` : '' });
+        .setFooter({ text: props.skip > 0 ? `+${props.skip}` : null });
     
     this.logger.debug(`${interaction.user.username} navigated quote list - ${props.scope} skip ${props.skip}`);
     interaction.update({ embeds: [ newEmbed ] });
@@ -214,7 +214,7 @@ export class ListQuotesCommand implements CommandProvider<CommandInteraction> {
     // Modify original embed with new quotes
     const newEmbed = new EmbedBuilder(interaction.message.embeds[0])
         .setDescription(quoteMsgs.join("\n"))
-        .setFooter({ text: props.skip > 0 ? `+${props.skip}` : '' });
+        .setFooter({ text: props.skip > 0 ? `+${props.skip}` : null });
     
     this.logger.debug(`${interaction.user.username} navigated quote list - ${props.scope} skip ${props.skip}`);
     interaction.update({ embeds: [ newEmbed ] });

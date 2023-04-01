@@ -1,5 +1,5 @@
 import { CommandBuilder, CommandProvider, Interactable, isGuildMemberAdmin, Logger } from "bot-framework";
-import { ApplicationCommandType, ButtonInteraction, ContextMenuCommandBuilder, ContextMenuCommandInteraction, GuildMember, InteractionReplyOptions, Message, MessageOptions } from "discord.js";
+import { ApplicationCommandType, ButtonInteraction, ContextMenuCommandBuilder, ContextMenuCommandInteraction, GuildMember, InteractionReplyOptions, Message, MessageCreateOptions } from "discord.js";
 
 import { getBestGuildMember } from "../models/UserLite.js";
 import { generateEmbed } from "../support/quote_utils.js";
@@ -75,7 +75,7 @@ export class QuoteCommand implements CommandProvider<ContextMenuCommandInteracti
   }
 
   // Generate message with quote contents
-  private async doQuoteAction(message: Message, quoter: GuildMember): Promise<InteractionReplyOptions & MessageOptions> {
+  private async doQuoteAction(message: Message, quoter: GuildMember): Promise<InteractionReplyOptions & MessageCreateOptions> {
     // Get best guild member we can for the author
     const author = await getBestGuildMember(message.guild, message.author);
 
@@ -93,7 +93,7 @@ export class QuoteCommand implements CommandProvider<ContextMenuCommandInteracti
   private generateInteractable(quoter: GuildMember): Interactable<QuoteDeleteProps> {
     const interactable = new Interactable<QuoteDeleteProps>();
     interactable.props = { quoter: quoter };
-    interactable.registerHandler(this.deleteHandler, { emoji: "❌" });
+    interactable.registerButtonHandler(this.deleteHandler, { emoji: "❌" });
     return interactable;
   }
 
