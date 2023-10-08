@@ -37,8 +37,11 @@ RUN yarn install --production
 # Default ENV arguments for application
 ENV REACTION_HANDLING_DISABLED=false
 ENV GRAPHQL_DEBUG=false
-ENV GRAPHQL_PORT=true
+ENV GRAPHQL_PORT=4000
 ENV REST_PORT=4001
+
+EXPOSE 4000/tcp
+EXPOSE 4001/tcp
 
 # Start application
 CMD yarn start
