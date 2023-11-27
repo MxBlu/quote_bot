@@ -19,7 +19,7 @@
     "apollo-server": "3.5.0",
     "apollo-server-core": "^3.5.0",
     "apollo-server-express": "3.5.0",
-    "bot-framework": "Mxblu/bot-framework#7.0.1",
+    "bot-framework": "Mxblu/bot-framework#7.1.0-dev4",
     "bufferutil": "4.0.3",
     "class-validator": "0.13.2",
     "cookie": "0.4.1",
@@ -35,7 +35,8 @@
     "reflect-metadata": "0.1.13",
     "sonic-channel": "^1.2.6",
     "type-graphql": "1.1.1",
-    "utf-8-validate": "5.0.5"
+    "utf-8-validate": "5.0.5",
+    "zookeeper": "6.0.0"
   },
   "devDependencies": {
     "@types/cookie": "0.4.1",

@@ -1,4 +1,4 @@
-import { ClientOptionsWithoutIntents, Dependency, DiscordBot } from "bot-framework";
+import { ClientOptionsWithoutIntents, Cluster, Dependency, DiscordBot } from "bot-framework";
 import { MessageReaction, User, PartialUser, Partials, GatewayIntentBits, GuildMember } from "discord.js";
 
 import { Store, StoreDependency } from "../support/store.js";
@@ -83,12 +83,22 @@ export class QuoteBotImpl extends DiscordBot {
   }
 
   private memberUpdateHandler = async (member: GuildMember): Promise<void> => {
+    // Only the cluster leader should handle commands
+    if (!Cluster.isLeader()) {
+      return;
+    }
+
     // Store member data in DB
     await Store.upsertUser(member.id, member.guild.id, member.displayName, member.user.discriminator);
     this.logger.trace(`Updated member '${member.displayName}' for guild '${member.guild.id}'`);
   }
 
-  private reactionHandler = async (reaction: MessageReaction, user: User | PartialUser): Promise<void> => {
+  private reactionHandler = async (reaction: MessageReaction, user: User | PartialUser): Promise<void> => {    
+    // Only the cluster leader should handle reactions
+    if (!Cluster.isLeader()) {
+      return;
+    }
+
     // Dumb ass shit cause Discord.js doesn't resolve them
     reaction = await reaction.fetch();
     const guildMember = await reaction.message.guild.members.fetch(user.id);

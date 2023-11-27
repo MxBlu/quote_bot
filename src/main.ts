@@ -1,4 +1,4 @@
-import { Logger } from 'bot-framework';
+import { Cluster, Logger, ZKConfig } from 'bot-framework';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
@@ -34,6 +34,14 @@ const searchHost = process.env.SONIC_HOST;
 const searchPort = parseInt(process.env.SONIC_PORT);
 const searchAuth = process.env.SONIC_AUTH;
 Search.init(searchHost, searchPort, searchAuth);
+
+// Setup cluster support
+const config: ZKConfig = {
+    connect: process.env.ZK_HOST,
+    timeout: parseInt(process.env.ZK_TIMEOUT)
+};
+const pathPrefix = process.env.ZK_PATH_PREFIX;
+Cluster.init(config, pathPrefix);
 
 // Set logger to handle global rejections
 logger.registerAsGlobal();
