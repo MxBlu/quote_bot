@@ -1,6 +1,6 @@
 {
   "name": "quote_bot",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Quote messages and store quotes",
   "main": "main.js",
   "type": "module",
@@ -19,7 +19,7 @@
     "apollo-server": "3.5.0",
     "apollo-server-core": "^3.5.0",
     "apollo-server-express": "3.5.0",
-    "bot-framework": "Mxblu/bot-framework#7.1.0",
+    "bot-framework": "Mxblu/bot-framework#7.1.1",
     "bufferutil": "4.0.3",
     "class-validator": "0.13.2",
     "cookie": "0.4.1",
