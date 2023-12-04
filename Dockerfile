@@ -48,7 +48,13 @@ ENV DISCORD_GENERAL_LOGGING_ENABLED=false
 ENV DISCORD_REGISTER_COMMANDS=true
 ENV DISCORD_REGISTER_COMMANDS_AS_GLOBAL=true
 
+ENV CLUSTER_ENABLED=false
+ENV ZK_HOST=
+ENV ZK_TIMEOUT=15000
+ENV ZK_PATH_PREFIX=/quotebot
+
 # Fetch runtime dependencies from deps stage
+COPY package.json yarn.lock ./
 COPY --from=deps /app/node_modules ./node_modules
 
 # Copy build source
