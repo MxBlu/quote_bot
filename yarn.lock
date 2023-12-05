@@ -936,9 +936,9 @@ body-parser@1.19.1, body-parser@^1.19.0:
     raw-body "2.4.2"
     type-is "~1.6.18"
 
-bot-framework@Mxblu/bot-framework#7.1.4:
-  version "7.1.4"
-  resolved "https://codeload.github.com/Mxblu/bot-framework/tar.gz/087f156811df3e96cf82330f8610815152e55be3"
+bot-framework@Mxblu/bot-framework#7.1.5:
+  version "7.1.5"
+  resolved "https://codeload.github.com/Mxblu/bot-framework/tar.gz/82e6ce61cf7f941f269d2ec0bf3eb3aef77aebbf"
   dependencies:
     discord-api-types "0.37.37"
     discord.js "14.8.0"

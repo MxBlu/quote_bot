@@ -1,6 +1,6 @@
 {
   "name": "quote_bot",
-  "version": "2.1.4",
+  "version": "2.1.5",
   "description": "Quote messages and store quotes",
   "main": "main.js",
   "type": "module",
